@@ -23,10 +23,14 @@ class Wm:
 	def closeNode(self, node):
 		if not node.ready_to_close:
 			node.win.abort()
+		
+
+	def delNode(self, node):
 		del node.win
 		#self.nodes.remove(node)
 		self.nodes[node.id] = False
 		del node
+
 
 	def shutdown(self):
 		self.shutdown_ready = True
@@ -41,15 +45,16 @@ class Wm:
 
 			self.mouse_delta_x = int(self.mouse.x) - self.control.mouse_x
 			self.mouse_delta_y = int(self.mouse.y) - self.control.mouse_y
+			self.control.mouse_lastx = self.control.mouse_x
+			self.control.mouse_lasty = self.control.mouse_y
 			self.control.mouse_x += self.mouse_delta_x
 			self.control.mouse_y += self.mouse_delta_y
 
 			self.holdelta += abs(self.mouse.dx) + abs(self.mouse.dy)
-			self.mouse.speed = min(max(self.mouse_speed * 0.7 + self.acc, self.mouse_speed * 0.7), self.mouse_speed * 1.8) * 0.6
+			#self.mouse.speed = min(max(self.mouse_speed * 0.7 + self.acc, self.mouse_speed * 0.7), self.mouse_speed * 1.8) * 0.6
 			self.acc += (abs(self.mouse.dx + self.mouse.dy) * self.mouse_speed * 0.6 - self.acc) / 5
 
-			
-
+			self.hasDelta = True
 			#mouse_display
 			#if self.trail[1] != self.trail[0]:
 			#	self.desktop.updateb(self.trail[2][1])
@@ -67,21 +72,25 @@ class Wm:
 		self.shutdown_ready = False
 
 		#mouse
-		self.isMouse = os.path.exists("/dev/input/mice") or os.path.exists("/dev/input/mouse0")
+		#self.isMouse = os.path.exists("/dev/input/mice") or os.path.exists("/dev/input/mouse0")
+		self.isMouse = len(inpd.mouses) > 0
+		self.isMouse = True
 		self.mouse_job = False
 		if self.isMouse:
 			self.cursor_symbol = {"base":"#", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"^\nV"}
 			self.holdout = 36
 			self.mouse_cursor = "base"
 			#self.mouse_speed = 0.8
-			self.mouse_speed = 0.44
-			self.mouse = Mice(self.screen_width, self.screen_height, self.mouse_speed)
+			#self.mouse_speed = 0.44
+			self.mouse_speed = 0.23
+			self.mouse = Mice(self.screen_width, self.screen_height, self.mouse_speed, inpd)
 			self.mouse_delta_x = 0
 			self.mouse_delta_y = 0
 			self.trail = [[0, 0], [0, 0], [0, 0]]
 			self.mouse_buttons = [0, 0, 0]
 			self.holdelta = 0
 			self.acc = 0
+			self.hasDelta = False
 		else:
 			self.mouse = 0
 
@@ -102,7 +111,11 @@ class Wm:
 
 		#threading
 		self.input_thread = threading.Thread(target=self._mouse)
+		#mouse x and y delta. Not via evdev, but from /dev/input/mice. Mouse buttons from that file is often unreadable. Legacy
 		self.input_thread.start()
+
+		#window management
+		self.moving_node = False
 
 
 
@@ -127,13 +140,14 @@ class Wm:
 
 	def _mouse_click(self):
 		handler = [0, 0, 0]
-		for i in range(1):
+		self.mouse.state_update()
+		for i in range(3):
 			if self.mouse.state[i] == 1:
-				if self.mouse_buttons[i] == 0:
+				if self.control.mouse_buttons[i] == 0:
 					self.mouse_buttons[i] = 1
 					self.control.mouse_buttons[i] = 1
 					handler[i] = 1
-				elif self.mouse_buttons[i] == 1:
+				elif self.control.mouse_buttons[i] == 1:
 					self.mouse_buttons[i] = 2
 					self.control.mouse_buttons[i] = 2
 					self.holdelta = 0
@@ -154,29 +168,33 @@ class Wm:
 				else:
 					handler[i] = 3
 					self.control.mouse_buttons[i] = 3
-
 			elif self.control.mouse_buttons[i] == 3 or self.control.mouse_buttons[i] == 6:
 				self.mouse_buttons[i] = 0
 				self.control.mouse_buttons[i] = 0
+				handler[i] = -1
 
 
 		if handler[0] == 3:
 			#left mouse button click
 			for node in self.nodes:
 				if node:
-					if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y and self.mouse.x >= node.from_x and self.mouse.x < node.to_x:
+					if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x:
 						if self.mouse.y >= node.from_y:
 							node.click(0, self.mouse.x, self.mouse.y)
-						elif self.mouse.x == node.to_x - 1:
+						elif self.mouse.x == node.to_x:
 							node.abort()
-		elif self.control.mouse_buttons[0] == 5:
+		elif handler[0] == 4:
 			for node in self.nodes:
-				if node:
+				if node and not node.is_fullscreen and node.windowed:
 					if self.mouse.x >= node.from_x and self.mouse.y == node.from_y - 1 and self.mouse.x < node.to_x:
-						node.move(self.mouse_delta_y, self.mouse_delta_x)
-
+						self.moving_node = node
+		elif self.moving_node and self.control.mouse_buttons[0] == 5 and self.hasDelta:
+			self.moving_node.move(self.mouse_delta_y, self.mouse_delta_x)
+		elif handler[0] == -1:
+			self.moving_node = False
 		#self.display.root.addstr(10, 5, str(self.mouse.state))
 		self.display.root.addstr(10, 5, str(self.control.mouse_buttons))
+		self.hasDelta = False
 		return 0
 
 
@@ -220,12 +238,15 @@ class Wm:
 
 	def process(self):
 
-		#proces mouse click
+		#proces mouse buttons
 		if self.isMouse:
 			self._mouse_click()
 
 		for node in self.nodes:
 			if node:
-				node.process()
+				if node.ready_to_close:
+					self.delNode(node)
+				else:
+					node.process()
 
 		return self.error

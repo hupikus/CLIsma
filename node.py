@@ -1,6 +1,5 @@
 import sys
 import os
-import asyncio
 import pydoc
 from ui import UI
 from apps.apps import App
@@ -17,8 +16,9 @@ class Node:
 		self.from_y = from_y
 		self.height = height
 		self.width = width
-		
 
+		self.child_nodes = []
+		
 		#app
 		if class_path[:12] == "apps.default":
 			self.app = App("default/" + class_name)
@@ -45,6 +45,7 @@ class Node:
 			self.to_y = self.win.preferred_height + from_y - 1
 			self.height = self.win.preferred_height
 			self.width = self.win.preferred_width
+		#TODO: preferred size should be in .app file
 
 		self.windowed = True
 
@@ -115,6 +116,21 @@ class Node:
 		return 0
 
 
+
+#Window Manager
+	def newNode(self, parent_path, class_name, y, x, height, width):
+		if len(self.child_nodes) > 13: return False
+
+		newin = self.wm.newNode(parent_path, class_name, y, x, height, width)
+		self.child_nodes.append(newin.node)
+		return newin
+
+
+	def closeNode(self, node):
+		self.child_nodes.remove(node)
+		if node != self:
+			node.abort()
+
 #Window Manager Decoration
 
 	def setKindness(self, id):
@@ -135,5 +151,4 @@ class Node:
 	def abort(self):
 		self.win.abort()
 		self.ready_to_close = True
-		self.wm.closeNode(self)
 

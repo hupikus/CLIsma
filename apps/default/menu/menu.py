@@ -11,8 +11,7 @@ class menu:
 		self.height = height
 		self.width = width
 
-
-		self.preferred_height = 4
+		self.preferred_height = 18
 		self.preferred_width = 45
 
 
@@ -23,8 +22,10 @@ class menu:
 
 
 	def draw(self):
-		self.node.appendStr(0, 0, '-' * self.width)
-		self.node.appendStr(2, 0, '-' * self.width)
+		title = "CLIde menu"
+		titwid = self.width - 10
+		self.node.appendStr(0, 0, '-' * round(titwid / 2 - 0.5) + title + '-' * round(titwid / 2 + 0.5))
+		self.node.appendStr(2, 0, ' ' * self.width)
 
 
 	def process(self):

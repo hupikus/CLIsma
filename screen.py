@@ -12,12 +12,14 @@ class Screen():
 		#preparation
 		self.screen = curses.initscr()
 
-		curses.curs_set(0)
-
 
 		#ASCII screen
 		self.root = curses.newwin(self.height, self.width, 0, 0)
 		#self.srend = [[' ' for x in range(self.width)] for y in range(self.height)]
+
+		#set up the env
+		self.root.nodelay(1)
+		curses.curs_set(0)
 
 
 	def draw(self):

@@ -82,5 +82,5 @@ except:
 	else:
 		work = False
 		error = True
-		abort("Unknown error.")
+		#abort("Unknown error.")
 		
