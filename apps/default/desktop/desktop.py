@@ -8,7 +8,7 @@ class desktop:
 		self.tick = 0
 		#self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
 		self.node.ui.clickArea("menu", self.menu, 0, self.height - 4, 3, 5)
-		self.node.ui.slider("test", self.abort, 12, 8, 11)
+		self.node.ui.slider("test", self.to_shutdown, 12, 8, 11)
 		#for i in range(self.applen):
 			#self.node.ui.clickArea()
 
@@ -41,9 +41,12 @@ class desktop:
 		self.ready += 1
 
 	def abort(self):
+		pass
+	
+
+	def to_shutdown(self, name):
 		self.state = "shutdown"
 		self.ready = 1
-
 
 	def __init__(self, id, node, controller, height, width):
 		self.id = id
@@ -54,7 +57,7 @@ class desktop:
 		self.ismenu = False
 		
 
-		if self.height < 10 or self.width < 27:
+		if self.height < 14 or self.width < 27:
 			self.state = "minimal"
 		else:
 			self.state = "regular"
@@ -127,11 +130,11 @@ class desktop:
 
 	def click(self, button, x, y):
 		if x == self.width - 1 and y == 0:
-			self.abort()
+			self.to_shutdown("user")
 
 
 
-	def menu(self):
+	def menu(self, name):
 		if not self.ismenu:
 			self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4)).node
 			self.menunode.windowed = False

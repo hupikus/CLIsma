@@ -22,14 +22,14 @@ class Mice():
 
 	def state_update(self):
 		self.state = [0, 0, 0]
-		keys = self.devices[0].active_keys()
-		self.state = [272 in keys, 273 in keys,  274 in keys]
-		#for dev in self.devices:
-		#	keys = dev.active_keys()
-		#	self.state = [self.state[0] or 272 in keys, self.state[1] or 273 in keys, self.state[2] or 274 in keys]
-			#for q in range(3):
-			#	if self.state[q] == 0:
-			#		self.state[q] = self.state[q] or (272 + q) in keys
+		#keys = self.devices[0].active_keys()
+		#self.state = [272 in keys, 273 in keys,  274 in keys]
+		for dev in self.devices:
+			keys = dev.active_keys()
+			self.state = [self.state[0] or 272 in keys, self.state[1] or 273 in keys, self.state[2] or 274 in keys]
+			for q in range(3):
+				if self.state[q] == 0:
+					self.state[q] = self.state[q] or (272 + q) in keys
 
 	def abort(self):
 		pass

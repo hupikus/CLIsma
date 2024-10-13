@@ -1,0 +1,4 @@
+curses
+evdev
+ptyprocess
+threading

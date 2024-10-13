@@ -3,6 +3,15 @@ import sys
 import evdev
 import time
 
+#not an actual code
+
+
+
+
+
+
+
+
 
 EV_MSC = 0x04
 EV_KEY = 0x01

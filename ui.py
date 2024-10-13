@@ -16,7 +16,7 @@ class UI:
 
 
 	def clicked(self, name):
-		self.els["buttons"][name][0]()
+		self.els["buttons"][name][0](name)
 		#self.node.win.state = "shutdown"
 
 

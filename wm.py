@@ -1,5 +1,4 @@
 import sys
-import argparse
 import os
 import threading
 import time
@@ -96,7 +95,6 @@ class Wm:
 
 		#auto
 		self.nodes = []
-		self.active = 0
 		self.id = 0
 		self.error = 0
 		self.control = Controller(self.mouse)
@@ -116,6 +114,9 @@ class Wm:
 
 		#window management
 		self.moving_node = False
+
+		#focus and focused input
+		self.focus_id = 0
 
 
 
@@ -176,17 +177,23 @@ class Wm:
 
 		if handler[0] == 3:
 			#left mouse button click
-			for node in self.nodes:
+			for id in range(self.id):
+				node = self.nodes[id]
 				if node:
-					if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x:
+					if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
 						if self.mouse.y >= node.from_y:
+							#click
+							self.focus_id = id
 							node.click(0, self.mouse.x, self.mouse.y)
 						elif self.mouse.x == node.to_x:
 							node.abort()
 		elif handler[0] == 4:
-			for node in self.nodes:
+			for id in range(self.id):
+				node = self.nodes[id]
 				if node and not node.is_fullscreen and node.windowed:
 					if self.mouse.x >= node.from_x and self.mouse.y == node.from_y - 1 and self.mouse.x < node.to_x:
+						#focus and move
+						self.focus_id = id
 						self.moving_node = node
 		elif self.moving_node and self.control.mouse_buttons[0] == 5 and self.hasDelta:
 			self.moving_node.move(self.mouse_delta_y, self.mouse_delta_x)
@@ -219,12 +226,14 @@ class Wm:
 		if self.isMouse:
 			self.isMouse = False
 			self.mouse.abort()
-			self.input_thread.join()
+			self.input_thread._stop()
+			#self.input_thread.join()
 
 
 	def draw(self):
 		#draw all nodes
-		for node in self.nodes:
+		for id in range(self.id):
+			node = self.nodes[id]
 			if node:
 				self.error += node.draw()
 				self.decoration(node)
@@ -242,7 +251,8 @@ class Wm:
 		if self.isMouse:
 			self._mouse_click()
 
-		for node in self.nodes:
+		for id in range(self.id):
+			node = self.nodes[id]
 			if node:
 				if node.ready_to_close:
 					self.delNode(node)
