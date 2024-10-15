@@ -7,6 +7,7 @@
 - evdev
 - ptyprocess
 - threading
+- python 3.6 or newer
 
 ## Use
 Just execute **main.py** with sudo or root, while in the folder.
