@@ -7,6 +7,7 @@
 - evdev
 - ptyprocess
 - threading
+- pydoc
 - python 3.6 or newer
 
 ## Use
