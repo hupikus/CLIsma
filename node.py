@@ -147,9 +147,9 @@ class Node:
 
 	def click(self, button, y, x):
 		if self.sub:
-			if self.sub[self.controller.MouseEvents]:
-				if self.ui.click(button, x - self.from_x, y - self.from_y):
-					self.win.click(button, x - self.from_x, y - self.from_y)
+			if self.ui.click(button, y - self.from_y, x - self.from_x):
+				if self.sub[self.controller.MouseEvents]:
+					self.win.click(button,  y - self.from_y, x - self.from_x)
 
 
 

@@ -193,7 +193,7 @@ class Wm:
 								self.focus_id = id
 								if id != 0:
 									focus_changed = True
-							node.click(0, self.mouse.x, self.mouse.y)
+							node.click(0, self.mouse.y, self.mouse.x)
 						elif self.mouse.x == node.to_x:
 							node.abort()
 		elif handler[0] == 4:

@@ -21,19 +21,8 @@ class Screen():
 		self.root.nodelay(1)
 		curses.curs_set(0)
 
-
 	def draw(self):
-#		for y in range(self.height - 1):
-#			self.root.move(y, 0)
-#
-#			try:
-#				self.root.addstr(''.join(self.srend[y]))
-#			except curses.error:
-#				pass
-
 		self.root.refresh()
-		return 0
-
 
 	def abort(self):
 		self.root.move(0, 0)

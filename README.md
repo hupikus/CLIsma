@@ -17,3 +17,4 @@ Just execute **main.py** with sudo or root, while in the folder.
 cd ./CLIsma
 sudo python main.py
 ```
+    

@@ -7,7 +7,7 @@ class Controller:
 		self.mouse_x, self.mouse_y = (0, 0)
 		self.mouse_lastx, self.mouse_lasty = (0, 0)
 		self.mouse_buttons = [0, 0, 0]
-		if self.mouse == 0:
+		if not self.mouse:
 			self.mode = "kbrd"
 		else:
 			self.mode = "full"

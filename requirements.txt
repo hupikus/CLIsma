@@ -2,3 +2,4 @@ curses
 evdev
 ptyprocess
 threading
+pydoc

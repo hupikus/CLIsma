@@ -4,6 +4,8 @@ import time
 from userglobals import userglobals
 from apps.apphabit import apphabit
 class desktop(apphabit):
+
+	
 	def start(self):
 		self.tick = 0
 		#self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
