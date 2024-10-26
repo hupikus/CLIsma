@@ -24,9 +24,13 @@ class Mice():
 		self.state = [0, 0, 0]
 		#keys = self.devices[0].active_keys()
 		#self.state = [272 in keys, 273 in keys,  274 in keys]
+
+		#272 - 274: mouse buttons (left, middle, right)
 		for dev in self.devices:
 			keys = dev.active_keys()
 			self.state = [self.state[0] or 272 in keys, self.state[1] or 273 in keys, self.state[2] or 274 in keys]
+
+			#self.state = 
 			for q in range(3):
 				if self.state[q] == 0:
 					self.state[q] = self.state[q] or (272 + q) in keys
@@ -46,6 +50,10 @@ class Mice():
 		self.rx, self.ry = (0, 0)
 		self.ratx, self.raty = (0.0, 0.0)
 		self.dx, self.dy = (0, 0)
+		
+
+		self.wheel = 0
+
 		self.isMouse = True
 
 

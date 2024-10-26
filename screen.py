@@ -23,6 +23,7 @@ class Screen():
 
 	def draw(self):
 		self.root.refresh()
+		return 0
 
 	def abort(self):
 		self.root.move(0, 0)
