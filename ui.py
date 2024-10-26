@@ -35,17 +35,19 @@ class UI:
 				if y == slider[1]:
 					if x >= slider[2] and x <= slider[3]:
 						#self.clicked(j)
-						slider[4] += 1
+						slider[4] = x - slider[2]
 						r = False
 		return r
 
 	def clickArea(self, name, event, y, x, height, width):
+		#event, yStart, xStart, yEnd, xEnd
 		self.els["buttons"][name] = [event, y, x, y + height, x + width]
 		self.hsh["buttons"].append(name)
 
 
 
 	def slider(self, name, event, y, x, width):
+		#event, y, x, xEnd, position
 		self.els["sliders"][name] = [event, y, x, x + width, 5]
 		self.hsh["sliders"].append(name)
 

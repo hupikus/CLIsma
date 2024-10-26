@@ -8,6 +8,9 @@ from screen import Screen
 from inpdevices import DeviceHandler
 work = True
 
+
+import apps.apphabit
+
 def abort(msg):
 	global work
 	work = False

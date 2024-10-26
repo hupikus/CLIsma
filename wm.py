@@ -16,6 +16,7 @@ class Wm:
 		parent_path += '.' + class_name + '.' + class_name
 		node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name)
 		self.nodes.append(node)
+		self.order.append(self.id)
 		self.id += 1
 		return node.win
 
@@ -28,6 +29,7 @@ class Wm:
 		del node.win
 		#self.nodes.remove(node)
 		self.nodes[node.id] = False
+		self.order.remove(node.id)
 		del node
 
 
@@ -99,6 +101,9 @@ class Wm:
 		self.error = 0
 		self.control = Controller(self.mouse)
 
+		#draw and click order
+		self.order = []
+
 		#startup nodes
 		#self.newNode(&Desktop)
 		self.desktop = self.newNode("apps.default", "desktop", 0, 0, self.screen_height, self.screen_width)
@@ -106,6 +111,7 @@ class Wm:
 		self.desktop.node.is_fullscreen = True
 
 		self.newNode("apps.default", "default", 7, 7, 2, 65)
+		self.log = self.newNode("apps.default", "log", 18, 12, 5, 45)
 
 		#threading
 		self.input_thread = threading.Thread(target=self._mouse)
@@ -174,31 +180,46 @@ class Wm:
 				self.control.mouse_buttons[i] = 0
 				handler[i] = -1
 
-
+		focus_changed = False
 		if handler[0] == 3:
 			#left mouse button click
-			for id in range(self.id):
+			for id in self.order:
 				node = self.nodes[id]
 				if node:
-					if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
+					if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y + 1 and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
 						if self.mouse.y >= node.from_y:
 							#click
-							self.focus_id = id
+							if self.focus_id != id:
+								self.focus_id = id
+								if id != 0:
+									focus_changed = True
 							node.click(0, self.mouse.x, self.mouse.y)
 						elif self.mouse.x == node.to_x:
 							node.abort()
 		elif handler[0] == 4:
-			for id in range(self.id):
+			#start of drag
+			for id in self.order:
 				node = self.nodes[id]
 				if node and not node.is_fullscreen and node.windowed:
 					if self.mouse.x >= node.from_x and self.mouse.y == node.from_y - 1 and self.mouse.x < node.to_x:
 						#focus and move
-						self.focus_id = id
+						if self.focus_id != id:
+								self.focus_id = id
+								if id != 0:
+									focus_changed = True
 						self.moving_node = node
 		elif self.moving_node and self.control.mouse_buttons[0] == 5 and self.hasDelta:
+			#moving
 			self.moving_node.move(self.mouse_delta_y, self.mouse_delta_x)
 		elif handler[0] == -1:
 			self.moving_node = False
+		
+
+		if focus_changed:
+			id_ind = self.order.index(self.focus_id)
+			self.order[-1], self.order[id_ind] = self.order[id_ind], self.order[-1]
+
+
 		#self.display.root.addstr(10, 5, str(self.mouse.state))
 		self.display.root.addstr(10, 5, str(self.control.mouse_buttons))
 		self.hasDelta = False
@@ -218,8 +239,10 @@ class Wm:
 				if x_offcut < 0:
 					x_offcut *= -1
 					self.display.root.addstr(max(node.from_y - 1, 0), 0, ('_' * min(max(0, node.width - len(bts)), self.screen_width - node.from_x) + bts)[x_offcut:])
+					#self.display.root.addstr(max(node.from_y - 1, 0), 0, (node.name.center(min(max(0, node.width - len(bts)), self.screen_width - node.from_x) - 1, '_') + bts)[x_offcut:])
 				else:
 					self.display.root.addstr(max(node.from_y - 1, 0), x_offcut, '_' * min(max(0, node.width - len(bts)), self.screen_width - node.from_x) + bts)
+					#self.display.root.addstr(max(node.from_y - 1, 0), x_offcut, node.name.center(min(max(0, node.width - len(bts)), self.screen_width - node.from_x) - 10, '_') + bts)
 
 	def abort(self):
 		
@@ -232,7 +255,7 @@ class Wm:
 
 	def draw(self):
 		#draw all nodes
-		for id in range(self.id):
+		for id in self.order:
 			node = self.nodes[id]
 			if node:
 				self.error += node.draw()

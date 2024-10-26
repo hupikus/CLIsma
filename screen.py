@@ -37,6 +37,7 @@ class Screen():
 
 	def abort(self):
 		self.root.move(0, 0)
+		self.root.addstr(0, 0, ' ' * self.width)
 		curses.curs_set(1)
 		self.screen.clear()
 		curses.echo()

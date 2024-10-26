@@ -1,4 +1,5 @@
-class default:
+from apps.apphabit import apphabit
+class default(apphabit):
 	
 	def abort(self):
 		pass
@@ -16,15 +17,18 @@ class default:
 		self.preferred_width = 45
 
 		#input
-		#self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
+		self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
+
+		#non api
+		self.counter = 1
 
 
 	def draw(self):
+		
 		self.node.appendStr(0, 0, '*' * self.width)
-		self.node.appendStr(1, 0, '*' * self.width)
+		self.node.appendStr(1, 0, str(self.counter).center(self.width, '*'))
 		self.node.appendStr(0, 0, "This is default window")
 		self.node.appendStr(2, 0, "Default window contains minimal api usage")
 
-
-	def process(self):
-		pass
+	def click(self, button, y, x):
+		self.counter += 1

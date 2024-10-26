@@ -1,16 +1,16 @@
 from apps.apps import App
 import threading
 import time
-
-class desktop:
-
+from userglobals import userglobals
+from apps.apphabit import apphabit
+class desktop(apphabit):
 	def start(self):
 		self.tick = 0
 		#self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
-		self.node.ui.clickArea("menu", self.menu, 0, self.height - 4, 3, 5)
+		self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
 		self.node.ui.slider("test", self.to_shutdown, 12, 8, 11)
-		#for i in range(self.applen):
-			#self.node.ui.clickArea()
+		for i in range(self.applen):
+			self.node.ui.clickArea("app" + str(i), self.dockapp_clicked, self.height - 4, self.space * (i + 1), 3, 5)
 
 		#desktop view allocation (static partst)
 		self.dekstop_str = ["Bepis", "Bepis", "Bepis", "Bepis"]
@@ -25,8 +25,8 @@ class desktop:
 		#ticks and fps counter
 		self.fpsc = 0
 		self.tickc = 0
-		self.fps_rate = "30"
-		self.tick_rate = "240"
+		self.fps_rate = "60"
+		self.tick_rate = "90"
 		counter_thread = threading.Thread(target=self.fpsleep)
 		counter_thread.start()
 
@@ -34,7 +34,6 @@ class desktop:
 		while self.ready == 0:
 			time.sleep(1)
 			self.fps_rate = str(self.fpsc)
-			self.fps_rate = "70"
 			self.tick_rate = str(self.tickc)
 			self.fpsc = 0
 			self.tickc = 0
@@ -54,6 +53,9 @@ class desktop:
 		self.controller = controller
 		self.width = width
 		self.height = height
+		
+		self.preferred_height = 80
+		self.preferred_width = 24
 		self.ismenu = False
 		
 
@@ -72,8 +74,8 @@ class desktop:
 			self.greetmsg = "Minimal mode"
 			self.apps = [App("default/settings"), App("default/terminal")]
 		else:
-			self.greetmsg = "Welcome to CLI System Management Accompanier!"
-			self.apps = [App("default/settings"), App("default/terminal")]
+			self.greetmsg = "Welcome to CLI System Management Accompanier! (" + userglobals.username + " session)"
+			self.apps = [App("default/settings"), App("default/terminal"), App("default/fileman")]
 			
 		#self.apps = [App("default/settings"), App("default/settings")]
 
@@ -128,7 +130,7 @@ class desktop:
 		if self.ready == 2:
 			self.wm.shutdown()
 
-	def click(self, button, x, y):
+	def click(self, button, y, x):
 		if x == self.width - 1 and y == 0:
 			self.to_shutdown("user")
 
@@ -142,3 +144,13 @@ class desktop:
 			self.node.closeNode(self.menunode)
 		self.ismenu = not self.ismenu
 
+
+	def dockapp_clicked(self, name):
+		#self.wm.log.Message(open + self.apps[int(name[3:])].name)
+		self.launchApp(self.apps[int(name[3:])])
+
+	def launchApp(self, app, returned = False):
+		if returned:
+			return self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0).node
+		else:
+			self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0)

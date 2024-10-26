@@ -24,6 +24,11 @@ class Node:
 			self.app = App("default/" + class_name)
 		else:
 			self.app = App(class_name)
+		
+		if self.app.valid:
+			self.name = self.app.name
+		else:
+			self.name = "App " + str(id)
 
 
 		#auto
@@ -140,7 +145,7 @@ class Node:
 
 #input listeners
 
-	def click(self, button, x, y):
+	def click(self, button, y, x):
 		if self.sub:
 			if self.sub[self.controller.MouseEvents]:
 				if self.ui.click(button, x - self.from_x, y - self.from_y):
