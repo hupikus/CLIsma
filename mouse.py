@@ -30,7 +30,7 @@ class Mice():
 			keys = dev.active_keys()
 			self.state = [self.state[0] or 272 in keys, self.state[1] or 273 in keys, self.state[2] or 274 in keys]
 
-			#self.state = 
+			self.relstate = [6 in keys]
 			for q in range(3):
 				if self.state[q] == 0:
 					self.state[q] = self.state[q] or (272 + q) in keys

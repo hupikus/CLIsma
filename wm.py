@@ -222,6 +222,7 @@ class Wm:
 
 		#self.display.root.addstr(10, 5, str(self.mouse.state))
 		self.display.root.addstr(10, 5, str(self.control.mouse_buttons))
+		self.display.root.addstr(12, 5, str(self.mouse.relstate))
 		self.hasDelta = False
 		return 0
 

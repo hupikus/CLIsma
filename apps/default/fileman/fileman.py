@@ -2,9 +2,6 @@ import os
 from apps.apphabit import apphabit
 class fileman(apphabit):
 
-    def abort(self):
-        pass
-
     def __init__(self, id, node, controller, height, width):
 		#base
         self.id = id

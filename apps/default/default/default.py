@@ -1,8 +1,5 @@
 from apps.apphabit import apphabit
 class default(apphabit):
-	
-	def abort(self):
-		pass
 
 	def __init__(self, id, node, controller, height, width):
 		#base

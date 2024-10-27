@@ -5,12 +5,11 @@ from userglobals import userglobals
 from apps.apphabit import apphabit
 class desktop(apphabit):
 
-	
+
 	def start(self):
 		self.tick = 0
 		#self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
 		self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
-		self.node.ui.slider("test", self.to_shutdown, 12, 8, 11)
 		for i in range(self.applen):
 			self.node.ui.clickArea("app" + str(i), self.dockapp_clicked, self.height - 4, self.space * (i + 1), 3, 5)
 
@@ -40,9 +39,6 @@ class desktop(apphabit):
 			self.fpsc = 0
 			self.tickc = 0
 		self.ready += 1
-
-	def abort(self):
-		pass
 	
 
 	def to_shutdown(self, name):

@@ -1,9 +1,5 @@
-class terminal:
-
-
-
-	def abort(self):
-		pass
+from apps.apphabit import apphabit
+class terminal(apphabit):
 
 	def __init__(self, id, node, controller, height, width):
 		#base
@@ -12,7 +8,6 @@ class terminal:
 		self.controller = controller
 		self.height = height
 		self.width = width
-
 
 		self.preferred_height = 15
 		self.preferred_width = 15
@@ -24,9 +19,3 @@ class terminal:
 	def draw(self):
 		for y in range(5):
 			self.node.appendStr(0, 0, ' ' * self.width)
-
-
-
-
-	def process(self):
-		pass

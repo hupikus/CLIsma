@@ -1,7 +1,7 @@
 class apphabit:
+    
     preferred_height = 9
     preferred_width = 45
-
 
     #ABCS
 

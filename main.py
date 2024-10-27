@@ -6,6 +6,10 @@ import time
 from wm import Wm
 from screen import Screen
 from inpdevices import DeviceHandler
+
+from worldglobals import worldglobals
+
+
 work = True
 
 
@@ -43,14 +47,14 @@ def draw_loop():
 		if error > 0:
 			abort("Display exited with code 1.")
 
-		time.sleep(0.0166)
+		time.sleep(1 / worldglobals.framerate)
 
 #main loop
 def main_loop():
 		l = threading.Lock()
 		l.acquire()
 		while work:
-			time.sleep(0.01)
+			time.sleep(1 / worldglobals.processrate)
 
 			error = 0
 
