@@ -124,6 +124,7 @@ class Wm:
 
 		#window management
 		self.moving_node = False
+		self.move_type = -1
 
 		#focus and focused input
 		self.focus_id = 0
@@ -202,7 +203,7 @@ class Wm:
 						elif self.mouse.x == node.to_x:
 							node.abort()
 							break
-		elif handler[0] == 4:
+		elif handler[0] == 1:
 			#start of drag
 			for id in self.order[::-1]:
 				node = self.nodes[id]
@@ -214,11 +215,42 @@ class Wm:
 								if id != 0:
 									focus_changed = True
 						self.moving_node = node
+						self.move_type = 0
+						break
+					elif self.mouse.y >= node.from_y - 1 and self.mouse.y < node.to_y and (self.mouse.x == node.to_x + 1 or self.mouse.x == node.from_x - 1):
+						#focus and move right or left side
+						if self.mouse.x == node.to_x + 1:
+							self.move_type = 1
+						else:
+							self.move_type = 3
+
+						if self.focus_id != id:
+								self.focus_id = id
+								if id != 0:
+									focus_changed = True
+						self.moving_node = node
+						break
+					elif self.mouse.x >= node.from_x and self.mouse.x <= node.to_x and self.mouse.y == node.to_y + 1:
+						#focus and move bottom side
+						if self.focus_id != id:
+								self.focus_id = id
+								if id != 0:
+									focus_changed = True
+						self.moving_node = node
+						self.move_type = 2
+						break
+
 		elif self.moving_node and self.control.mouse_buttons[0] == 5 and self.hasDelta:
-			#moving
-			self.moving_node.move(self.mouse_delta_y, self.mouse_delta_x)
+			if self.move_type == 0:
+				#drag
+				self.moving_node.move(self.mouse_delta_y, self.mouse_delta_x)
+			elif self.move_type == 2:
+				self.moving_node.reborder(2, self.mouse_delta_y)
+			else:
+				self.moving_node.reborder(self.move_type, self.mouse_delta_x)
 		elif handler[0] == -1:
 			self.moving_node = False
+			self.move_type = -1
 		
 
 		if focus_changed:

@@ -23,7 +23,8 @@ class error(apphabit):
 			elif mode == "append":
 				self.text  = self.text + ' ' + i
 				if i[-1]== "'" or i[-1] == '"':
-					self.text = self.text[:-1].center(self.width, ' ')
+					self.text = self.text[:-1]
+					self.displaytext = self.text.center(self.width, ' ')
 					mode = ''
 				
 		
@@ -43,9 +44,12 @@ class error(apphabit):
 		os.system('echo -e "\\a"')
 		self.argparser(params)
 
-
-
 	def draw(self):
 		self.node.appendStr(0, 0, '-' * self.width)
-		self.node.appendStr(1, 0, self.text)
+		self.node.appendStr(1, 0, self.displaytext)
 		self.node.appendStr(2, 0, '-' * self.width)
+	
+	def onresize(self, height, width):
+		self.height = height
+		self.width = width
+		self.displaytext = self.text.center(self.width, ' ')

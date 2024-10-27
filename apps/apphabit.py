@@ -21,7 +21,7 @@ class apphabit:
 
     #NODE EVENTS
 
-    def onresize(self, width, height):
+    def onresize(self, height, width):
         self.height = height
         self.width = width
 

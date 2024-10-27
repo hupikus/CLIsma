@@ -106,7 +106,17 @@ class Node:
 		self.to_x = self.from_x + self.width - 1
 
 
-
+	def reborder(self, side, delta):
+		if side == 1:
+			self.width += delta
+			self.to_x += delta
+		elif side == 2:
+			self.height += delta
+			self.to_y += delta
+		elif side == 3:
+			self.width -= delta
+			self.from_x += delta
+		self.win.onresize(self.height, self.width)
 
 
 	def process(self):
