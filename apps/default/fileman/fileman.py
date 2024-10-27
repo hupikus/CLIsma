@@ -2,7 +2,7 @@ import os
 from apps.apphabit import apphabit
 class fileman(apphabit):
 
-    def __init__(self, id, node, controller, height, width):
+    def __init__(self, id, node, controller, height, width, params):
 		#base
         self.id = id
         self.node = node
@@ -27,9 +27,9 @@ class fileman(apphabit):
 
 
     def draw(self):
-        self.node.appendStr(0, 0, scspaceape)
-        self.node.appendStr(1, 0, scspaceape)
-        self.node.appendStr(2, 0, scspaceape)
+        self.node.appendStr(0, 0, self.space)
+        self.node.appendStr(1, 0, self.space)
+        self.node.appendStr(2, 0, self.space)
         #self.node.appendStr(2, 0, '\n'.join(filelistt))
 
 

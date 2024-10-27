@@ -2,7 +2,7 @@ from apps.apphabit import apphabit
 from log import loghandler
 class log(apphabit):
 
-	def __init__(self, id, node, controller, height, width):
+	def __init__(self, id, node, controller, height, width, params):
 		#base
 		self.id = id
 		self.node = node

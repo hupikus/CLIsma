@@ -8,7 +8,7 @@ class menu(apphabit):
 		app = App(id)
 		self.node.abort()
 
-	def __init__(self, id, node, controller, height, width):
+	def __init__(self, id, node, controller, height, width, params):
 		#base
 		self.id = id
 		self.node = node

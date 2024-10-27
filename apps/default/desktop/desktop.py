@@ -45,7 +45,7 @@ class desktop(apphabit):
 		self.state = "shutdown"
 		self.ready = 1
 
-	def __init__(self, id, node, controller, height, width):
+	def __init__(self, id, node, controller, height, width, params):
 		self.id = id
 		self.node = node
 		self.controller = controller
@@ -136,7 +136,7 @@ class desktop(apphabit):
 
 	def menu(self, name):
 		if not self.ismenu:
-			self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4)).node
+			self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4), '').node
 			self.menunode.windowed = False
 		else:
 			self.node.closeNode(self.menunode)
@@ -149,6 +149,6 @@ class desktop(apphabit):
 
 	def launchApp(self, app, returned = False):
 		if returned:
-			return self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0).node
+			return self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0, '').node
 		else:
-			self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0)
+			self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0, '')

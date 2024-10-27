@@ -1,7 +1,7 @@
 from apps.apphabit import apphabit
 class terminal(apphabit):
 
-	def __init__(self, id, node, controller, height, width):
+	def __init__(self, id, node, controller, height, width, params):
 		#base
 		self.id = id
 		self.node = node

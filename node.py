@@ -7,7 +7,7 @@ from apps.apps import App
 
 class Node:
 
-	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name):
+	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params):
 		self.id = id
 		self.wm = wm
 		self.controller = self.wm.control
@@ -44,7 +44,7 @@ class Node:
 		#cls = getattr(__import__(class_path), class_name)
 		#mod = exec("from " + class_path + " import " + class_name)
 		cls = pydoc.locate(class_path + '.' + class_name)
-		self.win = cls(id, self, self.controller, self.height, self.width)
+		self.win = cls(id, self, self.controller, self.height, self.width, params)
 		if height == 0 and width == 0:
 			self.to_x = self.win.preferred_width + from_x - 1
 			self.to_y = self.win.preferred_height + from_y - 1
@@ -116,17 +116,17 @@ class Node:
 			try:
 				self.win.process()
 			except:
-				return 1
+				self.abort()
+				self.wm.newNode(f"{self.app.name} closed with internal error.")
 			self.process_running = False
-		return 0
 
 
 
 #Window Manager
-	def newNode(self, parent_path, class_name, y, x, height, width):
+	def newNode(self, parent_path, class_name, y, x, height, width, params):
 		if len(self.child_nodes) > 13: return False
 
-		newin = self.wm.newNode(parent_path, class_name, y, x, height, width)
+		newin = self.wm.newNode(parent_path, class_name, y, x, height, width, params)
 		self.child_nodes.append(newin.node)
 		return newin
 

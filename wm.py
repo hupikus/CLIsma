@@ -6,18 +6,18 @@ import time
 from mouse import Mice
 from screen import Screen
 from node import Node
-from apps.default.error.error import Error
 from controller import Controller
 
 class Wm:
 
-	def newNode(self, parent_path, class_name, y, x, height, width):
+	def newNode(self, parent_path, class_name, y, x, height, width, params):
 		#node owes a window class
 		parent_path += '.' + class_name + '.' + class_name
-		node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name)
+		node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, params)
 		self.nodes.append(node)
 		self.order.append(self.id)
 		self.id += 1
+		self.orderlen += 1
 		return node.win
 
 	def closeNode(self, node):
@@ -30,6 +30,7 @@ class Wm:
 		#self.nodes.remove(node)
 		self.nodes[node.id] = False
 		self.order.remove(node.id)
+		self.orderlen -= 1
 		del node
 
 
@@ -103,15 +104,18 @@ class Wm:
 
 		#draw and click order
 		self.order = []
+		self.orderlen = 0
 
 		#startup nodes
 		#self.newNode(&Desktop)
-		self.desktop = self.newNode("apps.default", "desktop", 0, 0, self.screen_height, self.screen_width)
+		self.desktop = self.newNode("apps.default", "desktop", 0, 0, self.screen_height, self.screen_width, '')
 		self.desktop.wm = self
 		self.desktop.node.is_fullscreen = True
 
-		self.newNode("apps.default", "default", 7, 7, 2, 65)
-		self.log = self.newNode("apps.default", "log", 18, 12, 5, 45)
+		self.newNode("apps.default", "default", 7, 7, 2, 65, '')
+		#self.log = self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+
+		self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 
 		#threading
 		self.input_thread = threading.Thread(target=self._mouse)
@@ -183,7 +187,7 @@ class Wm:
 		focus_changed = False
 		if handler[0] == 3:
 			#left mouse button click
-			for id in self.order:
+			for id in self.order[::-1]:
 				node = self.nodes[id]
 				if node:
 					if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y + 1 and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
@@ -194,11 +198,13 @@ class Wm:
 								if id != 0:
 									focus_changed = True
 							node.click(0, self.mouse.y, self.mouse.x)
+							break
 						elif self.mouse.x == node.to_x:
 							node.abort()
+							break
 		elif handler[0] == 4:
 			#start of drag
-			for id in self.order:
+			for id in self.order[::-1]:
 				node = self.nodes[id]
 				if node and not node.is_fullscreen and node.windowed:
 					if self.mouse.x >= node.from_x and self.mouse.y == node.from_y - 1 and self.mouse.x < node.to_x:
@@ -275,7 +281,7 @@ class Wm:
 		if self.isMouse:
 			self._mouse_click()
 
-		for id in range(self.id):
+		for id in self.order:
 			node = self.nodes[id]
 			if node:
 				if node.ready_to_close:

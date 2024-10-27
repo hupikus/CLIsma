@@ -5,7 +5,7 @@ class settings(apphabit):
         #self.node.ui.art("icon1", ["----", "---", "--", "-"], 1, 0)
         self.ui.clickableArt("icon1", self.submenu, 1, 0, ["-----  ", " --- ", "  -- ", "  -  "])
 
-    def __init__(self, id, node, controller, height, width):
+    def __init__(self, id, node, controller, height, width, params):
         #base
         self.id = id
         self.node = node
