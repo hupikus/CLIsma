@@ -8,6 +8,7 @@ class App:
 		self.path = name.replace('/', '.')
 		pathdiv = self.path.split(sep = '.')
 		self.parent_path = "apps." + pathdiv[0]
+		#self.parent_path = pathdiv[-len(pathdiv[1])]
 		self.class_name = pathdiv[1]
 
 		#app info

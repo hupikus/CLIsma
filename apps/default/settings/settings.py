@@ -1,7 +1,6 @@
 from apps.apphabit import apphabit
 from worldglobals import worldglobals
 from loghandler import Loghandler
-
 class settings(apphabit):
 
     def start(self):
@@ -42,5 +41,6 @@ class settings(apphabit):
     def FPSlider_update(self, val):
         self.FPSlider = (val + 1) * 5
         worldglobals.framerate = self.FPSlider
+        worldglobals.framedelta = 1 / self.FPSlider
         self.FPSlider = str(self.FPSlider)
         Loghandler.Log(f"FPS changed to {self.FPSlider}")

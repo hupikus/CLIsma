@@ -205,6 +205,7 @@ class Wm:
 								node.click(i, self.mouse.y, self.mouse.x)
 								break
 							elif self.mouse.x == node.to_x and i == 0:
+								Loghandler.Log("close " + node.app.name)
 								node.abort()
 								break
 			else:

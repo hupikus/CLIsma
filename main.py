@@ -9,6 +9,7 @@ from inpdevices import DeviceHandler
 
 from worldglobals import worldglobals
 
+from globalconfig import Config
 
 work = True
 
@@ -24,12 +25,13 @@ def abort(msg):
 	print(msg)
 	os.system("exit")
 
-#system
-home = os.getenv('HOME')
 
 #screen
 screen_height, screen_width = map(int, os.popen('stty size', 'r').read().split())
 display = Screen(screen_width, screen_height)
+
+#cfg
+cfg = Config()
 
 inpd = DeviceHandler()
 
@@ -47,14 +49,14 @@ def draw_loop():
 		if error > 0:
 			abort("Display exited with code 1.")
 
-		time.sleep(1 / worldglobals.framerate)
+		time.sleep(worldglobals.framedelta)
 
 #main loop
 def main_loop():
 		l = threading.Lock()
 		l.acquire()
 		while work:
-			time.sleep(1 / worldglobals.processrate)
+			time.sleep(worldglobals.processdelta)
 
 			error = 0
 
