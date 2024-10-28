@@ -39,37 +39,36 @@ class UI:
 	def click(self, button, y, x):
 		r = True
 		arg_invoke = False
-		if button == 0:
-			for j in self.uis["buttons"]:
-				butt = self.uis["buttons"][j]
-				if y >= butt[1] and y < butt[3]:
-					if x >= butt[2] and x < butt[4]:
-						#self.clicked(j, "buttons")
-						arg_invoke = [j, "buttons"]
+		for j in self.uis["buttons"]:
+			butt = self.uis["buttons"][j]
+			if y >= butt[1] and y < butt[3]:
+				if x >= butt[2] and x < butt[4]:
+					arg_invoke = [j, "buttons", button]
+					r = False
+					break
+		if r:
+			for j in self.uis["tapArts"]:
+				abutt = self.uis["tapArts"][j]
+				if y >= abutt[1] and y < abutt[3]:
+					if x >= abutt[2] and x < abutt[4]:
+						arg_invoke = [j, "tapArts", button]
 						r = False
 						break
-			if r:
-				for j in self.uis["tapArts"]:
-					abutt = self.uis["tapArts"][j]
-					if y >= abutt[1] and y < abutt[3]:
-						if x >= abutt[2] and x < abutt[4]:
-							#self.clicked(j, "tapArts")
-							arg_invoke = [j, "tapArts"]
-							r = False
-							break
+		if button == 0:
 			if r:
 				for j in self.uis["sliders"]:
 					slider = self.uis["sliders"][j]
 					if y == slider[1]:
-						if x >= slider[2] and x <= field[2] - slider[3]:
+						if x >= slider[2] and x < slider[2] + slider[3]:
 							slider[4] = x - slider[2]
+							slider[0](slider[4])
 							r = False
 							break
 			if r:
 				for j in self.uis["fields"]:
 					field = self.uis["fields"][j]
 					if y == field[1]:
-						if x >= field[2] and x <= field[2] - field[3]:
+						if x >= field[2] and x <= field[2] + field[3]:
 							self.active_field_name = j
 							field[5] = x - field[2]
 							r = False
@@ -106,10 +105,10 @@ class UI:
 		
 		self.uis["tapArts"][name] = [event, y, x, y + len(content), x + width, content]
 
-	def slider(self, name, var, y, x, width):
-		#receive: variable, y, x, width
-		#write: variable, y, x, width, position
-		self.uis["sliders"][name] = [var, y, x, width, 5]
+	def slider(self, name, event, y, x, width, srartPos):
+		#receive: event, y, x, width, srartPosition
+		#write: event, y, x, width, position
+		self.uis["sliders"][name] = [event, y, x, width, srartPos]
 
 	def textField(self, name, var, y, x, width, maxlen = -1):
 		#receive: variable to write input to, y, x, width, max length of an input: -1 to disable
@@ -152,5 +151,5 @@ class UI:
 
 	#custom events
 
-	def clicked(self, name, type):
-		self.uis[type][name][0](name)
+	def clicked(self, name, type, button):
+		self.uis[type][name][0](name, button)

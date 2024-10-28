@@ -1,5 +1,5 @@
 from apps.apphabit import apphabit
-from log import loghandler
+from loghandler import Loghandler
 class log(apphabit):
 
 	def __init__(self, id, node, controller, height, width, params):
@@ -22,13 +22,13 @@ class log(apphabit):
 
 
 	def draw(self):
-		if loghandler.loglen == 0:
+		if Loghandler.loglen == 0:
 			self.node.appendStr(0, 0, "Nothing yet...".center(self.width, ' '))
 			for y in range(self.height - 1):
-				self.node.appendStr(0, 0, ' ' * self.width)
+				self.node.appendStr(y + 1, 0, ' ' * self.width)
 		else:
-			column = min(self.height, self.loglen)
+			column = min(self.height, Loghandler.loglen)
 			for y in range(column):
-				self.node.appendStr(y, 0, loghandler.log[-column + y].center(self.width, ' '))
+				self.node.appendStr(y, 0, Loghandler.history[-column + y].center(self.width, ' '))
 
 		

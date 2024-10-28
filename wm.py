@@ -8,6 +8,8 @@ from screen import Screen
 from node import Node
 from controller import Controller
 
+from loghandler import Loghandler
+
 class Wm:
 
 	def newNode(self, parent_path, class_name, y, x, height, width, params):
@@ -115,7 +117,8 @@ class Wm:
 		self.newNode("apps.default", "default", 7, 7, 2, 65, '')
 		#self.log = self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 
-		self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
+		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
+		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 
 		#threading
 		self.input_thread = threading.Thread(target=self._mouse)
@@ -141,7 +144,7 @@ class Wm:
 		return 0
 
 
-#if mouse pressed (get mouse state from mouse class), do not handle clicked event untill click ends
+#if mouse pressed (get mouse state from mouse class), do not handle clicked event until click ends
 #increment self mouse state till it became greater than hold timeout
 #if not pressed anymore, set event handler to certain state
 #0 ("none"), 1 ("clicked"), 2 ("hold"), 3 ("release"), 4 ("dragstart"), 5 ("drag"), 6 ("enddrag")
@@ -186,24 +189,29 @@ class Wm:
 				handler[i] = -1
 
 		focus_changed = False
-		if handler[0] == 3:
-			#left mouse button click
-			for id in self.order[::-1]:
-				node = self.nodes[id]
-				if node:
-					if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y + 1 and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
-						if self.mouse.y >= node.from_y:
-							#click
-							if self.focus_id != id:
-								self.focus_id = id
-								if id != 0:
-									focus_changed = True
-							node.click(0, self.mouse.y, self.mouse.x)
-							break
-						elif self.mouse.x == node.to_x:
-							node.abort()
-							break
-		elif handler[0] == 1:
+		for i in range(3):
+			if handler[i] == 3:
+				#mouse click
+				for id in self.order[::-1]:
+					node = self.nodes[id]
+					if node:
+						if self.mouse.y >= node.from_y - 1 and self.mouse.y <= node.to_y + 1 and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
+							if self.mouse.y >= node.from_y:
+								#click
+								if self.focus_id != id:
+									self.focus_id = id
+									if id != 0:
+										focus_changed = True
+								node.click(i, self.mouse.y, self.mouse.x)
+								break
+							elif self.mouse.x == node.to_x and i == 0:
+								node.abort()
+								break
+			else:
+				continue
+			break
+
+		if handler[0] == 1:
 			#start of drag
 			for id in self.order[::-1]:
 				node = self.nodes[id]

@@ -1,8 +1,12 @@
-from apps.apps import App
 import threading
 import time
-from userglobals import userglobals
+
+from apps.apps import App
 from apps.apphabit import apphabit
+
+from userglobals import userglobals
+from loghandler import Loghandler
+
 class desktop(apphabit):
 
 
@@ -45,6 +49,15 @@ class desktop(apphabit):
 		self.state = "shutdown"
 		self.ready = 1
 
+
+	def recalculate_dock(self):
+		self.applen = len(self.apps)
+		self.maxtrey = round(self.width / 6 - 0.5)
+		#self.space = round((self.width - 6) / (self.applen + 1) - 0.5) - 2
+		self.rightfrom = min(round(self.width * 0.85), self.width - 12)
+		self.space = round( ( self.rightfrom - (5 * self.applen)) / (self.applen + 0.5) ) - 5
+		#                     right panel      apps itself         number of apps
+
 	def __init__(self, id, node, controller, height, width, params):
 		self.id = id
 		self.node = node
@@ -77,11 +90,8 @@ class desktop(apphabit):
 			
 		#self.apps = [App("default/settings"), App("default/settings")]
 
-		#unconfigable
-		self.applen = len(self.apps)
-		self.maxtrey = round(self.width / 6 - 0.5)
-		#self.space = round((self.width - 6) / (self.applen + 1) - 0.5) - 2
-		self.space = round((self.width - (5 * self.applen)) / (self.applen + 0.5)) - 5
+		#constants
+		self.recalculate_dock()
 
 		self.ready = 0
 		self.start()
@@ -134,18 +144,20 @@ class desktop(apphabit):
 
 
 
-	def menu(self, name):
-		if not self.ismenu:
-			self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4), '').node
-			self.menunode.windowed = False
-		else:
-			self.node.closeNode(self.menunode)
-		self.ismenu = not self.ismenu
+	def menu(self, name, button):
+		if button == 0:
+			if not self.ismenu:
+				self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4), '').node
+				self.menunode.windowed = False
+			else:
+				self.node.closeNode(self.menunode)
+			self.ismenu = not self.ismenu
 
 
-	def dockapp_clicked(self, name):
-		#self.wm.log.Message(open + self.apps[int(name[3:])].name)
-		self.launchApp(self.apps[int(name[3:])])
+	def dockapp_clicked(self, name, button):
+		if button == 0:
+			Loghandler.Log("open " + self.apps[int(name[3:])].name)
+			self.launchApp(self.apps[int(name[3:])])
 
 	def launchApp(self, app, returned = False):
 		if returned:
