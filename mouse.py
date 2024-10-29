@@ -11,7 +11,7 @@ class Mice():
 			buf = self.mice.read(3)
 
 			self.dx, self.dy = struct.unpack("bb", buf[1:])
-			#self.dy *= 1.25
+			self.dy /= 1.25
 			self.rx += self.dx
 			self.ry -= self.dy
 			self.ratx = max(min(self.ratx + self.dx * self.speed, self.width - 1), 0)

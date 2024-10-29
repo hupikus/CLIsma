@@ -4,7 +4,7 @@ class UI:
 	def __init__(self, node):
 		self.node = node
 
-		self.ids = ["buttons", "sliders", "fields", "arts", "tapArts"]
+		self.ids = ["buttons", "sliders", "fields", "arts", "tapArts", "txts", "textBoxes"]
 
 		#self.uis = {"buttons":{}, "sliders":{}, "fields":{}} #e.t.c.
 		self.uis = {i:{} for i in self.ids}
@@ -32,6 +32,14 @@ class UI:
 			content = art[5]
 			for y in range(art[3] - art[1]):
 				self.node.appendStr(art[1] + y, art[2], content[y])
+		for name in self.uis["txts"]:
+			text = self.uis["txts"][name]
+			self.node.appendStr(text[1], text[2], text[0])
+		for name in self.uis["textBoxes"]:
+			text = self.uis["textBoxes"][name]
+			content = text[6]
+			for y in range(text[7]):
+				self.node.appendStr(text[1] + y, text[2], content[y])
 
 
 
@@ -105,6 +113,21 @@ class UI:
 		
 		self.uis["tapArts"][name] = [event, y, x, y + len(content), x + width, content]
 
+	def textLine(self, name, content, y, x):
+		#receive: content, yStart, xStart
+		#write: content, yStart, xStart
+		self.uis["txts"][name] = [content, y, x]
+
+	def textBox(self, name, content, y, x, height, width, align = 0):
+		#receive: content, yStart, xStart, height, width, align mode
+		#write: content, yStart, xStart, height, width, align mode, display text, height of display text
+		if height == 0: height = -1
+		if width == 0: width = 999
+		if align > 2 or align < 0: align = 0
+		words = content.split()
+		display = self.arrangeTextBox(words, height, width, align)
+		self.uis["textBoxes"][name] = [words, y, x, height, width, align, display, len(display)]
+
 	def slider(self, name, event, y, x, width, srartPos):
 		#receive: event, y, x, width, srartPosition
 		#write: event, y, x, width, position
@@ -153,3 +176,72 @@ class UI:
 
 	def clicked(self, name, type, button):
 		self.uis[type][name][0](name, button)
+	
+	def resizeTextBox(self, name, height, width):
+		text = self.uis["textBoxes"][name]
+		if height != 0:
+			text[3] = height
+		text[4] = width
+		text[6] = self.arrangeTextBox(text[0], text[3], text[4], text[5])
+		text[7] = len(text[6])
+		
+
+	#public calculation events
+	def arrangeTextBox(self, words, height, width, align):
+		displays = ['']
+		l = width + 1
+		line = 0
+		for w in words:
+			size = len(w)
+			if size <= l:
+				#ok
+				displays[line] = displays[line] + w + ' '
+				l = l - size - 1
+			elif size > width:
+				#fat-wording (жирнословие) or keyspam
+				wlen = len(w)
+
+				while True:
+					#word is (still) does not fit, cut
+					part = w[:l]
+					displays[line] = displays[line] + part
+					wlen -= len(part)
+					l = 0
+					#then start new line
+					if wlen == 0: break
+					
+
+					if line == height and height > 0: break
+					line += 1
+					l = width + 1
+					displays.append('')
+
+					if wlen <= width:
+						#we can fit remains at the new line
+						l -= wlen
+						w = w[wlen:]
+						displays[line] = displays[line] + w + ' '
+						wlen = 0
+						break
+			else:
+				#new line
+				line += 1
+				
+				displays[line - 1] = displays[line - 1][:-1]
+				if line == height and height > 0: break
+
+				l = width + 1
+				displays.append('')
+				displays[line] = displays[line] + w + ' '
+				l = l - size - 1
+			
+			if align > 0:
+				if align == 1:
+					for i in range(line):
+						displays[i] = displays[i].center(width, ' ')
+				else:
+					for i in range(line):
+						displays[i] = displays[i].rjust(width, ' ')
+			
+
+		return displays

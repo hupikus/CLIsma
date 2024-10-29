@@ -7,6 +7,7 @@ class settings(apphabit):
         #self.node.ui.art("icon1", ["----", "---", "--", "-"], 1, 0)
         #self.ui.clickableArt("icon1", self.submenu, 1, 0, ["-----  ", " --- ", "  -- ", "  -  "])
         self.ui.slider("FPS", self.FPSlider_update, 5, 2, 24, 11)
+        self.ui.textBox("tB", 'I want to introduce to you new UI element called "TextBox". It can make automatic line break for words longer than line', 6, 2, 8, 30, align = 1)
 
     def __init__(self, id, node, controller, height, width, params):
         #base
@@ -37,6 +38,11 @@ class settings(apphabit):
         self.node.appendStr(1, 0, "Temportary settings")
         self.node.appendStr(4, 0, "FPS limit")
         self.node.appendStr(5, 27, self.FPSlider)
+
+    def onresize(self, height, width):
+        self.height = height
+        self.width = width
+        self.ui.resizeTextBox("tB", 0, round(width * 0.5))
 
     def FPSlider_update(self, val):
         self.FPSlider = (val + 1) * 5

@@ -3,13 +3,9 @@ import threading
 import time
 #import argparse
 
-from wm import Wm
-from screen import Screen
-from inpdevices import DeviceHandler
-
 from worldglobals import worldglobals
 
-from globalconfig import Config
+from singletons import Singletons
 
 work = True
 
@@ -25,17 +21,9 @@ def abort(msg):
 	print(msg)
 	os.system("exit")
 
+wm = Singletons.Wm
 
-#screen
-screen_height, screen_width = map(int, os.popen('stty size', 'r').read().split())
-display = Screen(screen_width, screen_height)
-
-#cfg
-cfg = Config()
-
-inpd = DeviceHandler()
-
-wm = Wm(display, inpd)
+display = Singletons.Screenman
 
 
 def draw_loop():

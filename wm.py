@@ -18,6 +18,7 @@ class Wm:
 		node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, params)
 		self.nodes.append(node)
 		self.order.append(self.id)
+		self.focus_id = self.id
 		self.id += 1
 		self.orderlen += 1
 		return node.win
@@ -239,7 +240,7 @@ class Wm:
 									focus_changed = True
 						self.moving_node = node
 						break
-					elif self.mouse.x >= node.from_x and self.mouse.x <= node.to_x and self.mouse.y == node.to_y + 1:
+					elif self.mouse.x >= node.from_x and self.mouse.x <= node.to_x and self.mouse.y == node.to_y + 2:
 						#focus and move bottom side
 						if self.focus_id != id:
 								self.focus_id = id

@@ -161,6 +161,10 @@ class desktop(apphabit):
 
 	def launchApp(self, app, returned = False):
 		if returned:
-			return self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0, '').node
+			app = self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0, '')
+			if app:
+				return app.node
+			else:
+				return False
 		else:
 			self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0, '')

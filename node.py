@@ -3,8 +3,8 @@ import os
 import pydoc
 from ui import UI
 from apps.apps import App
-
-
+from type.colors import Colors
+import curses
 class Node:
 
 	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params):
@@ -76,7 +76,10 @@ class Node:
 	def clear(self):
 		self.tasks = []
 
-	def appendStr(self, y, x, text):
+	def appendStr(self, y, x, text, mode = Colors.FXNormal):
+		if self.id != 0 and self.wm.focus_id != self.id:
+			mode = Colors.FXPale
+
 		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height - 1:
 			oblen = min(len(text), self.width - x, self.display.width - x - self.from_x)
 			ln = len(text)
@@ -85,7 +88,7 @@ class Node:
 				x_offcut -= self.from_x - 1
 
 			if x_offcut < ln and oblen > x_offcut:
-				self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen])
+				self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen], mode)
 
 	def apply(self):
 		self.display.root.refresh()

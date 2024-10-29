@@ -33,5 +33,5 @@ class fileman(apphabit):
         #self.node.appendStr(2, 0, '\n'.join(filelistt))
 
 
-    def scandir(path=self.dir):
+    def scandir(self, path=self.dir):
         return os.listdir(path)
