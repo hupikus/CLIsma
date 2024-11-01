@@ -5,6 +5,7 @@ from ui import UI
 from apps.apps import App
 from type.colors import Colors
 import curses
+
 class Node:
 
 	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params):
@@ -50,6 +51,11 @@ class Node:
 			self.to_y = self.win.preferred_height + from_y - 1
 			self.height = self.win.preferred_height
 			self.width = self.win.preferred_width
+
+		self.min_height = 1
+		self.max_height = self.wm.screen_height
+		self.min_width = 1
+		self.max_width = self.wm.screen_width
 		#TODO: preferred size should be in .app file
 
 		self.windowed = True
@@ -77,18 +83,31 @@ class Node:
 		self.tasks = []
 
 	def appendStr(self, y, x, text, mode = Colors.FXNormal):
-		if self.id != 0 and self.wm.focus_id != self.id:
-			mode = Colors.FXPale
+		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height - 1 and x <= self.width:
 
-		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height - 1:
-			oblen = min(len(text), self.width - x, self.display.width - x - self.from_x)
+			if self.id != 0 and self.wm.focus_id != self.id:
+				mode = Colors.FXPale
+			#x_offcut = -min(0, x)
+			x_offcut = 0
 			ln = len(text)
-			x_offcut = -min(0, x)
-			if self.from_x + x < 0:
-				x_offcut -= self.from_x - 1
+			oblen = max(min(ln, self.width - x, self.display.width - x - self.from_x), 1)
 
-			if x_offcut < ln and oblen > x_offcut:
-				self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen], mode)
+			if x < 0 or self.from_x + x < 0:
+				if x < 0:
+					x_offcut = -x
+				if self.from_x + x < 0:
+					x_offcut -= self.from_x - 1
+
+				
+
+				if x_offcut < ln:
+					self.display.root.addnstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:], oblen, mode)
+			else:
+				self.display.root.addnstr(self.from_y + y, self.from_x + x, text, oblen, mode)
+
+			#if x_offcut < ln and oblen > x_offcut:
+				#self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen], mode)
+				
 
 	def apply(self):
 		self.display.root.refresh()
@@ -111,14 +130,17 @@ class Node:
 
 	def reborder(self, side, delta):
 		if side == 1:
-			self.width += delta
-			self.to_x += delta
+			dd = max(min(self.width + delta, self.max_width), self.min_width)
+			self.to_x += dd - self.width
+			self.width = dd
 		elif side == 2:
-			self.height += delta
-			self.to_y += delta
+			dd = max(min(self.height + delta, self.max_height), self.min_height)
+			self.to_y += dd - self.height
+			self.height = dd
 		elif side == 3:
-			self.width -= delta
-			self.from_x += delta
+			dd = max(min(self.width - delta, self.max_width), self.min_width)
+			self.from_x -= dd - self.width
+			self.width = dd
 		self.win.onresize(self.height, self.width)
 
 

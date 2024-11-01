@@ -1,5 +1,5 @@
 curses
 evdev
 ptyprocess
-threading
 pydoc
+threading

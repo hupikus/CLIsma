@@ -1,10 +1,10 @@
-
+from type.colors import Colors
 class UI:
 
 	def __init__(self, node):
 		self.node = node
 
-		self.ids = ["buttons", "sliders", "fields", "arts", "tapArts", "txts", "textBoxes"]
+		self.ids = ["buttons", "sliders", "fields", "arts", "tapArts", "txts", "textBoxes", "coloredTextBoxes"]
 
 		#self.uis = {"buttons":{}, "sliders":{}, "fields":{}} #e.t.c.
 		self.uis = {i:{} for i in self.ids}
@@ -34,13 +34,48 @@ class UI:
 				self.node.appendStr(art[1] + y, art[2], content[y])
 		for name in self.uis["txts"]:
 			text = self.uis["txts"][name]
-			self.node.appendStr(text[1], text[2], text[0])
+			self.node.appendStr(text[1], text[2], text[0], text[3])
 		for name in self.uis["textBoxes"]:
 			text = self.uis["textBoxes"][name]
 			content = text[6]
 			for y in range(text[7]):
-				self.node.appendStr(text[1] + y, text[2], content[y])
-
+				self.node.appendStr(text[1] + y, text[2], content[y], text[8])
+		#colored text boxes is hell
+		for name in self.uis["coloredTextBoxes"]:
+			text = self.uis["coloredTextBoxes"][name]
+			content = text[5]
+			x = 0
+			y = 0
+			colorMode = Colors.colorPair(0)
+			attrMode = Colors.FXNormal
+			mode = 'read'
+			#for i in content:
+			#	self.node.appendStr(text[1] + y, text[2] + x, str(i), colorMode)
+			#	x += len(str(i)) + 1
+			#break
+			for i in content:
+				if mode == 'read':
+					if i == "<!C":
+						mode = 'cread'
+					elif i == "<!T":
+						mode = 'tread'
+					elif i == "<n>":
+						y += 1
+						x = 0
+						if y == text[3]: break
+					elif i == "<endc>":
+						colorMode = Colors.colorPair(0)
+					elif i == "<endt>":
+						attrMode = Colors.FXNormal
+					else:
+						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode)
+						x += len(i)
+				elif mode == 'cread':
+					colorMode = Colors.colorPair(i)
+					mode = 'read'
+				elif mode == 'tread':
+					attrMode = Colors.FXHash[i]
+					mode = 'read'
 
 
 
@@ -113,20 +148,29 @@ class UI:
 		
 		self.uis["tapArts"][name] = [event, y, x, y + len(content), x + width, content]
 
-	def textLine(self, name, content, y, x):
-		#receive: content, yStart, xStart
-		#write: content, yStart, xStart
-		self.uis["txts"][name] = [content, y, x]
+	def textLine(self, name, content, y, x, attr = Colors.FXNormal):
+		#receive: content, yStart, xStart, attr
+		#write: content, yStart, xStart, attr
+		self.uis["txts"][name] = [content, y, x, attr]
 
-	def textBox(self, name, content, y, x, height, width, align = 0):
-		#receive: content, yStart, xStart, height, width, align mode
-		#write: content, yStart, xStart, height, width, align mode, display text, height of display text
+	def textBox(self, name, content, y, x, height, width, align = 0, attr = Colors.FXNormal):
+		#receive: content, yStart, xStart, height, width, align mode, attr
+		#write: content, yStart, xStart, height, width, align mode, display text, height of display text, attr
 		if height == 0: height = -1
 		if width == 0: width = 999
 		if align > 2 or align < 0: align = 0
-		words = content.split()
+		words = content.replace('\n', '').split()
 		display = self.arrangeTextBox(words, height, width, align)
-		self.uis["textBoxes"][name] = [words, y, x, height, width, align, display, len(display)]
+		self.uis["textBoxes"][name] = [words, y, x, height, width, align, display, len(display), attr]
+	
+	def coloredTextBox(self, name, content, y, x, height, width):
+		#receive: content, yStart, xStart, height, width
+		#write: content, yStart, xStart, height, width, display text
+		if height == 0: height = -1
+		if width == 0: width = 999
+		words = content.split()
+		cache = self.generatecachedtextbox(words, height, width)
+		self.uis["coloredTextBoxes"][name] = [words, y, x, height, width, cache]
 
 	def slider(self, name, event, y, x, width, srartPos):
 		#receive: event, y, x, width, srartPosition
@@ -178,12 +222,19 @@ class UI:
 		self.uis[type][name][0](name, button)
 	
 	def resizeTextBox(self, name, height, width):
-		text = self.uis["textBoxes"][name]
-		if height != 0:
-			text[3] = height
-		text[4] = width
-		text[6] = self.arrangeTextBox(text[0], text[3], text[4], text[5])
-		text[7] = len(text[6])
+		if name in self.uis["textBoxes"]:
+			text = self.uis["textBoxes"][name]
+			if height != 0:
+				text[3] = height
+			text[4] = width
+			text[6] = self.arrangeTextBox(text[0], text[3], text[4], text[5])
+			text[7] = len(text[6])
+		elif name in self.uis["coloredTextBoxes"]:
+			text = self.uis["coloredTextBoxes"][name]
+			if height != 0:
+				text[3] = height
+			text[4] = width
+			text[5] = self.generatecachedtextbox(text[0], text[3], text[4])
 		
 
 	#public calculation events
@@ -200,13 +251,14 @@ class UI:
 			elif size > width:
 				#fat-wording (жирнословие) or keyspam
 				wlen = len(w)
-
+				startlen = 0
 				while True:
 					#word is (still) does not fit, cut
 					part = w[:l]
 					displays[line] = displays[line] + part
-					wlen -= len(part)
-					l = 0
+					wlen -= l
+					startlen = l
+
 					#then start new line
 					if wlen == 0: break
 					
@@ -216,12 +268,11 @@ class UI:
 					l = width + 1
 					displays.append('')
 
+					w = w[startlen:]
 					if wlen <= width:
 						#we can fit remains at the new line
+						displays[line] = w + ' '
 						l -= wlen
-						w = w[wlen:]
-						displays[line] = displays[line] + w + ' '
-						wlen = 0
 						break
 			else:
 				#new line
@@ -232,7 +283,7 @@ class UI:
 
 				l = width + 1
 				displays.append('')
-				displays[line] = displays[line] + w + ' '
+				displays[line] = w + ' '
 				l = l - size - 1
 			
 			if align > 0:
@@ -245,3 +296,149 @@ class UI:
 			
 
 		return displays
+	
+	#private calculation methods
+
+	def generatecachedtextbox(self, words, height, width):
+		displays = []
+		l = width + 1
+		line = 0
+		for w in words:
+			#size = len(w)
+			size = self.tagsoverheadcount(w)
+			if size <= l:
+				#ok
+				#method that divides a word to flags and line break
+				newline = self.keepappending(w, displays)
+				#instead of #displays.append(w + ' ')
+				#if newline >= 0:
+				#	l = width + 1 - newline
+				#else:
+				l = l - size - 1
+			elif size > width:
+				#fat-wording (жирнословие) or keyspam
+				wlen = self.tagsoverheadcount(w)
+				startlen = 0
+				while True:
+					#word is (still) does not fit, cut
+					part = w[:l]
+					newline = self.keepappending(part, displays)
+					
+					#if newline >= 0:
+					#	l = width + 1 - newline
+					displays[-1] = (displays[-1])[:-1]
+					#wlen -= len(part)
+					wlen -= self.tagsoverheadcount(part)
+					startlen = l
+					#then start new line
+					if wlen == 0: break
+					
+					line += 1
+					l = width + 1
+					displays.append("<n>")
+					if displays.count("<n>") == height - 1 and height > 0: break
+					
+
+					w = w[startlen:]
+					if wlen <= width:
+						#we can fit remains at the new line
+						l -= wlen
+						
+						self.keepappending(w, displays)
+						wlen = 0
+						break
+			else:
+				#new line
+				line += 1
+				
+				if displays.count("<n>") == height - 1 and height > 0: break
+
+				l = width + 1
+				displays.append("<n>")
+				
+				newline = self.keepappending(w, displays)
+				#if newline >= 0:
+				#	l = width + 1 - newline
+				#else:
+				l = l - size - 1
+			
+
+		return displays
+	
+	def keepappending(self, w, displays):
+		#displays (array) is linked, w (text) is not
+		ind = -1
+		minlen = 0
+		newline = -1
+		while True:
+			#search for color and attribute tags
+			tags = ["<c", "<t", "<endc>", "<endt>", "<n>"]
+			indn = [w.find(i) for i in tags]
+			temp_lw = len(w)
+			if sum(indn) == -5:
+				#no more tags
+				displays.append(w + ' ')
+				newline += temp_lw + 1
+				break
+
+			for i in range(5):
+				if indn[i] == -1: indn[i] = temp_lw + 1
+
+			ind = min(indn)
+			displays.append(w[:ind])
+			if newline >= 0:
+				newline += len(w[:ind])
+
+
+			key = tags[indn.index(ind)]
+			indend = ind
+			if key == "<c":
+				minlen += 2
+				displays.append('<!C')
+				indend = w.find(">")
+
+				if indend == -1:
+					#syntax error
+					displays.append(0)
+				else:
+					number = int( w[ind + 2:indend] )
+					displays.append(number)
+			elif key == "<t":
+				minlen += 2
+				displays.append('<!T')
+				indend = w.find(">")
+
+				if indend == -1:
+					#syntax error
+					displays.append(normal)
+				else:
+					displays.append(w[ind + 2:indend])
+			else:
+				lk = len(key)
+				displays.append(key)
+				minlen += lk
+				indend += lk
+				if key == "<n>":
+					newline = 0
+
+			#cut a word:
+			w = w[indend + 1:]
+
+		return newline
+	
+	def tagsoverheadcount(self, string):
+		d = len(string)
+		string = string.replace("<endc>", '').replace("<endt>", '').replace("<n>", '')
+		c = len(string)
+		if d != c:
+			mode = False
+			for i in string:
+				if i == '<':
+					mode = True
+				elif i == '>':
+					c -= 1
+					mode = False
+				if mode:
+					c -= 1
+		return c
+

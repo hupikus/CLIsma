@@ -14,7 +14,7 @@ class App:
 		#app info
 		if os.path.isfile("./apps/" + name + "/.app"):
 			app = open("./apps/" + name + "/.app")
-			self.name = app.readline()
+			self.name = app.readline()[:-1]
 			app.close()
 		else:
 			self.valid = False

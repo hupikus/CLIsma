@@ -10,6 +10,8 @@ from controller import Controller
 
 from loghandler import Loghandler
 
+from type.colors import Colors
+
 class Wm:
 
 	def newNode(self, parent_path, class_name, y, x, height, width, params):
@@ -120,6 +122,7 @@ class Wm:
 
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+		#self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
 
 		#threading
 		self.input_thread = threading.Thread(target=self._mouse)
@@ -137,11 +140,15 @@ class Wm:
 
 
 	def _mouse_draw(self):
-		self.display.root.addstr(self.mouse.y, self.mouse.x, self.cursor_symbol[self.mouse_cursor])
+		#self.display.root.addstr(self.mouse.y, self.mouse.x, self.cursor_symbol[self.mouse_cursor], Colors.FXReverse)
+		self.display.root.addstr(self.mouse.y, self.mouse.x, ' ', Colors.FXReverse)
 		if self.mouse_delta_x and self.mouse_delta_y:
 			self.trail[1] = self.trail[0]
 			self.trail[0] = [self.control.mouse_x, self.control.mouse_y]
-			self.display.root.addstr(self.trail[0][1], self.trail[0][0], self.cursor_symbol[self.mouse_cursor])
+			#symbol cursor
+			#self.display.root.addstr(self.trail[0][1], self.trail[0][0], self.cursor_symbol[self.mouse_cursor])
+			#reverse cursor
+			#self.display.root.addstr(self.trail[0][1], self.trail[0][0], ' ', Colors.FXReverse)
 		return 0
 
 
@@ -240,7 +247,7 @@ class Wm:
 									focus_changed = True
 						self.moving_node = node
 						break
-					elif self.mouse.x >= node.from_x and self.mouse.x <= node.to_x and self.mouse.y == node.to_y + 2:
+					elif self.mouse.x >= node.from_x and self.mouse.x <= node.to_x and self.mouse.y == node.to_y + 1:
 						#focus and move bottom side
 						if self.focus_id != id:
 								self.focus_id = id
@@ -278,20 +285,35 @@ class Wm:
 	def decoration(self, node):
 		if not node.is_fullscreen and node.windowed:
 			if node.from_y - 1 < self.screen_height:
-				space = round((node.width / 2) - 0.5)
 				bts = ''
+				ln = 0
 				if node.width >= 3:
 					bts = "- x"
+					ln = 3
 				elif node.width > 1:
 					bts = 'x'
+					ln = 1
+
+				text = node.name.center(node.width - ln, '_') + bts
 				x_offcut = node.from_x
+				mxln = min(self.screen_width - x_offcut, node.width)
 				if x_offcut < 0:
 					x_offcut *= -1
-					self.display.root.addstr(max(node.from_y - 1, 0), 0, ('_' * min(max(0, node.width - len(bts)), self.screen_width - node.from_x) + bts)[x_offcut:])
-					#self.display.root.addstr(max(node.from_y - 1, 0), 0, (node.name.center(min(max(0, node.width - len(bts)), self.screen_width - node.from_x) - 1, '_') + bts)[x_offcut:])
+					self.display.root.addnstr(max(node.from_y - 1, 0), 0, text[x_offcut:], mxln)
 				else:
-					self.display.root.addstr(max(node.from_y - 1, 0), x_offcut, '_' * min(max(0, node.width - len(bts)), self.screen_width - node.from_x) + bts)
-					#self.display.root.addstr(max(node.from_y - 1, 0), x_offcut, node.name.center(min(max(0, node.width - len(bts)), self.screen_width - node.from_x) - 10, '_') + bts)
+					self.display.root.addnstr(max(node.from_y - 1, 0), x_offcut, text, mxln)
+
+				#bottom decoration
+				t = True
+				if t and node.to_y < self.screen_height:
+					text = '-' * node.width
+					x_offcut = node.from_x
+					mxln = min(self.screen_width - x_offcut, node.width)
+					if x_offcut < 0:
+						x_offcut *= -1
+						self.display.root.addnstr(max(node.to_y + 1, 0), 0, text[x_offcut:], mxln)
+					else:
+						self.display.root.addnstr(max(node.to_y + 1, 0), x_offcut, text, mxln)
 
 	def abort(self):
 		

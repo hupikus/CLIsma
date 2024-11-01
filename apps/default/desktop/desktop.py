@@ -87,6 +87,8 @@ class desktop(apphabit):
 		else:
 			self.greetmsg = "Welcome to CLI System Management Accompanier! (" + userglobals.username + " session)"
 			self.apps = [App("default/settings"), App("default/terminal"), App("default/fileman")]
+
+		self.pinned = 3
 			
 		#self.apps = [App("default/settings"), App("default/settings")]
 

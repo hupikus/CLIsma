@@ -29,6 +29,9 @@ class Screen():
 		curses.use_default_colors()
 		if curses.has_colors():
 			Colors.define_pairs()
+		
+		curses.nonl()
+		#curses.def_shell_mode()
 
 	def draw(self):
 		self.root.refresh()
@@ -36,11 +39,14 @@ class Screen():
 
 	def abort(self):
 		self.root.addstr(0, 0, ' ' * self.width)
-		self.root.refresh()
 		curses.curs_set(2)
 		curses.echo()
-		#curses.nocbreak()
-		self.screen.clear()
+		curses.nocbreak()
+		self.root.erase() # or clear(), it does not matter as it not work
+		self.screen.refresh()
+		self.root.refresh()
+		#curses.reset_shell_mode()
 		curses.endwin()
+
 		self.srend = []
 		os.system("clear")
