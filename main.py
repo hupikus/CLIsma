@@ -17,7 +17,7 @@ def abort(msg):
 	global work
 	work = False
 	draw_thread.join()
-	wm.abort()
+	Singletons.Inpd.abort()
 	display.abort()
 	print(msg)
 	os.system("exit")
@@ -61,7 +61,9 @@ def main_loop():
 
 
 
-
+# draw_thread = threading.Thread(target=draw_loop)
+# draw_thread.start()
+# main_loop()
 try:
 	#draw
 	draw_thread = threading.Thread(target=draw_loop)

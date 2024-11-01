@@ -19,7 +19,7 @@ class desktop(apphabit):
 
 		#desktop view allocation (static partst)
 		self.dekstop_str = ["Bepis", "Bepis", "Bepis", "Bepis"]
-		if self.controller.mode == "full":
+		if self.controller.mouse:
 			self.dekstop_str[0] = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1) + 'x'
 		else:
 			self.dekstop_str[0] = self.greetmsg + ' ' * (self.width - len(self.greetmsg))

@@ -18,6 +18,9 @@ class Node:
 		self.height = height
 		self.width = width
 
+		#avoid dumb crashes when smart developer is trying to call the node of the node
+		self.node = self
+
 		self.child_nodes = []
 		
 		#app

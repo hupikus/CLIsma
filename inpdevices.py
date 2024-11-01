@@ -1,6 +1,16 @@
 import os
 import sys
 import evdev
+import threading
+import time
+#import asyncio
+
+from worldglobals import worldglobals
+
+from controller import Controller
+from mouse import Mice
+
+from loghandler import Loghandler
 
 
 EV_MSC = 0x04
@@ -39,10 +49,29 @@ class DeviceHandler:
 					self.mouses.append("/dev/input/event" + str(i))
 					#self.mouses.append(i)
 			i += 1
-		#input(self.mouses)
-		#self.mouses = ["/dev/input/event3"]
-		#the code above is half legacy, but intended as a main in the future
+
+		self.isMouse = len(self.mouses) > 0
+		self.controller = Controller(self.isMouse)
+
+		if self.isMouse:
+			self.mouse_class = Mice(self)
+
+			self.input_thread = threading.Thread(target = self._mouse)
+			self.input_thread.start()
+	
 		
+
+	def _mouse(self):
+		while self.isMouse:
+			self.mouse_class.process()
+			self.controller.mouse_dy = -self.mouse_class.y
+			self.controller.mouse_dx = self.mouse_class.x
+			self.controller.raw_mouse_buttons = self.mouse_class.state
+			Loghandler.Log(f"{self.controller.mouse_dy} {self.controller.mouse_dx}")
+	
+	def abort(self):
+		self.isMouse = False
+		self.mouse_class.abort()
 
 
 def hex_to_bin(str_hex):
