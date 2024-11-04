@@ -1,4 +1,5 @@
-import os
+from os import system
+from type.colors import Colors
 from apps.apphabit import apphabit
 class error(apphabit):
 
@@ -22,10 +23,10 @@ class error(apphabit):
 					break
 			elif mode == "append":
 				self.text  = self.text + ' ' + i
-				if i[-1]== "'" or i[-1] == '"':
-					self.text = self.text[:-1]
-					self.displaytext = self.text.center(self.width, ' ')
-					mode = ''
+		
+		self.text = self.text[:-1]
+		self.displaytext = self.text.center(self.width, ' ')
+		mode = ''
 				
 		
 
@@ -35,21 +36,24 @@ class error(apphabit):
 		self.width = width
 		self.height = height
 
-		self.preferred_height = 3
-		self.preferred_width = 60
-
 
 		self.text = "Unstable Error"
 
-		os.system('echo -e "\\a"')
+		system('echo -e "\\a"')
 		self.argparser(params)
+
+		self.space = ' ' * self.width
+
+		self.node.ui.coloredTextBox("errormessage", self.displaytext, 1, 0, self.height - 1, self.width)
 
 	def draw(self):
 		self.node.appendStr(0, 0, '-' * self.width)
-		self.node.appendStr(1, 0, self.displaytext)
-		self.node.appendStr(2, 0, '-' * self.width)
+		for y in range(self.height - 1):
+			self.node.appendStr(y + 1, 0, self.space)
 	
 	def onresize(self, height, width):
 		self.height = height
 		self.width = width
 		self.displaytext = self.text.center(self.width, ' ')
+		self.space = ' ' * self.width
+		self.node.ui.resizeTextBox("errormessage", height - 1, width)

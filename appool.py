@@ -1,0 +1,2 @@
+class AppPool:
+    apps = {}

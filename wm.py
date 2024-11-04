@@ -1,18 +1,34 @@
 import os
-
 from screen import Screen
 from node import Node
+from apps.apps import App
 
 from loghandler import Loghandler
-
 from type.colors import Colors
+
+from worldglobals import worldglobals as wg
 
 class Wm:
 
-	def newNode(self, parent_path, class_name, y, x, height, width, params):
+	def newNode(self, parent_path, class_name, y, x, height, width, params, parent = None):
 		#node owes a window class
 		parent_path += '.' + class_name + '.' + class_name
-		node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, params)
+		if parent:
+			node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, params, parent = parent)
+		else:
+			node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, params)
+		self.nodes.append(node)
+		self.order.append(self.id)
+		self.focus_id = self.id
+		self.id += 1
+		self.orderlen += 1
+		return node.win
+	
+	def newNodeByApp(self, app, y, x, height, width, params, parent = None):
+		if parent:
+			node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, params, app = app, parent = parent)
+		else:
+			node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, params, app = app)
 		self.nodes.append(node)
 		self.order.append(self.id)
 		self.focus_id = self.id
@@ -48,22 +64,6 @@ class Wm:
 
 		self.shutdown_ready = False
 
-		#mouse
-		#self.isMouse = os.path.exists("/dev/input/mice") or os.path.exists("/dev/input/mouse0")
-		self.isMouse = inpd.isMouse
-		if self.isMouse:
-			self.mouse = inpd.mouse_class
-			self.cursor_symbol = {"base":"#", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
-			self.holdout = 36
-			self.mouse_cursor = "base"
-			self.mouse_speed = 0.23
-			#self.mouse = Mice(self.screen_width, self.screen_height, self.mouse_speed, inpd)
-			self.trail = [[0, 0], [0, 0], [0, 0]]
-			self.mouse_buttons = [0, 0, 0]
-			self.acc = 0
-			self.hasDelta = False
-		else:
-			self.mouse = 0
 
 		#auto
 		self.nodes = []
@@ -74,6 +74,9 @@ class Wm:
 		#draw and click order
 		self.order = []
 		self.orderlen = 0
+
+		self.drag_on_node = {}
+		self.node_draglen = 0
 
 		#startup nodes
 		#self.newNode(&Desktop)
@@ -86,7 +89,7 @@ class Wm:
 
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
-		#self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
+		self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
 
 		#window management
 		self.moving_node = False
@@ -95,19 +98,41 @@ class Wm:
 		#focus and focused input
 		self.focus_id = 0
 
+		#mouse
+		self.isMouse = inpd.isMouse
+		
+		if self.isMouse:
+			self.mouse = inpd.mouse_class
+			self.cursor_symbol = {"base":"#", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
+			self.holdout = wg.hold_time * wg.inputrate
+			self.mouse_cursor = "base"
+			self.mouse_speed = 0.23
+			#self.mouse = Mice(self.screen_width, self.screen_height, self.mouse_speed, inpd)
+			self.trail = [[0, 0], [0, 0], [0, 0]]
+			self.mouse_buttons = [0, 0, 0]
+			self.acc = 0
+			self.hasDelta = False
+
+			self.mouse_count = 1
+
+			inpd.listen_to_mouse(self._mouse_input)
+		else:
+			self.mouse = 0
+
 
 
 
 	def _mouse_draw(self):
-		#self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, self.cursor_symbol[self.mouse_cursor], Colors.FXReverse)
-		self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, ' ', Colors.FXReverse)
+		#self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, self.cursor_symbol[self.mouse_cursor])
+		#self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, ' ', Colors.FXReverse)
+		self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, self.display.root.instr(self.control.mouse_y, self.control.mouse_x, 1), Colors.FXHighlight)
 		if self.hasDelta:
 			self.trail[1] = self.trail[0]
 			self.trail[0] = [self.control.mouse_x, self.control.mouse_y]
 			#symbol cursor
 			#self.display.root.addstr(self.trail[0][1], self.trail[0][0], self.cursor_symbol[self.mouse_cursor])
 			#reverse cursor
-			#self.display.root.addstr(self.trail[0][1], self.trail[0][0], ' ', Colors.FXReverse)
+			self.display.root.addstr(self.trail[0][1], self.trail[0][0], self.display.root.instr(self.trail[0][1], self.trail[0][0], 1), Colors.FXReverse)
 		return 0
 
 
@@ -120,7 +145,7 @@ class Wm:
 #mouse wheel is in the input class
 #pointer is in wm class because pointer is used to be a window, described in a method
 
-	def _mouse_input(self):
+	def _mouse_input(self, id):
 
 		#mouse relativies
 		
@@ -128,6 +153,7 @@ class Wm:
 		dx = self.control.mouse_dx * self.mouse_speed
 
 		self.control.mouse_dy, self.control.mouse_dx = 0, 0
+		
 		
 		self.control.mouse_ry = max(min(self.control.mouse_ry + dy, self.screen_height - 1), 0)
 		self.control.mouse_rx = max(min(self.control.mouse_rx + dx, self.screen_width - 1), 0)
@@ -149,7 +175,6 @@ class Wm:
 
 		#mouse buttons
 		handler = [0, 0, 0]
-		self.mouse.state_update()
 		for i in range(3):
 			if self.mouse.state[i] == 1:
 				if self.control.mouse_buttons[i] == 0:
@@ -159,6 +184,7 @@ class Wm:
 				elif self.control.mouse_buttons[i] == 1:
 					self.mouse_buttons[i] = 2
 					self.control.mouse_buttons[i] = 2
+					self.holdout = wg.hold_time * wg.inputrate
 				elif self.hasDelta or self.mouse_buttons[i] > self.holdout:
 					if self.control.mouse_buttons[i] != 5:
 						if self.control.mouse_buttons[i] == 2:
@@ -188,22 +214,45 @@ class Wm:
 				for id in self.order[::-1]:
 					node = self.nodes[id]
 					if node:
-						if self.control.mouse_y >= node.from_y - 1 and self.control.mouse_y <= node.to_y + 1 and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
+						if self.control.mouse_y >= node.from_y - 1 and self.control.mouse_y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
 							if self.control.mouse_y >= node.from_y:
 								#click
 								if self.focus_id != id:
 									self.focus_id = id
 									if id != 0:
 										focus_changed = True
-								node.click(i, self.control.mouse_y, self.control.mouse_x)
+								node.click(id, i, self.control.mouse_y, self.control.mouse_x)
 								break
 							elif self.control.mouse_x == node.to_x and i == 0:
 								Loghandler.Log("close " + node.app.name)
 								node.abort()
 								break
-			else:
-				continue
+			elif handler[i] == 4:
+				for id in self.order[::-1]:
+					node = self.nodes[id]
+					if self.control.mouse_y >= node.from_y and self.control.mouse_y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x:
+						node.drag(id, i, self.control.startDragEvent, self.control.mouse_y, self.control.mouse_x)
+						node.drag(id, i, self.control.dragEvent, self.control.mouse_rdy, self.control.mouse_rdx)
+						self.drag_on_node[node.id] = id
+						self.node_draglen += 1
+			elif self.node_draglen > 0:
+				for id in self.order[::-1]:
+					node = self.nodes[id]
+					if node.id in self.drag_on_node and self.drag_on_node[node.id] == id:
+						if self.control.mouse_buttons[i] == 5 and self.hasDelta:
+							node.drag(id, i, self.control.dragEvent, self.control.mouse_rdy, self.control.mouse_rdx)
+						elif handler[i] == 6:
+							node.drag(id, i, self.control.endDragEvent, self.control.mouse_rdy, self.control.mouse_rdx)
+							del self.drag_on_node[node.id]
+							self.node_draglen -= 1
 			break
+
+		if self.control.mouse_wheel != 0:
+			for id in self.order[::-1]:
+				node = self.nodes[id]
+				if self.control.mouse_y >= node.from_y and self.control.mouse_y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
+					node.scroll(id, self.control.mouse_wheel)
+
 
 		if handler[0] == 1:
 			#start of drag
@@ -242,7 +291,7 @@ class Wm:
 						self.move_type = 2
 						break
 
-		elif self.moving_node and self.control.mouse_buttons[0] == 5 and self.hasDelta:
+		if self.moving_node and self.control.mouse_buttons[0] == 5 and self.hasDelta:
 			if self.move_type == 0:
 				#drag
 				self.moving_node.move(self.control.mouse_rdy, self.control.mouse_rdx)
@@ -279,7 +328,7 @@ class Wm:
 				mxln = min(self.screen_width - x_offcut, node.width)
 				if x_offcut < 0:
 					x_offcut *= -1
-					self.display.root.addnstr(max(node.from_y - 1, 0), 0, text[x_offcut:], mxln)
+					self.display.root.addstr(max(node.from_y - 1, 0), 0, text[x_offcut:mxln])
 				else:
 					self.display.root.addnstr(max(node.from_y - 1, 0), x_offcut, text, mxln)
 
@@ -291,7 +340,7 @@ class Wm:
 					mxln = min(self.screen_width - x_offcut, node.width)
 					if x_offcut < 0:
 						x_offcut *= -1
-						self.display.root.addnstr(max(node.to_y + 1, 0), 0, text[x_offcut:], mxln)
+						self.display.root.addstr(max(node.to_y + 1, 0), 0, text[x_offcut:mxln])
 					else:
 						self.display.root.addnstr(max(node.to_y + 1, 0), x_offcut, text, mxln)
 
@@ -301,27 +350,19 @@ class Wm:
 		for id in self.order:
 			node = self.nodes[id]
 			if node:
-				self.error += node.draw()
+				node.draw()
 				self.decoration(node)
 
 		#draw mouse
 		if self.isMouse:
-			#self._mouse_input()
-
 			#self.display.root.addstr(10, 5, str(self.mouse.state))
 			self.display.root.addstr(10, 5, str(self.control.mouse_buttons))
-			self.display.root.addstr(12, 5, str(self.mouse.relstate))
-			
+
 			self.error += self._mouse_draw()
 
 		return self.error
 
 	def process(self):
-
-		#proces mouse buttons
-		if self.isMouse:
-			self._mouse_input()
-
 		for id in self.order:
 			node = self.nodes[id]
 			if node:

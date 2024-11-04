@@ -15,7 +15,7 @@ class Screen():
 
 
 		#ASCII screen
-		self.root = curses.newwin(self.height, self.width, 0, 0)
+		self.root = curses.newwin(self.height + 1, self.width, 0, 0)
 		#self.srend = [[' ' for x in range(self.width)] for y in range(self.height)]
 
 		#set up the env

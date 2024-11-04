@@ -18,8 +18,6 @@ class menu(apphabit):
 		self.height = height
 		self.width = width
 
-		self.preferred_height = 18
-		self.preferred_width = 45
 
 
 		self.node.setKindness(0)

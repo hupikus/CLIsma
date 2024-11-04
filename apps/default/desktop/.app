@@ -1,2 +1,3 @@
-name=CLISMA DESKTOP
-man={shutdown,startapp}
+name="CLISMA DESKTOP"
+manifest[]="shutdown"
+manifest[]="startapp"

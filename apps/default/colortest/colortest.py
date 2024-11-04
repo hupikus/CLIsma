@@ -11,17 +11,13 @@ class colortest(apphabit):
 		self.height = height
 		self.width = width
 
-
-		self.preferred_height = 6
-		self.preferred_width = 45
-
 		text = ''
 
 		for i in range(Colors.colorlen):
 			text += f"<c{i}>{i}<endc> "
 		#text = "Example <c4>TextBox Text<endc> <n> <c77>PRIVET<endc>"
 
-		self.node.ui.coloredTextBox("Colors", text, 0, 0, self.preferred_height, self.preferred_width)
+		self.node.ui.coloredTextBox("Colors", text, 0, 0, self.height, self.width)
 
 	def onresize(self, height, width):
 		self.height = height

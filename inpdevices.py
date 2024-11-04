@@ -26,6 +26,7 @@ class DeviceHandler:
 	def __init__(self):
 		c = True
 		self.mouses = []
+		self._incall = self.passy
 
 		#define avaliable keyboard and mouse and use first two
 		i = 0
@@ -54,24 +55,38 @@ class DeviceHandler:
 		self.controller = Controller(self.isMouse)
 
 		if self.isMouse:
-			self.mouse_class = Mice(self)
+			self.mouse_devices = [evdev.InputDevice(device) for device in self.mouses]
+			self.mouse_class = Mice(self, worldglobals.pointers_count)
+
+			worldglobals.pointers_count += 1
 
 			self.input_thread = threading.Thread(target = self._mouse)
+			#self.input_thread = threading.Thread(target = self.mouse_class.readevent)
 			self.input_thread.start()
 	
 		
 
 	def _mouse(self):
 		while self.isMouse:
-			self.mouse_class.process()
-			self.controller.mouse_dy = -self.mouse_class.y
+			self.mouse_class.readevent()
+			#self.mouse_class.process()
+			self.controller.mouse_dy = self.mouse_class.y
 			self.controller.mouse_dx = self.mouse_class.x
 			self.controller.raw_mouse_buttons = self.mouse_class.state
-			Loghandler.Log(f"{self.controller.mouse_dy} {self.controller.mouse_dx}")
+			self.controller.mouse_wheel = self.mouse_class.wheel
+			#Loghandler.Log(f"{self.controller.mouse_dy} {self.controller.mouse_dx} {self.controller.mouse_wheel}")
+			time.sleep(worldglobals.inputdelta)
+			self._incall(self.mouse_class.id)
 	
 	def abort(self):
 		self.isMouse = False
 		self.mouse_class.abort()
+
+	def listen_to_mouse(self, method):
+		self._incall = method
+	
+	def passy(self):
+		pass
 
 
 def hex_to_bin(str_hex):

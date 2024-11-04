@@ -117,6 +117,7 @@ class desktop(apphabit):
 
 		for y in range(2 + self.tick, self.height - 5, 3):
 			self.node.appendStr(y, 0, self.dekstop_str[2])
+		self.node.appendStr(self.height - 1, 0, self.dekstop_str[2])
 
 		if self.state == "regular":
 			self.node.appendStr(6, 0, self.fps_rate + " FPS, " + self.tick_rate + " TPS, tick " + str(self.tick))
@@ -140,7 +141,7 @@ class desktop(apphabit):
 		if self.ready == 2:
 			self.wm.shutdown()
 
-	def click(self, button, y, x):
+	def click(self, id, button, y, x):
 		if x == self.width - 1 and y == 0:
 			self.to_shutdown("user")
 
@@ -163,10 +164,10 @@ class desktop(apphabit):
 
 	def launchApp(self, app, returned = False):
 		if returned:
-			app = self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0, '')
+			app = self.node.newNodeByApp(app, round(self.height * 0.3), round(self.width / 4), 0, 0, '')
 			if app:
 				return app.node
 			else:
 				return False
 		else:
-			self.node.newNode(app.parent_path, app.class_name, round(self.height * 0.3), round(self.width / 4), 0, 0, '')
+			self.node.newNodeByApp(app, round(self.height * 0.3), round(self.width / 4), 0, 0, '')

@@ -1,1 +1,1 @@
-Terminal Emulator
+name="Terminal Emulator"

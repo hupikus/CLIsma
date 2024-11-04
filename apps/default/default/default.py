@@ -11,10 +11,6 @@ class default(apphabit):
 		self.height = height
 		self.width = width
 
-
-		self.preferred_height = 4
-		self.preferred_width = 45
-
 		#input
 		self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
 
@@ -35,5 +31,5 @@ class default(apphabit):
 		self.node.appendStr(2, 0, "Default window contains minimal api usage")
 		self.node.appendStr(3, 0, str(Colors.colorlen))
 
-	def click(self, button, y, x):
+	def click(self, id, button, y, x):
 		self.counter += 1

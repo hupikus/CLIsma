@@ -13,7 +13,13 @@ class apphabit:
 
     #INPUT
 
-    def click(self, button, y, x):
+    def click(self, id, button, y, x):
+        pass
+    
+    def drag(self, id, button, stage, y, x):
+        pass
+    
+    def scroll(self, id, delta):
         pass
 
     def keyboard(self, code):

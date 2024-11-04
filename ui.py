@@ -3,13 +3,17 @@ class UI:
 
 	def __init__(self, node):
 		self.node = node
+		self.controller = self.node.controller
 
-		self.ids = ["buttons", "sliders", "fields", "arts", "tapArts", "txts", "textBoxes", "coloredTextBoxes"]
+		self.ids = ["buttons", "sliders", "verticalSliders", "fields", "arts", "tapArts", "txts", "textBoxes", "coloredTextBoxes"]
 
 		#self.uis = {"buttons":{}, "sliders":{}, "fields":{}} #e.t.c.
 		self.uis = {i:{} for i in self.ids}
 
 		self.active = False
+
+		#activated uis personally
+		self.dragged_sliders = []
 
 
 		self.active_field_name = ''
@@ -18,7 +22,19 @@ class UI:
 	def draw(self):
 		for name in self.uis["sliders"]:
 			slider = self.uis["sliders"][name]
-			self.node.appendStr(slider[1], slider[2], '-' * (slider[4]) + '*' + '-' * (slider[3] - slider[4] - 1))
+			#                       y          x         '-'                 FXNormal
+			self.node.appendStr(slider[1], slider[2], slider[8] * slider[3], slider[7])
+			#                       y          x                    '*'          1       FXNormal
+			self.node.appendStr(slider[1], slider[2] + slider[4], slider[9] * slider[5], slider[6])
+		for name in self.uis["verticalSliders"]:
+			slider = self.uis["verticalSliders"][name]
+			for y in range( min(slider[3], self.node.to_y - slider[1])):
+				if y >= slider[4] and y <= slider[4] + slider[5]:
+					#                       y             x         '*'      FXNormal
+					self.node.appendStr(slider[1] + y, slider[2], slider[9], slider[6])
+				else:
+					#                       y          x         '|'      FXNormal
+					self.node.appendStr(slider[1] + y, slider[2], slider[8], slider[7])
 		for name in self.uis["fields"]:
 			field = self.uis["fields"][name]
 			self.node.appendStr(field[1], field[2], '_' * field[3])
@@ -68,7 +84,7 @@ class UI:
 					elif i == "<endt>":
 						attrMode = Colors.FXNormal
 					else:
-						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode)
+						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode | attrMode)
 						x += len(i)
 				elif mode == 'cread':
 					colorMode = Colors.colorPair(i)
@@ -79,7 +95,7 @@ class UI:
 
 
 
-	def click(self, button, y, x):
+	def click(self, id, button, y, x):
 		r = True
 		arg_invoke = False
 		for j in self.uis["buttons"]:
@@ -103,7 +119,18 @@ class UI:
 					slider = self.uis["sliders"][j]
 					if y == slider[1]:
 						if x >= slider[2] and x < slider[2] + slider[3]:
-							slider[4] = x - slider[2]
+							slider[4] = x - slider[2] - ( slider[5] >> 1 )
+							slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
+							slider[0](slider[4])
+							r = False
+							break
+			if r:
+				for j in self.uis["verticalSliders"]:
+					slider = self.uis["verticalSliders"][j]
+					if x == slider[2]:
+						if y >= slider[1] and y < slider[1] + slider[3]:
+							slider[4] = y - slider[1] - ( slider[5] >> 1 )
+							slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
 							slider[0](slider[4])
 							r = False
 							break
@@ -122,7 +149,48 @@ class UI:
 			if arg_invoke != False:
 				self.clicked(*arg_invoke)
 		return r
-		
+	
+	def drag(self, id, button, stage, y, x):
+		r = True
+		if button == 0:
+			if stage == self.controller.startDragEvent:
+				for j in self.uis["sliders"]:
+					slider = self.uis["sliders"][j]
+					if y == slider[1]:
+						if x >= slider[2] and x < slider[2] + slider[3]:
+							#click is outside slider button
+							if x < slider[4] or x > slider[4] + slider[5]:
+								slider[4] = x - slider[2] - ( slider[5] >> 1 )
+								slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
+								slider[0](slider[4])
+							r = False
+							self.dragged_sliders.append([j, "sliders", id])
+							break
+				if r:
+					for j in self.uis["verticalSliders"]:
+						slider = self.uis["verticalSliders"][j]
+						if x == slider[2]:
+							if y >= slider[1] and y < slider[1] + slider[3]:
+								if y < slider[4] or y > slider[4] + slider[5]:
+									slider[4] = y - slider[1] - ( slider[5] >> 1 )
+									slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
+									slider[0](slider[4])
+								r = False
+								self.dragged_sliders.append([j, "verticalSliders", id])
+								break
+			elif stage == self.controller.dragEvent:
+				for i in self.dragged_sliders:
+					slider = self.uis[i[1]][i[0]]
+					if i[1] == "sliders":
+						slider[4] += x
+					else:
+						slider[4] += y
+					slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
+					slider[0](slider[4])
+			else:
+				for i in range(len(self.dragged_sliders) - 1, -1, -1):
+					if self.dragged_sliders[i][2] == id:
+						self.dragged_sliders.pop(i)
 	
 	#creation
 
@@ -131,30 +199,33 @@ class UI:
 		#write: event, yStart, xStart, yEnd, xEnd
 		self.uis["buttons"][name] = [event, y, x, y + height, x + width]
 	
-	def art(self, name, content, y, x):
+	def art(self, name, content, y, x, attr = Colors.FXNormal):
 		#receive: content, yStart, xStart
 		#write: content, yStart, xStart, height
-		self.uis["arts"][name] = [content, y, x, len(content)]
+		self.uis["arts"][name] = [content, y, x, len(content), attr]
+	
+	def coloredArt(self, name, content, y, x):
+		#receive: content, yStart, xStart
+		#write: content, yStart, xStart, height
+		self.uis["arts"][name] = [content, y, x, len(content), attr]
 
 	def clickableArt(self, name, event, y, x, content, width = 1):
 		#receive: event, yStart, xStart, content, width (unnecessary)
 		#write: event, yStart, xStart, yEnd, xEnd, content
-
 		if width <= 1:
 			for i in content:
 				g = len(i)
 				if g > width:
 					width = g
-		
 		self.uis["tapArts"][name] = [event, y, x, y + len(content), x + width, content]
 
 	def textLine(self, name, content, y, x, attr = Colors.FXNormal):
-		#receive: content, yStart, xStart, attr
+		#receive: content, yStart, xStart, (attr)
 		#write: content, yStart, xStart, attr
 		self.uis["txts"][name] = [content, y, x, attr]
 
 	def textBox(self, name, content, y, x, height, width, align = 0, attr = Colors.FXNormal):
-		#receive: content, yStart, xStart, height, width, align mode, attr
+		#receive: content, yStart, xStart, height, width, (align mode), (attr)
 		#write: content, yStart, xStart, height, width, align mode, display text, height of display text, attr
 		if height == 0: height = -1
 		if width == 0: width = 999
@@ -172,18 +243,30 @@ class UI:
 		cache = self.generatecachedtextbox(words, height, width)
 		self.uis["coloredTextBoxes"][name] = [words, y, x, height, width, cache]
 
-	def slider(self, name, event, y, x, width, srartPos):
-		#receive: event, y, x, width, srartPosition
-		#write: event, y, x, width, position
-		self.uis["sliders"][name] = [event, y, x, width, srartPos]
+	def slider(self, name, event, y, x, width, startPos, railChar = '-', buttonChar = '*', buttonWidth = 1, railAttr = Colors.FXNormal, buttonAttr = Colors.FXNormal):
+		#receive: event, y, x, width, startPosition, (railChar), (buttonChar), (buttonWidtgh), (railAttr), (buttonAttr)
+		#write: event, y, x, width, position, buttonWidth, buttonAttr, railAttr, railChar, buttonChar
+		if buttonWidth > width: buttonWidth = width
+		railChar = railChar[0]
+		buttonChar = buttonChar[0]
+		self.uis["sliders"][name] = [event, y, x, width, startPos, buttonWidth, buttonAttr, railAttr, railChar, buttonChar]
+	
+	def verticalSlider(self, name, event, y, x, height, startPos, railChar = '|', buttonChar = '*', buttonHeight = 1, railAttr = Colors.FXNormal, buttonAttr = Colors.FXNormal):
+		#receive: event, y, x, height, startPosition, (railChar), (buttonChar), (buttonHeight), (railAttr), (buttonAttr)
+		#write: event, y, x, height, position, buttonHeight, buttonAttr, railAttr, railChar, buttonChar
+		if buttonHeight > height: buttonHeight = height
+		railChar = railChar[0]
+		buttonChar = buttonChar[0]
+		self.uis["verticalSliders"][name] = [event, y, x, height, startPos, buttonHeight, buttonAttr, railAttr, railChar, buttonChar]
 
 	def textField(self, name, var, y, x, width, maxlen = -1):
 		#receive: variable to write input to, y, x, width, max length of an input: -1 to disable
 		#write: variable, y, x, width, max len, text cursor position
 		self.uis["fields"][name] = [var, y, x, width, maxlen, cursorpos]
+	
 
 
-	#commands
+	#common commands
 
 	def move(self, name, y, x, type = ''):
 		if type == '':
@@ -214,13 +297,18 @@ class UI:
 
 			i[1] = y
 			i[2] = x
-
-
-	#custom events
-
-	def clicked(self, name, type, button):
-		self.uis[type][name][0](name, button)
 	
+	def remove(self, name, type = ''):
+		if type == '':
+			for type in self.ids:
+				if name in self.uis[type]:
+					del self.uis[type][name]
+		elif name in self.uis[type]:
+				del self.uis[type][name]
+
+
+	#change properties
+
 	def resizeTextBox(self, name, height, width):
 		if name in self.uis["textBoxes"]:
 			text = self.uis["textBoxes"][name]
@@ -235,6 +323,28 @@ class UI:
 				text[3] = height
 			text[4] = width
 			text[5] = self.generatecachedtextbox(text[0], text[3], text[4])
+	
+	def setAttribut(self, name, attr):
+		if name in self.uis["textBoxes"]:
+			self.uis["textBoxes"][name][8] = attr
+		elif name in self.uis["txts"]:
+			self.uis["txts"][name][3] = attr
+		elif name in self.uis["arts"]:
+			self.uis["arts"][name][3] = attr
+	
+
+	def setSliderPos(self, name, pos, type = ''):
+		if type == '' or type != "verticalSliders":
+			type = "sliders"
+		if name in self.uis[type]:
+			slider = self.uis[type][name]
+			slider[4] = max(0, min(slider[3] - slider[5], pos))
+
+
+	#custom events
+
+	def clicked(self, name, type, button):
+		self.uis[type][name][0](name, button)
 		
 
 	#public calculation events

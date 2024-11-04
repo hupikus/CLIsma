@@ -1,12 +1,14 @@
 from apps.apphabit import apphabit
 from worldglobals import worldglobals
 from loghandler import Loghandler
+from type.colors import Colors
 class settings(apphabit):
 
     def start(self):
         #self.node.ui.art("icon1", ["----", "---", "--", "-"], 1, 0)
         #self.ui.clickableArt("icon1", self.submenu, 1, 0, ["-----  ", " --- ", "  -- ", "  -  "])
         self.ui.slider("FPS", self.FPSlider_update, 5, 2, 24, 11)
+        #self.ui.slider("FPS", self.FPSlider_update, 5, 2, 24, 11, railChar = '-', buttonChar = '*', buttonWidth = 5, railAttr = Colors.FXNormal, buttonAttr = Colors.FXNormal)
         self.ui.textBox("tB", 'I want to introduce to you new UI element called "TextBox". It can make automatic line break for words longer than line', 6, 2, 8, 30, align = 1)
 
     def __init__(self, id, node, controller, height, width, params):

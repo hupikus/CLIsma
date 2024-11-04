@@ -29,6 +29,6 @@ class log(apphabit):
 		else:
 			column = min(self.height, Loghandler.loglen)
 			for y in range(column):
-				self.node.appendStr(y, 0, Loghandler.history[-column + y].center(self.width, ' '))
+				self.node.appendStr(y, 0, Loghandler.history[-(y + 1)].center(self.width, ' '))
 
 		

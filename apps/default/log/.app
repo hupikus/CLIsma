@@ -1,1 +1,1 @@
-System Log
+name="System Log"
