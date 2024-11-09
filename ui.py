@@ -84,7 +84,7 @@ class UI:
 					elif i == "<endt>":
 						attrMode = Colors.FXNormal
 					else:
-						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode | attrMode)
+						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode)
 						x += len(i)
 				elif mode == 'cread':
 					colorMode = Colors.colorPair(i)
@@ -216,7 +216,7 @@ class UI:
 			for i in content:
 				g = len(i)
 				if g > width:
-					width = g
+					width = g 
 		self.uis["tapArts"][name] = [event, y, x, y + len(content), x + width, content]
 
 	def textLine(self, name, content, y, x, attr = Colors.FXNormal):
@@ -520,7 +520,7 @@ class UI:
 
 				if indend == -1:
 					#syntax error
-					displays.append(normal)
+					displays.append("normal")
 				else:
 					displays.append(w[ind + 2:indend])
 			else:

@@ -24,7 +24,7 @@ class Node:
 		self.child_nodes = []
 
 		self.parent = parent
-		
+
 		#app
 		if app == None:
 			if class_path[:12] == "apps.default":
@@ -33,7 +33,7 @@ class Node:
 				self.app = App(class_name)
 		else:
 			self.app = app
-		
+
 		if self.app.valid:
 			self.name = self.app.name
 		else:
@@ -41,8 +41,8 @@ class Node:
 
 
 		#auto
-		self.to_y = self.from_y + self.height - 2
-		self.to_x = self.from_x + self.width - 2
+		self.to_y = self.from_y + self.height - 1
+		self.to_x = self.from_x + self.width - 1
 
 
 		if height == 0 and width == 0:
@@ -103,8 +103,23 @@ class Node:
 	def clear(self):
 		self.tasks = []
 
+	#that sh is broken
+	def appendStr_new(self, y, x, text, mode = Colors.FXNormal):
+		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height - 1 and x < self.width and x + self.from_x < self.display_width - 1:
+			if not self.isActive() and not self.isChildActive():
+				mode = Colors.FXPale
+
+			oblen = min(len(text), self.width - x, self.display.width - x - self.from_x)
+			ln = len(text)
+			x_offcut = -min(0, x)
+			if self.from_x + x < 0:
+				x_offcut -= self.from_x - 1
+
+			if x_offcut < ln and oblen > x_offcut:
+				self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen])
+	
 	def appendStr(self, y, x, text, mode = Colors.FXNormal):
-		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height and x <= self.width:
+		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height and x <= self.width and x + self.from_x < self.display.width - 1:
 
 			if not self.isActive() and not self.isChildActive():
 				mode = Colors.FXPale
@@ -118,9 +133,6 @@ class Node:
 					x_offcut = -x
 				if self.from_x + x < 0:
 					x_offcut -= self.from_x - 1
-
-				
-
 				if x_offcut < ln:
 					self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen], mode)
 			else:

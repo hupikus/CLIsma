@@ -1,8 +1,10 @@
 import os
 class userglobals:
-    username = os.getenv('SUDO_USER', "!nosudo")
-    if username == "!nosudo":
-        username = os.getenv('LOGNAME')
-        userpath = os.getenv('HOME') + '/'
-    else:
-        userpath = os.getenv('SUDO_HOME') + '/'
+	username = os.getenv('SUDO_USER', "!nosudo")
+	if username == "!nosudo":
+		username = os.getenv('LOGNAME')
+
+	userpath = os.getenv('SUDO_HOME', "!nosudohome")
+	if userpath == "!nosudohome":
+		userpath = os.getenv('HOME')
+	userpath += '/'

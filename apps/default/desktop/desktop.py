@@ -83,14 +83,14 @@ class desktop(apphabit):
 
 		if self.state == "minimal":
 			self.greetmsg = "Minimal mode"
-			self.apps = [App("default/settings"), App("default/terminal")]
+			self.apps = [App("default/settings"), App("default/fileman")]
 		else:
 			self.greetmsg = "Welcome to CLI System Management Accompanier! (" + userglobals.username + " session)"
-			self.apps = [App("default/settings"), App("default/terminal"), App("default/fileman")]
+			self.apps = [App("default/settings"), App("default/colortest"), App("default/fileman")]
 
 		self.pinned = 3
 			
-		#self.apps = [App("default/settings"), App("default/settings")]
+		#App("default/terminal") App("default/colortest")
 
 		#constants
 		self.recalculate_dock()

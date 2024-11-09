@@ -23,7 +23,8 @@ class Wm:
 		self.id += 1
 		self.orderlen += 1
 		return node.win
-	
+
+
 	def newNodeByApp(self, app, y, x, height, width, params, parent = None):
 		if parent:
 			node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, params, app = app, parent = parent)
@@ -39,7 +40,6 @@ class Wm:
 	def closeNode(self, node):
 		if not node.ready_to_close:
 			node.win.abort()
-		
 
 	def delNode(self, node):
 		del node.win
@@ -84,11 +84,12 @@ class Wm:
 		self.desktop.wm = self
 		self.desktop.node.is_fullscreen = True
 
-		self.newNode("apps.default", "default", 7, 7, 2, 65, '')
+		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
+		#self.newNode("apps.default", "bangerplayer", 7, 20, 0, 0, "/home/sipuchiy/CLIde/DeathbyGlamour.mp3")
 		#self.log = self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
-		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 		self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
 
 		#window management
@@ -100,7 +101,7 @@ class Wm:
 
 		#mouse
 		self.isMouse = inpd.isMouse
-		
+
 		if self.isMouse:
 			self.mouse = inpd.mouse_class
 			self.cursor_symbol = {"base":"#", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
@@ -148,13 +149,13 @@ class Wm:
 	def _mouse_input(self, id):
 
 		#mouse relativies
-		
+
 		dy = self.control.mouse_dy * self.mouse_speed
 		dx = self.control.mouse_dx * self.mouse_speed
 
 		self.control.mouse_dy, self.control.mouse_dx = 0, 0
-		
-		
+
+
 		self.control.mouse_ry = max(min(self.control.mouse_ry + dy, self.screen_height - 1), 0)
 		self.control.mouse_rx = max(min(self.control.mouse_rx + dx, self.screen_width - 1), 0)
 		self.control.mouse_y = round(self.control.mouse_ry)
@@ -166,7 +167,7 @@ class Wm:
 		self.control.mouse_last_x = self.control.mouse_x
 		self.control.mouse_last_y = self.control.mouse_y
 
-		
+
 
 		#self.mouse.speed = min(max(self.mouse_speed * 0.7 + self.acc, self.mouse_speed * 0.7), self.mouse_speed * 1.8) * 0.6
 		#self.acc += (abs(self.mouse.dx + self.mouse.dy) * self.mouse_speed * 0.6 - self.acc) / 5
@@ -215,12 +216,12 @@ class Wm:
 					node = self.nodes[id]
 					if node:
 						if self.control.mouse_y >= node.from_y - 1 and self.control.mouse_y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
+							if self.focus_id != id:
+								self.focus_id = id
+								if id != 0:
+									focus_changed = True
 							if self.control.mouse_y >= node.from_y:
 								#click
-								if self.focus_id != id:
-									self.focus_id = id
-									if id != 0:
-										focus_changed = True
 								node.click(id, i, self.control.mouse_y, self.control.mouse_x)
 								break
 							elif self.control.mouse_x == node.to_x and i == 0:
@@ -245,7 +246,7 @@ class Wm:
 							node.drag(id, i, self.control.endDragEvent, self.control.mouse_rdy, self.control.mouse_rdx)
 							del self.drag_on_node[node.id]
 							self.node_draglen -= 1
-			break
+			#if handler[i] == 6:
 
 		if self.control.mouse_wheel != 0:
 			for id in self.order[::-1]:
@@ -268,7 +269,7 @@ class Wm:
 						self.moving_node = node
 						self.move_type = 0
 						break
-					elif self.control.mouse_y >= node.from_y - 1 and self.control.mouse_y < node.to_y and (self.control.mouse_x == node.to_x + 1 or self.control.mouse_x == node.from_x - 1):
+					elif self.control.mouse_y >= node.from_y - 1 and self.control.mouse_y <= node.to_y + 1 and (self.control.mouse_x == node.to_x + 1 or self.control.mouse_x == node.from_x - 1):
 						#focus and move right or left side
 						if self.control.mouse_x == node.to_x + 1:
 							self.move_type = 1
@@ -280,15 +281,22 @@ class Wm:
 								if id != 0:
 									focus_changed = True
 						self.moving_node = node
-						break
-					elif self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x and self.control.mouse_y == node.to_y + 1:
+						#break
+					if self.control.mouse_x >= node.from_x - 1 and self.control.mouse_x <= node.to_x + 1 and self.control.mouse_y == node.to_y + 1:
 						#focus and move bottom side
 						if self.focus_id != id:
 								self.focus_id = id
 								if id != 0:
 									focus_changed = True
+						if self.move_type == -1 or self.moving_node != node:
+							self.move_type = 2
+						elif self.move_type == 1:
+							self.move_type = 21
+						elif self.move_type == 3:
+							self.move_type = 23
+						else:
+							self.move_type = 2
 						self.moving_node = node
-						self.move_type = 2
 						break
 
 		if self.moving_node and self.control.mouse_buttons[0] == 5 and self.hasDelta:
@@ -298,11 +306,14 @@ class Wm:
 			elif self.move_type == 2:
 				self.moving_node.reborder(2, self.control.mouse_rdy)
 			else:
-				self.moving_node.reborder(self.move_type, self.control.mouse_rdx)
+				self.moving_node.reborder(self.move_type % 10, self.control.mouse_rdx)
+				if self.move_type > 20:
+					self.moving_node.reborder(2, self.control.mouse_rdy)
 		elif handler[0] == -1:
+		#That is post-release
 			self.moving_node = False
 			self.move_type = -1
-		
+
 
 		if focus_changed:
 			id_ind = self.order.index(self.focus_id)

@@ -49,6 +49,7 @@ class DeviceHandler:
 				if is_mouse:
 					self.mouses.append("/dev/input/event" + str(i))
 					#self.mouses.append(i)
+				#self.mouses.append("/dev/input/event5")
 			i += 1
 
 		self.isMouse = len(self.mouses) > 0
