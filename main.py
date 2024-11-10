@@ -20,7 +20,7 @@ def abort(msg):
 	Singletons.Inpd.abort()
 	display.abort()
 	print(msg)
-	os.system("exit")
+	exit()
 
 wm = Singletons.Wm
 

@@ -90,7 +90,7 @@ class Wm:
 
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
-		self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
+		#self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
 
 		#window management
 		self.moving_node = False
@@ -323,7 +323,7 @@ class Wm:
 
 
 	def decoration(self, node):
-		if not node.is_fullscreen and node.windowed:
+		if node and not node.is_fullscreen and node.windowed:
 			if node.from_y - 1 < self.screen_height:
 				bts = ''
 				ln = 0

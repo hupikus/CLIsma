@@ -56,4 +56,4 @@ class error(apphabit):
 		self.width = width
 		self.displaytext = self.text.center(self.width, ' ')
 		self.space = ' ' * self.width
-		self.node.ui.resizeTextBox("errormessage", height - 1, width)
+		self.node.ui.resize("errormessage", height - 1, width, type = "coloredTextBoxes")

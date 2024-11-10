@@ -5,7 +5,7 @@ class UI:
 		self.node = node
 		self.controller = self.node.controller
 
-		self.ids = ["buttons", "sliders", "verticalSliders", "fields", "arts", "tapArts", "txts", "textBoxes", "coloredTextBoxes"]
+		self.ids = ("buttons", "sliders", "verticalSliders", "fields", "arts", "tapArts", "txts", "textBoxes", "coloredTextBoxes", "lists")
 
 		#self.uis = {"buttons":{}, "sliders":{}, "fields":{}} #e.t.c.
 		self.uis = {i:{} for i in self.ids}
@@ -42,7 +42,7 @@ class UI:
 			art = self.uis["arts"][name]
 			content = art[0]
 			for y in range(art[3]):
-				self.node.appendStr(art[1] + y, art[2], content[y])
+				self.node.appendStr(art[1] + y, art[2], content[y], art[5])
 		for name in self.uis["tapArts"]:
 			art = self.uis["tapArts"][name]
 			content = art[5]
@@ -199,34 +199,71 @@ class UI:
 		#write: event, yStart, xStart, yEnd, xEnd
 		self.uis["buttons"][name] = [event, y, x, y + height, x + width]
 	
-	def art(self, name, content, y, x, attr = Colors.FXNormal):
-		#receive: content, yStart, xStart
-		#write: content, yStart, xStart, height
-		self.uis["arts"][name] = [content, y, x, len(content), attr]
-	
-	def coloredArt(self, name, content, y, x):
-		#receive: content, yStart, xStart
-		#write: content, yStart, xStart, height
-		self.uis["arts"][name] = [content, y, x, len(content), attr]
+	def art(self, name, content, y, x, attr = Colors.FXNormal, align = 0):
+		#receive: content, y, x, (attr), (align)
+		#write: content, y, x, height, width, attr
+		width = 0
+		height = len(content)
+		for i in content:
+			g = len(i)
+			if g > width:
+				width = g
 
-	def clickableArt(self, name, event, y, x, content, width = 1):
+		if align > 2 or align <= 0: align = 0
+		else:
+			for i in range(height):
+				if align == 1:
+					content[i] = content[i].center(width, ' ')
+				else:
+					content[i] = content[i].rjust(width, ' ')
+
+		self.uis["arts"][name] = [content, y, x, height, width, attr]
+	
+	def coloredArt(self, name, content, y, x, align = 0):
+		#receive: content, y, x, (align)
+		#write: content, y, x, height, width
+		height = len(content)
+		for i in content:
+			g = len(i)
+			if g > width:
+				width = g
+		
+		if align > 2 or align <= 0: align = 0
+		else:
+			for i in range(height):
+				if align == 1:
+					content[i] = content[i].center(width, ' ')
+				else:
+					content[i] = content[i].rjust(width, ' ')
+
+		self.uis["coloredArts"][name] = [content, y, x, height, width]
+
+	def clickableArt(self, name, event, y, x, content, attr = Colors.FXNormal, align = 0, width = 1):
 		#receive: event, yStart, xStart, content, width (unnecessary)
 		#write: event, yStart, xStart, yEnd, xEnd, content
 		if width <= 1:
 			for i in content:
 				g = len(i)
 				if g > width:
-					width = g 
-		self.uis["tapArts"][name] = [event, y, x, y + len(content), x + width, content]
+					width = g
+		height = len(content)
+		if align > 0:
+			for i in range(height):
+				if align == 1:
+					content[i] = content[i].center(width, ' ')
+				else:
+					content[i] = content[i].rjust(width, ' ')
+		self.uis["tapArts"][name] = [event, y, x, y + height, x + width, content]
 
 	def textLine(self, name, content, y, x, attr = Colors.FXNormal):
-		#receive: content, yStart, xStart, (attr)
-		#write: content, yStart, xStart, attr
-		self.uis["txts"][name] = [content, y, x, attr]
+		#receive: content, y, x, (attr)
+		#write: content, y, x, attr
+		content = str(content)
+		self.uis["txts"][name] = [content, y, x, attr, len(content)]
 
 	def textBox(self, name, content, y, x, height, width, align = 0, attr = Colors.FXNormal):
-		#receive: content, yStart, xStart, height, width, (align mode), (attr)
-		#write: content, yStart, xStart, height, width, align mode, display text, height of display text, attr
+		#receive: content, y, x, height, width, (align mode), (attr)
+		#write: content, y, x, height, width, align mode, display text, height of display text, attr
 		if height == 0: height = -1
 		if width == 0: width = 999
 		if align > 2 or align < 0: align = 0
@@ -235,8 +272,8 @@ class UI:
 		self.uis["textBoxes"][name] = [words, y, x, height, width, align, display, len(display), attr]
 	
 	def coloredTextBox(self, name, content, y, x, height, width):
-		#receive: content, yStart, xStart, height, width
-		#write: content, yStart, xStart, height, width, display text
+		#receive: content, y, x, height, width
+		#write: content, y, x, height, width, display text
 		if height == 0: height = -1
 		if width == 0: width = 999
 		words = content.split()
@@ -264,6 +301,21 @@ class UI:
 		#write: variable, y, x, width, max len, text cursor position
 		self.uis["fields"][name] = [var, y, x, width, maxlen, cursorpos]
 	
+	def list(self, name, contents, y, x, height, width, margin_y, margin_x, fitAll = False, vertical = False):
+		#receive: contents, y, x, height, width, y margin, x margin, (fit all), (is vertical)
+		#write: contents, y, x, height, width, y margin, x margin, fit all, is vertical
+		content_search = {}
+		spaces = 0
+		for namex in contents:
+			if namex[0] == True:
+				content_search[f"space{spaces}"] = namex
+				spaces += 1
+			else:
+				content_search[namex] = self.determineType(namex)
+		self.uis["lists"][name] = [content_search, y, x, height, width, margin_y, margin_x, fitAll, vertical]
+		self.generate_list(*self.uis["lists"][name])
+	
+	
 
 
 	#common commands
@@ -278,7 +330,7 @@ class UI:
 			i[1] += y
 			i[2] += x
 
-			if type in ["buttons", "tapArts"]:
+			if type in ("buttons", "tapArts"):
 				#adjust yEnd and xEnd
 				i[3] += y
 				i[4] += x
@@ -288,9 +340,12 @@ class UI:
 			for type in self.ids:
 				if name in self.uis[type]:
 					break
+			else:
+				type = ''
 
-		if i:
-			if type in ["buttons", "tapArts"]:
+		if type != '':
+			i = self.uis[type][name]
+			if type in ("buttons", "tapArts"):
 				#adjust yEnd and xEnd
 				i[3] += y - i[1]
 				i[4] += x - i[2]
@@ -300,37 +355,57 @@ class UI:
 	
 	def remove(self, name, type = ''):
 		if type == '':
-			for type in self.ids:
-				if name in self.uis[type]:
-					del self.uis[type][name]
+			type = self.determineType(name)
+			if type != '':
+				del self.uis[type][name]
 		elif name in self.uis[type]:
 				del self.uis[type][name]
+	
+
+	def removeRecursive(self, name):
+		if name in self.uis["lists"]:
+			list = self.uis["lists"][name]
+			for n_name in list[0]:
+				if list[0][n_name][0] != True:
+					self.remove(n_name, type = list[0][n_name])
+			del self.uis["lists"][name]
 
 
 	#change properties
 
-	def resizeTextBox(self, name, height, width):
-		if name in self.uis["textBoxes"]:
-			text = self.uis["textBoxes"][name]
+	def resize(self, name, height, width, type = ''):
+		if type == '':
+			type = self.determineType(name)
+		#elif name not in self.uis[type]: return None
+		if type == "textBoxes":
+			text = self.uis[type][name]
 			if height != 0:
 				text[3] = height
 			text[4] = width
 			text[6] = self.arrangeTextBox(text[0], text[3], text[4], text[5])
 			text[7] = len(text[6])
-		elif name in self.uis["coloredTextBoxes"]:
-			text = self.uis["coloredTextBoxes"][name]
+		elif type == "coloredTextBoxes":
+			text = self.uis[type][name]
 			if height != 0:
 				text[3] = height
 			text[4] = width
 			text[5] = self.generatecachedtextbox(text[0], text[3], text[4])
+		elif type == "lists":
+			list = self.uis[type][name]
+			if height > 0: list[3] = height
+			if width > 0: list[4] = width
+			if height > 0 or width > 0:
+				self.generate_list(*list)
+
 	
-	def setAttribut(self, name, attr):
-		if name in self.uis["textBoxes"]:
-			self.uis["textBoxes"][name][8] = attr
-		elif name in self.uis["txts"]:
-			self.uis["txts"][name][3] = attr
-		elif name in self.uis["arts"]:
-			self.uis["arts"][name][3] = attr
+	def setAttribut(self, name, attr, type = ''):
+		if type == '':
+			type = self.determineType(name, searchBy = ("txts", "textBoxes", "arts"))
+
+		if type == "textBoxes":
+			self.uis[type][name][8] = attr
+		elif type in ("txts", "arts"):
+			self.uis[type][name][3] = attr
 	
 
 	def setSliderPos(self, name, pos, type = ''):
@@ -339,7 +414,29 @@ class UI:
 		if name in self.uis[type]:
 			slider = self.uis[type][name]
 			slider[4] = max(0, min(slider[3] - slider[5], pos))
+	
+	def setText(self, name, content, type = '', searchBy = ("txts", "textBoxes", "arts")):
+		if type == '':
+			type = self.determineType(name)
 
+		if type == "textBoxes":
+			textbox = self.uis[type][name]
+			
+			words = content.replace('\n', '').split()
+			display = self.arrangeTextBox(words, textbox[3], textbox[4], textbox[5])
+
+			textbox[0] = words
+			textbox[6] = display
+			textbox[7] = len(display)
+		elif type == "txts":
+			self.uis[type][name][0] = content
+			self.uis[type][name][4] = len(content)
+		elif type ==  "arts":
+			self.uis[type][name][0] = content
+			self.uis[type][name][3] = len(content)
+		elif type == "tapArts":
+			self.uis[type][name][5] = content
+			self.uis[type][name][3] = len(content)
 
 	#custom events
 
@@ -348,6 +445,16 @@ class UI:
 		
 
 	#public calculation events
+
+	def determineType(self, name, searchBy = 0):
+		type = ''
+		if searchBy == 0: searchBy = self.ids
+		for typ in searchBy:
+			if name in self.uis[typ]:
+				type = typ
+				break
+		return type
+
 	def arrangeTextBox(self, words, height, width, align):
 		displays = ['']
 		l = width + 1
@@ -482,7 +589,7 @@ class UI:
 		newline = -1
 		while True:
 			#search for color and attribute tags
-			tags = ["<c", "<t", "<endc>", "<endt>", "<n>"]
+			tags = ("<c", "<t", "<endc>", "<endt>", "<n>")
 			indn = [w.find(i) for i in tags]
 			temp_lw = len(w)
 			if sum(indn) == -5:
@@ -552,3 +659,125 @@ class UI:
 					c -= 1
 		return c
 
+	def generate_list(self, contents, yStart, xStart, height, width, margin_y, margin_x, fitAll, isVertical):
+		res = []
+		line = 0
+		newline = 0
+
+		margin_line = margin_x
+		margin_newline = margin_y
+		line_size = width
+		newline_size = height
+
+		if isVertical:
+			margin_line = margin_y
+			margin_newline = margin_x
+			line_size = height
+			newline_size = width
+
+		isVertical = int(isVertical)
+
+		#glue is tool which allows to block line break
+		glue = 0
+
+		for name in contents:
+			type = contents[name]
+
+			iSpace = type[0] == True
+
+			#newline margin
+			maxsize = 0
+
+			if type == "list": continue
+			indexx = -1
+			indexy = -1
+			n_width = 0
+			n_height = 0
+			if iSpace:
+				hypertype = type[1]
+				if hypertype == "space":
+					indexx = 0
+					indexy = 0
+					n_height = type[2]
+					n_width = type[3]
+				elif hypertype == "shift":
+					newline += type[2]
+					line += type[3]
+					continue
+				elif hypertype == "newline":
+					newline += type[2]
+					line = 0
+					#if newline >= newline_size: break
+					continue
+				elif hypertype == "glue":
+					glue = type[2]
+					continue
+			elif type in ("txts", "coloredArts", "textBoxes", "coloredTtextBoxes"):
+				indexx = 4
+				indexy = 3
+			elif type in ("sliders", "fields"):
+				indexx = 3
+				indexy = 1
+			elif type in ("buttons", "tapArts"):
+				indexx = 4
+				indexy = 3
+				n_width = -1
+				n_height = -1
+			elif type == "verticalSliders":
+				indexy = 3
+				n_width = 1
+
+			if indexx < 0 and indexy < 0: continue
+
+			if not iSpace:
+				table = self.uis[type][name]
+
+			#ui object's size
+			if n_width == 0:
+				n_width = table[indexx]
+			elif n_width < 0:
+				n_width = table[indexx] - table[indexx - 2]
+
+			if n_height == 0:
+				n_height = table[indexy]
+			elif n_height < 0:
+				n_height = table[indexy] - table[indexy - 2]
+			
+			#relative size
+			n_inline = n_width
+			n_inewline = n_height
+			if isVertical == 1:
+				n_inline = n_height
+				n_inewline = n_width
+			
+			if n_inewline > maxsize: maxsize = n_inewline
+			
+
+			if line > 0:
+				prebreak_len = line
+				if fitAll: prebreak_len += n_inline
+
+				if prebreak_len >= line_size:
+					if glue == 0:
+						newline += maxsize + margin_newline
+						#if newline >= newline_size: break
+						maxsize = n_inewline
+						line = 0
+
+			if not iSpace:
+				if isVertical == 1:
+					self.moveTo(name, yStart + line, xStart + newline, type = type)
+				else:
+					self.moveTo(name, yStart + newline, xStart + line, type = type)
+			line += margin_line + n_inline
+
+			if line >= line_size:
+				if glue > 0:
+					glue -= 1
+				else:
+					newline += maxsize + margin_newline
+					#if newline >= newline_size: break
+					maxsize = 0
+					line = 0
+
+		return res

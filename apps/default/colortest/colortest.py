@@ -22,4 +22,4 @@ class colortest(apphabit):
 	def onresize(self, height, width):
 		self.height = height
 		self.width = width
-		self.node.ui.resizeTextBox("Colors", height, width - 1)
+		self.node.ui.resize("Colors", height, width - 1, type = "coloredTextBoxes")

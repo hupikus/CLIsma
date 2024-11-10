@@ -4,19 +4,23 @@ import pydoc
 from ui import UI
 from apps.apps import App
 from type.colors import Colors
-import curses
+#import curses
 
 class Node:
 
+	__slots__ = ("id", "name", "wm", "controller", "display", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_verfull", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "tasks")
 	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params, app = None, parent = None):
 		self.id = id
 		self.wm = wm
 		self.controller = wm.control
 		self.display = display
-		self.from_x = from_x
 		self.from_y = from_y
+		self.from_x = from_x
 		self.height = height
 		self.width = width
+
+		self.display_height = self.display.height
+		self.display_width = self.display.width
 
 		#avoid dumb crashes when smart developer is trying to call the node of the node
 		self.node = self
@@ -66,15 +70,29 @@ class Node:
 
 		#window class
 		#cls = getattr(__import__(class_path), class_name)
-		#mod = exec("from " + class_path + " import " + class_name)
-		cls = pydoc.locate(class_path + '.' + class_name)
-		self.win = cls(id, self, self.controller, self.height, self.width, params)
-		
+		#mod = exec("from " + class_path + " import " + class_name)	
+		cls = False
+		ex = False
+		try:
+			cls = pydoc.locate(class_path + '.' + class_name)
+		except Exception as exc:
+			ex = exc
+		if cls:
+			try:
+				self.win = cls(id, self, self.controller, self.height, self.width, params)
+			except Exception as ex:
+				cls = pydoc.locate("apps.default" + ".error" * 3)
+				self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} closed at start with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
+		else:
+			#App("default/settings")
+			cls = pydoc.locate("apps.default" + ".error" * 3)
+			self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} is unreachable: <c2> <tbold>' + "Class " + class_path + " does not exist (" + str(ex) + ')' + '<endt> <endc>"')
+			
 
 		self.min_height = 1
-		self.max_height = self.wm.screen_height
+		self.max_height = 999
 		self.min_width = 1
-		self.max_width = self.wm.screen_width
+		self.max_width = 999
 		#TODO: minimal size should be in .app file
 
 		self.windowed = True
@@ -84,7 +102,6 @@ class Node:
 
 		#controller
 		controller = self.controller
-		self.win.controller = controller
 		if hasattr(self.win, "input_subscriptions"):
 			subdata = self.win.input_subscriptions
 			self.sub = {controller.MouseEvents:False, controller.MouseWheelEvents:False, controller.KeyboardEvents:False}
@@ -105,7 +122,7 @@ class Node:
 
 	#that sh is broken
 	def appendStr_new(self, y, x, text, mode = Colors.FXNormal):
-		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height - 1 and x < self.width and x + self.from_x < self.display_width - 1:
+		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height - 1 and x < self.width and x + self.from_x < self.display.width - 1:
 			if not self.isActive() and not self.isChildActive():
 				mode = Colors.FXPale
 
@@ -118,8 +135,9 @@ class Node:
 			if x_offcut < ln and oblen > x_offcut:
 				self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen])
 	
+	#old
 	def appendStr(self, y, x, text, mode = Colors.FXNormal):
-		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height and x <= self.width and x + self.from_x < self.display.width - 1:
+		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display_height and x <= self.width and x + self.from_x < self.display_width - 1:
 
 			if not self.isActive() and not self.isChildActive():
 				mode = Colors.FXPale
@@ -244,7 +262,8 @@ class Node:
 	def abort(self):
 		if self.parent and self in self.parent.child_nodes:
 			self.parent.child_nodes.remove(self)
-		self.win.abort()
+		if self.win:
+			self.win.abort()
 		self.ready_to_close = True
 	
 #Conditions

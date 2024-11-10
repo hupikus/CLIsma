@@ -86,7 +86,7 @@ class DeviceHandler:
 	def listen_to_mouse(self, method):
 		self._incall = method
 	
-	def passy(self):
+	def passy(self, mouse_class):
 		pass
 
 
