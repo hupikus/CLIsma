@@ -1,5 +1,5 @@
 class worldglobals:
-    processrate = 100
+    processrate = 40
     framerate = 60
     inputrate = 60
 

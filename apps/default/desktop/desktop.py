@@ -120,7 +120,7 @@ class desktop(apphabit):
 		self.node.appendStr(self.height - 1, 0, self.dekstop_str[2])
 
 		if self.state == "regular":
-			self.node.appendStr(6, 0, self.fps_rate + " FPS, " + self.tick_rate + " TPS, tick " + str(self.tick))
+			self.node.appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS, frame {self.tick}")
 
 		self.node.appendStr(self.height - 5, 0, self.dekstop_str[3])
 

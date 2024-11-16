@@ -477,7 +477,7 @@ class UI:
 					startlen = l
 
 					#then start new line
-					if wlen == 0: break
+					if wlen <= 0: break
 					
 
 					if line == height and height > 0: break
@@ -548,7 +548,7 @@ class UI:
 					wlen -= self.tagsoverheadcount(part)
 					startlen = l
 					#then start new line
-					if wlen == 0: break
+					if wlen <= 0: break
 					
 					line += 1
 					l = width + 1

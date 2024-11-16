@@ -29,12 +29,25 @@ class Layouts:
                 self.ui.clickableArt("back", self.sett.up, 0, 0, ["Back"])
 
             if path == "performance":
+                #FPS slider
                 self.ui.slider("FPS", self.FPSlider_update, 0, 0, 24, 11)
                 self.ui.textLine("FPSTitle", "Set Framerate", 0, 0)
 
                 self.ui.textLine("FPSText", "60", 0, 0)
 
-                self.ui.list("list", ("FPSTitle", (True, "space", 2, 2), (True, "newline", 1), "FPS", (True, "glue", 1), "FPSText"), 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+                #process slider
+                self.ui.slider("TICK", self.TICKlider_update, 0, 0, 44, 11)
+                self.ui.textLine("TICKTitle", "Set Tickrate", 0, 0)
+
+                self.ui.textLine("TICKText", "100", 0, 0)
+
+                elements = (
+                "FPSTitle", (True, "space", 2, 2), (True, "newline", 1), "FPSText", (True, "glue", 1), "FPS",
+                "TICKTitle", (True, "space", 2, 2), (True, "newline", 1), "TICKText", (True, "glue", 1), "TICK"
+                )
+
+                self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+
         self.path = path
 
 
@@ -50,5 +63,17 @@ class Layouts:
         self.FPSlider = str(self.FPSlider)
         self.ui.setText("FPSText", self.FPSlider, type = "txts")
         Loghandler.Log(f"FPS changed to {self.FPSlider}")
+    
+    def TICKlider_update(self, val):
+        
+        if val < 4:
+            self.TickSlider = val + 1
+        else:
+            self.TickSlider = (val - 3) * 5
+        worldglobals.processrate = self.TickSlider
+        worldglobals.processdelta = 1 / self.TickSlider
+        self.TickSlider = str(self.TickSlider)
+        self.ui.setText("TICKText", self.TickSlider, type = "txts")
+        Loghandler.Log(f"Tickrate changed to {self.TickSlider}")
     
             

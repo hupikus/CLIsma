@@ -109,7 +109,7 @@ class Wm:
 			self.mouse_cursor = "base"
 			self.mouse_speed = 0.23
 			#self.mouse = Mice(self.screen_width, self.screen_height, self.mouse_speed, inpd)
-			self.trail = [[0, 0], [0, 0], [0, 0]]
+			self.trail = [(0, 0), (0, 0)]
 			self.mouse_buttons = [0, 0, 0]
 			self.acc = 0
 			self.hasDelta = False
@@ -126,14 +126,15 @@ class Wm:
 	def _mouse_draw(self):
 		#self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, self.cursor_symbol[self.mouse_cursor])
 		#self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, ' ', Colors.FXReverse)
-		self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, self.display.root.instr(self.control.mouse_y, self.control.mouse_x, 1), Colors.FXHighlight)
+		self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, self.display.root.instr(self.control.mouse_y, self.control.mouse_x, 1), Colors.FXReverse)
 		if self.hasDelta:
 			self.trail[1] = self.trail[0]
-			self.trail[0] = [self.control.mouse_x, self.control.mouse_y]
+			self.trail[0] = (self.control.mouse_y, self.control.mouse_x)
 			#symbol cursor
 			#self.display.root.addstr(self.trail[0][1], self.trail[0][0], self.cursor_symbol[self.mouse_cursor])
 			#reverse cursor
-			self.display.root.addstr(self.trail[0][1], self.trail[0][0], self.display.root.instr(self.trail[0][1], self.trail[0][0], 1), Colors.FXReverse)
+			self.display.root.addstr(self.trail[1][0], self.trail[1][1], self.display.root.instr(self.trail[1][0], self.trail[1][1], 1), Colors.FXReverse)
+			#self.display.root.addstr(self.trail[2][0], self.trail[2][1], self.display.root.instr(self.trail[2][0], self.trail[2][1], 1), Colors.FXReverse)
 		return 0
 
 
@@ -345,7 +346,7 @@ class Wm:
 
 				#bottom decoration
 				t = True
-				if t and node.to_y < self.screen_height:
+				if t and node.to_y + 1 < self.screen_height:
 					text = '-' * node.width
 					x_offcut = node.from_x
 					mxln = min(self.screen_width - x_offcut, node.width)
