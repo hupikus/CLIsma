@@ -70,8 +70,6 @@ class DeviceHandler:
 					self.keyboards.append(loc)
 			else: break
 			i += 1
-		#my mouse)))))))))))))))))))))))))
-		self.mouses.append("/dev/input/event5")
 
 		self.isMouse = len(self.mouses) > 0
 		self.controller = Controller(self.isMouse)

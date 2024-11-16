@@ -321,6 +321,7 @@ class UI:
 	#common commands
 
 	def move(self, name, y, x, type = ''):
+		i = False
 		if type == '':
 			for type in self.ids:
 				if name in self.uis[type]:
@@ -485,7 +486,7 @@ class UI:
 					l = width + 1
 					displays.append('')
 
-					w = w[startlen:]
+					w = w[startlen - 1:]
 					if wlen <= width:
 						#we can fit remains at the new line
 						displays[line] = w + ' '

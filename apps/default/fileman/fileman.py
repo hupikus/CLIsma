@@ -6,6 +6,8 @@ from apps.apphabit import apphabit
 
 from userglobals import userglobals
 from loghandler import Loghandler
+
+from filehandler import Filehandler
 class fileman(apphabit):
 
     def __init__(self, id, node, controller, height, width, params):
@@ -107,17 +109,24 @@ class fileman(apphabit):
             if ytap < self.filelen and self.menu == 0:
                 filename = self.filelist[ytap]
                 if button == 0:
-                    if os.path.isdir(self.dir + filename):
+                    appath = ''.join((self.dir, filename))
+                    if os.path.isdir(appath):
                         Loghandler.Log(f"cd to ./{filename}")
 
                         self.cached_scrollposes[self.dir] = self.scrollpos
                         self.scrollpos = 0
 
-                        self.dir += filename + '/'
+                        self.dir = appath + '/'
                         self.childfolder = filename
 
                         self.filelist = self.scandir()
                         self.resizelist()
+                    else:
+                        
+                        app = Filehandler.appToUse(appath)
+                        if app != None:
+                            self.node.wm.newNodeByApp(app, y - 2, x - 10, 0, 0, appath)
+                        
                 elif button == 1:
                     Loghandler.Log(f"options for {filename}")
                     self.menu = 1

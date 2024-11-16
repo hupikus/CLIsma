@@ -8,6 +8,7 @@ class Parser:
         for i in table:
             i = (i[:-1]).strip()
 
+            if i[0] == '[' and i[-1] == ']': continue
             eq_ind = i.find("=")
             if eq_ind == -1: continue
             key = i[:eq_ind]
@@ -15,12 +16,15 @@ class Parser:
 
             val = i[eq_ind + 1:]
 
-            if val[0] == '"' or val[0] == "'":
-                val = val[1:-1]
-            elif '.' in val:
-                val = float(val)
-            else:
-                val = int(val)
+            try:
+                if val[0] == '"' or val[0] == "'":
+                    val = val[1:-1]
+                elif '.' in val:
+                    val = float(val)
+                else:
+                    
+                    val = int(val)
+            except: continue
             
             is_not_array = True
             if eq_ind > 6:

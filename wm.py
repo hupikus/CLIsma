@@ -367,8 +367,7 @@ class Wm:
 
 		#draw mouse
 		if self.isMouse:
-			#self.display.root.addstr(10, 5, str(self.mouse.state))
-			self.display.root.addstr(10, 5, str(self.control.mouse_buttons))
+			#self.display.root.addstr(10, 5, str(self.control.mouse_buttons))
 
 			self.error += self._mouse_draw()
 
