@@ -16,8 +16,10 @@ class colortest(apphabit):
 		for i in range(Colors.colorlen):
 			text += f"<c{i}>{i}<endc> "
 		#text = "Example <c4>TextBox Text<endc> <n> <c77>PRIVET<endc>"
+		#text = "<c7> <treverse> Hello <tbold>World! <endc> <endt>"
 
 		self.node.ui.coloredTextBox("Colors", text, 0, 0, self.height, self.width)
+		#self.node.ui.textLine("name", "Hello World!", 0, 0, attr = Colors.FXItalic | Colors.FXBlink | Colors.FXReverse | Colors.FXBold | Colors.colorPair(7))
 
 	def onresize(self, height, width):
 		self.height = height

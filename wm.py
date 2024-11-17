@@ -1,4 +1,6 @@
 import os
+import gc
+
 from screen import Screen
 from node import Node
 from apps.apps import App
@@ -42,15 +44,18 @@ class Wm:
 			node.win.abort()
 
 	def delNode(self, node):
-		del node.win
 		#self.nodes.remove(node)
 		self.nodes[node.id] = False
 		self.order.remove(node.id)
 		self.orderlen -= 1
 		del node
+		gc.collect()
 
 
 	def shutdown(self):
+		for node in self.nodes:
+			if node:
+				node.abort()
 		self.shutdown_ready = True
 
 
@@ -86,7 +91,7 @@ class Wm:
 
 		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
 		#self.newNode("apps.default", "bangerplayer", 7, 20, 0, 0, "/home/sipuchiy/CLIde/DeathbyGlamour.mp3")
-		#self.log = self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
@@ -108,8 +113,10 @@ class Wm:
 			self.holdout = wg.hold_time * wg.inputrate
 			self.mouse_cursor = "base"
 			self.mouse_speed = 0.23
-			#self.mouse = Mice(self.screen_width, self.screen_height, self.mouse_speed, inpd)
-			self.trail = [(0, 0), (0, 0)]
+
+			self.trailength = 2
+			self.trail = [(0, 0) for i in range(self.trailength + 1)]
+
 			self.mouse_buttons = [0, 0, 0]
 			self.acc = 0
 			self.hasDelta = False
@@ -126,15 +133,16 @@ class Wm:
 	def _mouse_draw(self):
 		#self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, self.cursor_symbol[self.mouse_cursor])
 		#self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, ' ', Colors.FXReverse)
-		self.display.root.addstr(self.control.mouse_y, self.control.mouse_x, self.display.root.instr(self.control.mouse_y, self.control.mouse_x, 1), Colors.FXReverse)
-		if self.hasDelta:
-			self.trail[1] = self.trail[0]
-			self.trail[0] = (self.control.mouse_y, self.control.mouse_x)
-			#symbol cursor
-			#self.display.root.addstr(self.trail[0][1], self.trail[0][0], self.cursor_symbol[self.mouse_cursor])
-			#reverse cursor
-			self.display.root.addstr(self.trail[1][0], self.trail[1][1], self.display.root.instr(self.trail[1][0], self.trail[1][1], 1), Colors.FXReverse)
-			#self.display.root.addstr(self.trail[2][0], self.trail[2][1], self.display.root.instr(self.trail[2][0], self.trail[2][1], 1), Colors.FXReverse)
+		for i in range(self.trailength, 0, -1):
+			self.trail[i] = self.trail[i - 1]
+		self.trail[0] = (self.control.mouse_y, self.control.mouse_x)
+		r = self.trailength
+		if self.trail[0] == self.trail[r]: r = 0
+		for i in range(r + 1):
+			if i > 0 and self.trail[i] == self.trail[i - 1]: continue
+			mouse_last_y = self.trail[i][0]
+			mouse_last_x = self.trail[i][1]
+			self.display.root.addstr(mouse_last_y, mouse_last_x, self.display.root.instr(mouse_last_y, mouse_last_x, 1), Colors.FXReverse)
 		return 0
 
 
@@ -145,7 +153,7 @@ class Wm:
 #only 1, 3, 4 and 6 are handler events
 #for all 3 mouse buttons
 #mouse wheel is in the input class
-#pointer is in wm class because pointer is used to be a window, described in a method
+
 
 	def _mouse_input(self, id):
 
@@ -165,8 +173,8 @@ class Wm:
 		self.control.mouse_rdy = self.control.mouse_y - self.control.mouse_last_y
 		self.control.mouse_rdx = self.control.mouse_x - self.control.mouse_last_x
 
-		self.control.mouse_last_x = self.control.mouse_x
 		self.control.mouse_last_y = self.control.mouse_y
+		self.control.mouse_last_x = self.control.mouse_x
 
 
 

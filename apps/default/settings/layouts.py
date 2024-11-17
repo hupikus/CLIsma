@@ -43,7 +43,7 @@ class Layouts:
 
                 elements = (
                 "FPSTitle", (True, "space", 2, 2), (True, "newline", 1), "FPSText", (True, "glue", 1), "FPS",
-                "TICKTitle", (True, "space", 2, 2), (True, "newline", 1), "TICKText", (True, "glue", 1), "TICK"
+                (True, "newline", 1), "TICKTitle", (True, "space", 2, 2), (True, "newline", 1), "TICKText", (True, "glue", 1), "TICK"
                 )
 
                 self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)

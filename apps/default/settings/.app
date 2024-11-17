@@ -1,1 +1,1 @@
-name="CLISMA Settings"
+name="CLIDE Settings"

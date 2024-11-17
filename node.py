@@ -4,7 +4,6 @@ import pydoc
 from ui import UI
 from apps.apps import App
 from type.colors import Colors
-#import curses
 
 class Node:
 
@@ -262,8 +261,16 @@ class Node:
 	def abort(self):
 		if self.parent and self in self.parent.child_nodes:
 			self.parent.child_nodes.remove(self)
-		if self.win:
+		try:
 			self.win.abort()
+			del self.win
+		except:
+			self.win = False
+		try:
+			self.ui.abort()
+			del self.ui
+		except:
+			self.ui = False
 		self.ready_to_close = True
 	
 #Conditions

@@ -1,4 +1,5 @@
 from type.colors import Colors
+from loghandler import Loghandler
 class UI:
 
 	def __init__(self, node):
@@ -17,6 +18,11 @@ class UI:
 
 
 		self.active_field_name = ''
+
+	
+	def abort(self):
+		del self.uis
+		del self.dragged_sliders
 
 
 	def draw(self):
@@ -84,7 +90,7 @@ class UI:
 					elif i == "<endt>":
 						attrMode = Colors.FXNormal
 					else:
-						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode)
+						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode | attrMode)
 						x += len(i)
 				elif mode == 'cread':
 					colorMode = Colors.colorPair(i)
@@ -181,10 +187,12 @@ class UI:
 			elif stage == self.controller.dragEvent:
 				for i in self.dragged_sliders:
 					slider = self.uis[i[1]][i[0]]
-					if i[1] == "sliders":
-						slider[4] += x
-					else:
-						slider[4] += y
+					
+					if i[1] == "sliders": dt = x
+					else: dt = y
+					if dt == 0: break
+
+					slider[4] += dt
 					slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
 					slider[0](slider[4])
 			else:
@@ -504,13 +512,18 @@ class UI:
 				displays[line] = w + ' '
 				l = l - size - 1
 			
-			if align > 0:
-				if align == 1:
-					for i in range(line):
-						displays[i] = displays[i].center(width, ' ')
-				else:
-					for i in range(line):
-						displays[i] = displays[i].rjust(width, ' ')
+		if align > 0:
+			if align == 1:
+				for i in range(line):
+					displays[i] = displays[i].center(width, ' ')
+			else:
+				for i in range(line):
+					displays[i] = displays[i].rjust(width, ' ')
+		if line < height and height > 0:
+			space = ' ' * width
+			while line < height:
+				displays.append(space)
+				line += 1
 			
 
 		return displays
@@ -579,6 +592,13 @@ class UI:
 				#	l = width + 1 - newline
 				#else:
 				l = l - size - 1
+			
+		if line < height and height > 0:
+			space = ' ' * width
+			while line < height:
+				displays.append(space)
+				displays.append("<n>")
+				line += 1
 			
 
 		return displays
