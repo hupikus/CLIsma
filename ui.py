@@ -19,11 +19,6 @@ class UI:
 
 		self.active_field_name = ''
 
-	
-	def abort(self):
-		del self.uis
-		del self.dragged_sliders
-
 
 	def draw(self):
 		for name in self.uis["sliders"]:
@@ -70,6 +65,7 @@ class UI:
 			y = 0
 			colorMode = Colors.colorPair(0)
 			attrMode = Colors.FXNormal
+			effects = [Colors.FXNormal]
 			mode = 'read'
 			#for i in content:
 			#	self.node.appendStr(text[1] + y, text[2] + x, str(i), colorMode)
@@ -81,6 +77,10 @@ class UI:
 						mode = 'cread'
 					elif i == "<!T":
 						mode = 'tread'
+					elif i == "<+T":
+						mode = 'treadadd'
+					elif i == "<-T":
+						mode = 'treadisc'
 					elif i == "<n>":
 						y += 1
 						x = 0
@@ -89,6 +89,7 @@ class UI:
 						colorMode = Colors.colorPair(0)
 					elif i == "<endt>":
 						attrMode = Colors.FXNormal
+						effects = [Colors.FXNormal]
 					else:
 						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode | attrMode)
 						x += len(i)
@@ -97,6 +98,18 @@ class UI:
 					mode = 'read'
 				elif mode == 'tread':
 					attrMode = Colors.FXHash[i]
+					mode = 'read'
+				elif mode == 'treadadd':
+					hash = Colors.FXHash[i]
+					attrMode = attrMode | hash
+					mode = 'read'
+				elif mode == 'treadisc':
+					hash = Colors.FXHash[i]
+					if hash in effects:
+						effects.remove(hash)
+						attrMode = Colors.FXNormal
+						for add in effects:
+							attrMode = attrMode | add
 					mode = 'read'
 
 
@@ -207,42 +220,45 @@ class UI:
 		#write: event, yStart, xStart, yEnd, xEnd
 		self.uis["buttons"][name] = [event, y, x, y + height, x + width]
 	
-	def art(self, name, content, y, x, attr = Colors.FXNormal, align = 0):
+	def art(self, name, content, y, x, attr = Colors.FXNormal, align = -1):
 		#receive: content, y, x, (attr), (align)
 		#write: content, y, x, height, width, attr
+		height = 0
 		width = 0
-		height = len(content)
 		for i in content:
 			g = len(i)
+			height += 1
 			if g > width:
 				width = g
 
-		if align > 2 or align <= 0: align = 0
+		if align > 2 or align <= -1:
+			align = -1
+			cached = content
 		else:
-			for i in range(height):
-				if align == 1:
-					content[i] = content[i].center(width, ' ')
-				else:
-					content[i] = content[i].rjust(width, ' ')
+			inv = str.ljust
+			if align == 1: inv = str.center
+			elif align == 2: inv = str.rjust
+			cached = tuple(inv(i, width, ' ') for i in content)
 
-		self.uis["arts"][name] = [content, y, x, height, width, attr]
+		self.uis["arts"][name] = [cached, y, x, height, width, attr, align, content]
 	
-	def coloredArt(self, name, content, y, x, align = 0):
+	def coloredArt(self, name, content, y, x, width = 0, align = 0):
 		#receive: content, y, x, (align)
 		#write: content, y, x, height, width
 		height = len(content)
-		for i in content:
-			g = len(i)
-			if g > width:
-				width = g
+		if width <= 0:
+			for i in content:
+				g = len(i)
+				if g > width:
+					width = g
 		
-		if align > 2 or align <= 0: align = 0
+		if align > 2 or align <= -1: align = -1
 		else:
+			inv = str.ljust
+			if align == 1: inv = str.center
+			elif align == 2: inv = str.rjust
 			for i in range(height):
-				if align == 1:
-					content[i] = content[i].center(width, ' ')
-				else:
-					content[i] = content[i].rjust(width, ' ')
+				content[i] = inv(content[i], width, ' ')
 
 		self.uis["coloredArts"][name] = [content, y, x, height, width]
 
@@ -384,8 +400,8 @@ class UI:
 
 	def resize(self, name, height, width, type = ''):
 		if type == '':
-			type = self.determineType(name)
-		#elif name not in self.uis[type]: return None
+			type = self.determineType(name, searchBy = ("textBoxes", "lists", "coloredTextBoxes", "arts"))
+			if type == '': return None
 		if type == "textBoxes":
 			text = self.uis[type][name]
 			if height != 0:
@@ -405,11 +421,23 @@ class UI:
 			if width > 0: list[4] = width
 			if height > 0 or width > 0:
 				self.generate_list(*list)
+		elif type == "arts":
+			art = self.uis[type][name]
+			if height > 0: art[3] = height
+			if width > 0: art[4] = width
+			align = art[6]
+			if align >= 0:
+				inv = str.ljust
+				if align == 1: inv = str.center
+				elif align == 2: inv = str.rjust
+				content = tuple(inv(art[7][i], width, ' ') for i in range(min(height, len(art[7]))))
+				art[0] = content
 
 	
 	def setAttribut(self, name, attr, type = ''):
 		if type == '':
 			type = self.determineType(name, searchBy = ("txts", "textBoxes", "arts"))
+			if type == '': return None
 
 		if type == "textBoxes":
 			self.uis[type][name][8] = attr
@@ -426,7 +454,8 @@ class UI:
 	
 	def setText(self, name, content, type = '', searchBy = ("txts", "textBoxes", "arts")):
 		if type == '':
-			type = self.determineType(name)
+			type = self.determineType(name, searchBy = ("textBoxes", "txts", "arts", "tapArts"))
+			if type == '': return None
 
 		if type == "textBoxes":
 			textbox = self.uis[type][name]
@@ -610,16 +639,17 @@ class UI:
 		newline = -1
 		while True:
 			#search for color and attribute tags
-			tags = ("<c", "<t", "<endc>", "<endt>", "<n>")
+			tags = ("<c", "<t", "<tAdd", "<tNo", "<endc>", "<endt>", "<n>")
+			mallen = 7
 			indn = [w.find(i) for i in tags]
 			temp_lw = len(w)
-			if sum(indn) == -5:
+			if sum(indn) == -mallen:
 				#no more tags
 				displays.append(w + ' ')
 				newline += temp_lw + 1
 				break
 
-			for i in range(5):
+			for i in range(mallen):
 				if indn[i] == -1: indn[i] = temp_lw + 1
 
 			ind = min(indn)
@@ -651,6 +681,26 @@ class UI:
 					displays.append("normal")
 				else:
 					displays.append(w[ind + 2:indend])
+			elif key == "<tAdd":
+				minlen += 5
+				displays.append('<+T')
+				indend = w.find(">")
+
+				if indend == -1:
+					#syntax error
+					displays.append("normal")
+				else:
+					displays.append(w[ind + 5:indend])
+			elif key == "<tNo":
+				minlen += 5
+				displays.append('<-T')
+				indend = w.find(">")
+
+				if indend == -1:
+					#syntax error
+					displays.append("normal")
+				else:
+					displays.append(w[ind + 4:indend])
 			else:
 				lk = len(key)
 				displays.append(key)

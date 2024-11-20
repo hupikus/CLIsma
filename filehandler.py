@@ -1,5 +1,6 @@
 import os
 from apps.apps import App
+from loghandler import Loghandler
 
 class Filehandler:
 
@@ -8,9 +9,10 @@ class Filehandler:
         if os.path.isdir(path):
             return App("default/fileman")
         else:
-            ext = path[-path[::-1].find('.')]
-            if ext == "txt":
-               return App("default/textplayer")
+            ext = path[-path[::-1].find('.'):]
+            Loghandler.Log(ext)
+            if ext == "mp3":
+               return App("default/bangerplayer")
             else:
                 return App("default/textplayer") 
         return None

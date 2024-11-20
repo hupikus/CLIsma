@@ -1,13 +1,40 @@
 import threading
 import time
+import math
 
 from apps.apps import App
 from apps.apphabit import apphabit
+from type.colors import Colors
 
 from userglobals import userglobals
 from loghandler import Loghandler
 
 class desktop(apphabit):
+
+
+	def setmaxstep(self, step):
+		self.spawnmode = step
+		self.spawnstep = 0
+		if step == 0:
+			self.maxstep = min(9, round(self.width - self.spawnx) / 2, self.height - self.spawny)
+		elif step == 1:
+			self.maxstep = -min(self.width / 4, self.height / 9)
+
+	def step(self):
+		self.spawnstep += 1
+		if self.spawnstep == self.maxstep:
+			self.spawnstep = 0
+			self.spawny = round(self.height * 0.3)
+			self.spawnx = round(self.width / 4)
+		if self.spawnmode == 0:
+			self.spawny += 1
+			self.spawnx += 2
+		elif self.spawnmode == 1:
+			self.spawnstep += 0.327
+			if self.spawnstep > 6.3: self.spawnstep -= 6.3
+			self.spawny = round(self.height * 0.3 + math.cos(self.spawnstep) * -self.maxstep)
+			self.spawnx = round(self.width / 4 + math.sin(self.spawnstep) * -self.maxstep * 1.4)
+
 
 
 	def start(self):
@@ -34,6 +61,11 @@ class desktop(apphabit):
 		self.tick_rate = "90"
 		counter_thread = threading.Thread(target=self.fpsleep)
 		counter_thread.start()
+
+		#window spawn
+		self.spawny = round(self.height * 0.3)
+		self.spawnx = round(self.width / 4)
+		self.setmaxstep(0)
 
 	def fpsleep(self):
 		while self.ready == 0:
@@ -90,7 +122,7 @@ class desktop(apphabit):
 
 		self.pinned = 3
 			
-		#App("default/terminal") App("default/colortest")
+		#App("default/terminal") App("default/colortest") App("default/log") App("default/textplayer")
 
 		#constants
 		self.recalculate_dock()
@@ -149,12 +181,17 @@ class desktop(apphabit):
 
 	def menu(self, name, button):
 		if button == 0:
+			
 			if not self.ismenu:
-				self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4), '').node
-				self.menunode.windowed = False
+				try:
+					self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4), '').node
+					self.menunode.windowed = False
+				finally:
+					self.ismenu = True
 			else:
 				self.node.closeNode(self.menunode)
 			self.ismenu = not self.ismenu
+			
 
 
 	def dockapp_clicked(self, name, button):
@@ -163,11 +200,9 @@ class desktop(apphabit):
 			self.launchApp(self.apps[int(name[3:])])
 
 	def launchApp(self, app, returned = False):
-		if returned:
-			app = self.node.newNodeByApp(app, round(self.height * 0.3), round(self.width / 4), 0, 0, '')
-			if app:
-				return app.node
-			else:
-				return False
+		app = self.node.newNodeByApp(app, self.spawny, self.spawnx, 0, 0, '')
+		self.step()
+		if returned and app:
+			return app.node
 		else:
-			self.node.newNodeByApp(app, round(self.height * 0.3), round(self.width / 4), 0, 0, '')
+			return False

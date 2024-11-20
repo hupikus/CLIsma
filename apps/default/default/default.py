@@ -1,6 +1,7 @@
 from type.colors import Colors
-from apps.apphabit import apphabit
+from loghandler import Loghandler
 
+from apps.apphabit import apphabit
 class default(apphabit):
 
 	def __init__(self, id, node, controller, height, width, params):

@@ -90,8 +90,7 @@ class Wm:
 		self.desktop.node.is_fullscreen = True
 
 		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
-		#self.newNode("apps.default", "bangerplayer", 7, 20, 0, 0, "/home/sipuchiy/CLIde/DeathbyGlamour.mp3")
-		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
@@ -262,6 +261,7 @@ class Wm:
 				node = self.nodes[id]
 				if self.control.mouse_y >= node.from_y and self.control.mouse_y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x + 1:
 					node.scroll(id, self.control.mouse_wheel)
+					break
 
 
 		if handler[0] == 1:

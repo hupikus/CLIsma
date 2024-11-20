@@ -7,7 +7,7 @@ from type.colors import Colors
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_verfull", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "tasks")
+	__slots__ = ("id", "name", "wm", "controller", "display", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_verfull", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "isDoomed", "tasks")
 	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params, app = None, parent = None):
 		self.id = id
 		self.wm = wm
@@ -104,7 +104,6 @@ class Node:
 		if hasattr(self.win, "input_subscriptions"):
 			subdata = self.win.input_subscriptions
 			self.sub = {controller.MouseEvents:False, controller.MouseWheelEvents:False, controller.KeyboardEvents:False}
-
 			for type in subdata:
 				self.sub[type] = True
 		else:
@@ -113,26 +112,12 @@ class Node:
 
 		#finished
 		self.ready_to_close = False
+		self.isDoomed = False
 
 
 
 	def clear(self):
 		self.tasks = []
-
-	#that sh is broken
-	def appendStr_new(self, y, x, text, mode = Colors.FXNormal):
-		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display.height - 1 and x < self.width and x + self.from_x < self.display.width - 1:
-			if not self.isActive() and not self.isChildActive():
-				mode = Colors.FXPale
-
-			oblen = min(len(text), self.width - x, self.display.width - x - self.from_x)
-			ln = len(text)
-			x_offcut = -min(0, x)
-			if self.from_x + x < 0:
-				x_offcut -= self.from_x - 1
-
-			if x_offcut < ln and oblen > x_offcut:
-				self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen])
 	
 	#old
 	def appendStr(self, y, x, text, mode = Colors.FXNormal):
@@ -166,6 +151,7 @@ class Node:
 
 
 	def reborder(self, side, delta):
+		if self.isDoomed: return 0
 		if side == 1:
 			dd = max(min(self.width + delta, self.max_width), self.min_width)
 			self.to_x += dd - self.width
@@ -182,6 +168,7 @@ class Node:
 
 
 	def process(self):
+		if self.isDoomed: return 0
 		if not self.process_running:
 			self.process_running = True
 			try:
@@ -192,6 +179,7 @@ class Node:
 			self.process_running = False
 
 	def draw(self):
+		if self.isDoomed: return 0
 		try:
 			self.win.draw()
 			self.ui.draw()
@@ -203,7 +191,8 @@ class Node:
 
 #Window Manager
 	def newNode(self, parent_path, class_name, y, x, height, width, params):
-		if len(self.child_nodes) > 13: return False
+		if self.isDoomed: return 0
+		if self.id > 0 and len(self.child_nodes) > 13: return False
 
 		if self.id != 0:
 			newin = self.wm.newNode(parent_path, class_name, y, x, height, width, params, parent = self)
@@ -213,7 +202,8 @@ class Node:
 		return newin
 	
 	def newNodeByApp(self, app, y, x, height, width, params):
-		if len(self.child_nodes) > 13: return False
+		if self.isDoomed: return 0
+		if self.id > 0 and len(self.child_nodes) > 13: return False
 
 		if self.id != 0:
 			newin = self.wm.newNodeByApp(app, y + self.from_y, x + self.from_x, height, width, params, parent = self)
@@ -259,18 +249,14 @@ class Node:
 				self.win.scroll(id, delta)
 
 	def abort(self):
+		self.isDoomed = True
 		if self.parent and self in self.parent.child_nodes:
 			self.parent.child_nodes.remove(self)
+		self.win.abort()
 		try:
-			self.win.abort()
 			del self.win
-		except:
-			self.win = False
-		try:
-			self.ui.abort()
+		finally:
 			del self.ui
-		except:
-			self.ui = False
 		self.ready_to_close = True
 	
 #Conditions
