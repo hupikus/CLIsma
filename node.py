@@ -1,9 +1,12 @@
 import sys
 import os
 import pydoc
+import traceback
+
 from ui import UI
 from apps.apps import App
 from type.colors import Colors
+from loghandler import Loghandler
 
 class Node:
 
@@ -80,10 +83,11 @@ class Node:
 			try:
 				self.win = cls(id, self, self.controller, self.height, self.width, params)
 			except Exception as ex:
+				_, _, tb = sys.exc_info()
 				cls = pydoc.locate("apps.default" + ".error" * 3)
-				self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} closed at start with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
+				self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} closed at start with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc> (at line ' + str(tb.tb_lineno) + ')"')
+				Loghandler.Log(str(tb.tb_lineno))
 		else:
-			#App("default/settings")
 			cls = pydoc.locate("apps.default" + ".error" * 3)
 			self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} is unreachable: <c2> <tbold>' + "Class " + class_path + " does not exist (" + str(ex) + ')' + '<endt> <endc>"')
 			

@@ -58,7 +58,7 @@ class desktop(apphabit):
 		self.fpsc = 0
 		self.tickc = 0
 		self.fps_rate = "60"
-		self.tick_rate = "90"
+		self.tick_rate = "40"
 		counter_thread = threading.Thread(target=self.fpsleep)
 		counter_thread.start()
 
@@ -202,7 +202,5 @@ class desktop(apphabit):
 	def launchApp(self, app, returned = False):
 		app = self.node.newNodeByApp(app, self.spawny, self.spawnx, 0, 0, '')
 		self.step()
-		if returned and app:
-			return app.node
-		else:
-			return False
+		if returned and app: return app.node
+		else: return False

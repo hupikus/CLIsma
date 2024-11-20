@@ -1,7 +1,9 @@
 from loghandler import Loghandler
 from worldglobals import worldglobals
 
+from fastconfig import Wmconfig
 
+from singletons import Singletons
 class Layouts:
 
     def __init__(self, settings, ui):
@@ -9,7 +11,7 @@ class Layouts:
         self.ui = ui
         self.path = "zero"
 
-
+        self.wm = Singletons.Wm
 
         self.FPSlider = "60"
 
@@ -47,6 +49,19 @@ class Layouts:
                 )
 
                 self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+            elif path == "customization":
+
+                #set mouse trail length
+                self.ui.slider("TRAIL", self.Trailider_update, 0, 0, 18, 2)
+                self.ui.textLine("TRAitle", "Set mouse cursor trail length", 0, 0)
+
+                self.ui.textLine("TRAILext", "100", 0, 0)
+
+                elements = (
+                "TRAitle", (True, "newline", 1), "TRAILext", (True, "glue", 1), "TRAIL"
+                )
+
+                self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
         self.path = path
 
@@ -75,5 +90,11 @@ class Layouts:
         self.TickSlider = str(self.TickSlider)
         self.ui.setText("TICKText", self.TickSlider, type = "txts")
         Loghandler.Log(f"Tickrate changed to {self.TickSlider}")
+    
+    def Trailider_update(self, val):
+        Wmconfig.setTrailLength(val)
+        val = str(val)
+        self.ui.setText("TRAILext", val, type = "txts")
+        Loghandler.Log(f"Trail length changed to {val}")
     
             

@@ -576,7 +576,7 @@ class UI:
 				#else:
 				l = l - size - 1
 			elif size > width:
-				#fat-wording (жирнословие) or keyspam
+				#fat-wording
 				wlen = self.tagsoverheadcount(w)
 				startlen = 0
 				while True:

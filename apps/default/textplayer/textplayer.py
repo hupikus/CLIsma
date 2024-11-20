@@ -3,16 +3,8 @@ from apps.apphabit import apphabit
 
 class textplayer(apphabit):
     
-    def __init__(self, id, node, controller, height, width, params):
-        #base
-        self.id = id
-        self.node = node
-
-	    #input
-        self.input_subscriptions = [controller.MouseEvents, controller.MouseWheelEvents]
-
-        self.ui = self.node.ui
-        file = open(params)
+    def readfile(self, filename):
+        file = open(filename)
         text = file.readlines()
         text = [i[:-1] for i in text]
         self.ln = len(text)
@@ -20,21 +12,42 @@ class textplayer(apphabit):
         self.ui.art("text", text, 1, 0, attr = Colors.FXNormal, align = 0)
         #self.ui.textBox("text", text, 1, 0, height, width, align = 1)
 
-        self.appname = params.split('/')[-1]
-        self.displayappname = self.appname.center(width, ' ')
+        self.appname = filename.split('/')[-1]
+        self.displayappname = self.appname.center(self.width, ' ')
 
         self.scrollpos = 0
         
         #self.oblen = min(height - 1, self.ln - self.scrollpos)
+
+    def __init__(self, id, node, controller, height, width, params):
+        #base
+        self.id = id
+        self.node = node
+        self.height = height
+        self.width = width
+
+	    #input
+        self.input_subscriptions = [controller.MouseEvents, controller.MouseWheelEvents]
+
+        self.ui = self.node.ui
+
+        self.appname = ''
+        if params != '':
+            self.readfile(params)
+        else:
+            self.ui.art("open", ["--------", "| open |", "--------"], width / 2 - 5, 3, attr = Colors.FXNormal)
+        
     
     def draw(self):
-        self.node.appendStr(0, 0, self.displayappname, Colors.FXBold)
+        if self.appname != '':
+            self.node.appendStr(0, 0, self.displayappname, Colors.FXBold)
 
     def onresize(self, height, width):
         self.space = ' ' * width
-        self.displayappname = self.appname.center(width, ' ')
-        self.ui.resize("text", height + self.scrollpos, width, type = "arts")
-        #self.oblen = min(height - 1, self.ln)
+        if self.appname != '':
+            self.displayappname = self.appname.center(width, ' ')
+            self.ui.resize("text", min(height + self.scrollpos, self.ln), width, type = "arts")
+            #self.oblen = min(height - 1, self.ln)
     
     def scroll(self, id, delta):
         self.scrollpos = max(0, self.scrollpos + delta)
