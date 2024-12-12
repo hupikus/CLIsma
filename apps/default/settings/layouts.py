@@ -62,6 +62,19 @@ class Layouts:
                 )
 
                 self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+            elif path == "input":
+
+                #set mouse trail length
+                self.ui.slider("TRAIL", self.Trailider_update, 0, 0, 18, 2)
+                self.ui.textLine("TRAitle", "Set mouse cursor trail length", 0, 0)
+
+                self.ui.textLine("TRAILext", "100", 0, 0)
+
+                elements = (
+                "TRAitle", (True, "newline", 1), "TRAILext", (True, "glue", 1), "TRAIL"
+                )
+
+                self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
         self.path = path
 

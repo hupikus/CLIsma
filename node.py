@@ -10,7 +10,7 @@ from loghandler import Loghandler
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_verfull", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "isDoomed", "tasks")
+	__slots__ = ("id", "name", "wm", "controller", "display", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "isDoomed", "tasks", "oldsize")
 	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params, app = None, parent = None):
 		self.id = id
 		self.wm = wm
@@ -20,6 +20,8 @@ class Node:
 		self.from_x = from_x
 		self.height = height
 		self.width = width
+
+		self.oldsize = (self.height, self.width, self.from_y, self.from_x)
 
 		self.display_height = self.display.height
 		self.display_width = self.display.width
@@ -67,7 +69,7 @@ class Node:
 		self.process_running = False
 		self.ui = UI(self)
 		self.is_fullscreen = False
-		self.is_verfull = False
+		self.is_maximized = False
 
 
 		#window class
@@ -147,11 +149,21 @@ class Node:
 			#if x_offcut < ln and oblen > x_offcut:
 				#self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen], mode)
 
+	#properties
+
 	def move(self, y, x):
 		self.from_y = min(max(self.from_y + y, 2), self.display.height - 1)
 		self.from_x = min(max(self.from_x + x, 1 - self.width), self.display.width - 1)
 		self.to_y = self.from_y + self.height - 1
 		self.to_x = self.from_x + self.width - 1
+	
+	def moveTo(self, y, x):
+		if y >= 0:
+			self.from_y = min(y, self.display.height - 1)
+			self.to_y = self.from_y + self.height - 1
+		if x > -1798:
+			self.from_x = min(max(x, 1 - self.width), self.display.width - 1)
+			self.to_x = self.from_x + self.width - 1
 
 
 	def reborder(self, side, delta):
@@ -190,6 +202,22 @@ class Node:
 		except Exception as ex:
 			self.abort()
 			self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} draw closed with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
+	
+	def toggle_maximize(self):
+		if self.is_maximized:
+			self.height, self.width, self.from_y, self.from_x = self.oldsize
+		else:
+			self.oldsize = (self.height, self.width, self.from_y, self.from_x)
+			self.height = self.wm.screen_height - 1
+			self.width = self.wm.screen_width
+			self.from_y = 1
+			self.from_x = 0
+
+		self.to_y = self.from_y + self.height - 1
+		self.to_x = self.from_x + self.width - 1
+
+		self.is_maximized = not self.is_maximized
+		self.win.onresize(self.height, self.width)
 
 
 

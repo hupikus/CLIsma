@@ -125,6 +125,9 @@ class Wm:
 			inpd.listen_to_mouse(self._mouse_input)
 		else:
 			self.mouse = 0
+		
+		#temp
+		self.key = -1
 
 
 
@@ -142,6 +145,7 @@ class Wm:
 			mouse_last_y = self.trail[i][0]
 			mouse_last_x = self.trail[i][1]
 			self.display.root.addstr(mouse_last_y, mouse_last_x, self.display.root.instr(mouse_last_y, mouse_last_x, 1), Colors.FXReverse)
+			#self.display.root.addstr(mouse_last_y, mouse_last_x, '#')
 		return 0
 
 
@@ -232,11 +236,21 @@ class Wm:
 								#click
 								node.click(id, i, self.control.mouse_y, self.control.mouse_x)
 								break
-							elif self.control.mouse_x == node.to_x and i == 0:
-								Loghandler.Log("close " + node.app.name)
-								node.abort()
+							elif i == 0:
+								if self.control.mouse_x == node.to_x:
+									Loghandler.Log("close " + node.app.name)
+									node.abort()
+								elif self.control.mouse_x == node.to_x - 2:
+									node.toggle_maximize()
+								elif self.control.mouse_x == node.to_x - 4:
+									pass
+									#node.hide()
 								break
 			elif handler[i] == 4:
+				if self.moving_node:
+					if self.moving_node.is_maximized:
+							self.moving_node.toggle_maximize()
+							self.moving_node.moveTo(-1, self.control.mouse_x - (self.moving_node.width >> 1))
 				for id in self.order[::-1]:
 					node = self.nodes[id]
 					if self.control.mouse_y >= node.from_y and self.control.mouse_y <= node.to_y and self.control.mouse_x >= node.from_x and self.control.mouse_x <= node.to_x:
@@ -277,6 +291,11 @@ class Wm:
 									focus_changed = True
 						self.moving_node = node
 						self.move_type = 0
+
+						#custom behaviour (like custom size) for startdrag event
+						#if node.is_maximized:
+						#	node.toggle_maximize()
+						#	node.moveTo(-1, self.control.mouse_x - (node.width >> 1))
 						break
 					elif self.control.mouse_y >= node.from_y - 1 and self.control.mouse_y <= node.to_y + 1 and (self.control.mouse_x == node.to_x + 1 or self.control.mouse_x == node.from_x - 1):
 						#focus and move right or left side
@@ -320,6 +339,9 @@ class Wm:
 					self.moving_node.reborder(2, self.control.mouse_rdy)
 		elif handler[0] == -1:
 		#That is post-release
+			if self.moving_node and self.control.mouse_y == 0:
+				if not self.moving_node.is_maximized:
+					self.moving_node.toggle_maximize()
 			self.moving_node = False
 			self.move_type = -1
 
@@ -337,13 +359,21 @@ class Wm:
 				bts = ''
 				ln = 0
 				if node.width >= 3:
-					bts = "- x"
-					ln = 3
+					if node.width >= 5:
+						ln = 5
+						bts = "- m x"
+					else:
+						ln = 3
+						bts = "m x"
 				elif node.width > 1:
 					bts = 'x'
 					ln = 1
+				
+				if node.width >= 5:
+					text = '_' * ln + node.name.center(node.width - ln * 2, '_') + bts
+				else:
+					text = '_' * (node.width - ln) + bts
 
-				text = node.name.center(node.width - ln, '_') + bts
 				x_offcut = node.from_x
 				mxln = min(self.screen_width - x_offcut, node.width)
 				if x_offcut < 0:
@@ -372,10 +402,12 @@ class Wm:
 			if node:
 				node.draw()
 				self.decoration(node)
+				#if node.is_maximized or node.is_fullscreen:
+				#	break
 
 		#draw mouse
 		if self.isMouse:
-			#self.display.root.addstr(10, 5, str(self.control.mouse_buttons))
+			#self.display.root.addstr(10, 5, str(self.key))
 
 			self.error += self._mouse_draw()
 
@@ -389,5 +421,15 @@ class Wm:
 					self.delNode(node)
 				else:
 					node.process()
+		
+		#temp
+		#self.keyboard_temp()
 
 		return self.error
+	
+
+	#very temportary
+	#def keyboard_temp(self):
+	#	key = self.display.root.getch()
+	#	self.key = key
+	#	self.control.key = key

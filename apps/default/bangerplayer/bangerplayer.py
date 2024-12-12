@@ -1,4 +1,5 @@
 import os
+import pydub
 
 from type.colors import Colors
 
@@ -16,4 +17,5 @@ class bangerplayer(apphabit):
 		#input
         self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
 
-        os.system(f"play {params}")
+        #os.system(f"play {params}")
+        #self.sound = nava.play(params, async_mode=True, loop=False)

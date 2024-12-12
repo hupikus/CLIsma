@@ -2,4 +2,5 @@ curses
 evdev
 ptyprocess
 pydoc
-threading
+simpleaudio
+pydub

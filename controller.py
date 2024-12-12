@@ -24,6 +24,10 @@ class Controller:
 		self.startDragEvent = 0
 		self.dragEvent = 1
 		self.endDragEvent = 2
+
+
+		#temp
+		self.key = -1
 	
 	def relMousePos(node):
 		return self.mouse_y - node.from_y, self.mouse_x - node.from_x

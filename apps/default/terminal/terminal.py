@@ -4,6 +4,7 @@ import psutil
 import threading
 import time
 
+from type.colors import Colors
 from apps.apphabit import apphabit
 class terminal(apphabit):
 

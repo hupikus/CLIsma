@@ -5,23 +5,49 @@ class Colors:
     colorMode = {}
 
     FXNormal = curses.A_NORMAL
-    FXBlink = curses.A_BLINK
     FXBold = curses.A_BOLD
-    FXItalic = curses.A_ITALIC
+    #There is no italic in bodhi linux e.g., ill figure it out
+    #FXItalic = curses.A_ITALIC
     FXPale = curses.A_DIM
     FXHighlight = curses.A_STANDOUT
     FXUnderline = curses.A_UNDERLINE
     FXReverse = curses.A_REVERSE
 
+    FXAlt = curses.A_ALTCHARSET
+    FXBlink = curses.A_BLINK
+    FXInvisible = curses.A_INVIS
+
+
+    FXWhite = curses.COLOR_WHITE
+    FXBlack = curses.COLOR_BLACK
+    FXRed = curses.COLOR_RED
+    FXGreen = curses.COLOR_GREEN
+    FXYellow = curses.COLOR_YELLOW
+    FXBlue = curses.COLOR_BLUE
+    FXMagenta = curses.COLOR_MAGENTA
+    FXCyan = curses.COLOR_CYAN
+
     FXHash = {
         "normal":curses.A_NORMAL,
         "blink":curses.A_BLINK,
         "bold":curses.A_BOLD,
-        "italic":curses.A_ITALIC,
         "pale":curses.A_DIM,
         "highlight":curses.A_STANDOUT,
         "underline":curses.A_UNDERLINE,
         "reverse":curses.A_REVERSE,
+        "invisible":curses.A_INVIS,
+        "alt":curses.A_ALTCHARSET
+    }
+
+    FXColorHash = {
+        "white":curses.COLOR_WHITE,
+        "black":curses.COLOR_BLACK,
+        "red":curses.COLOR_RED,
+        "green":curses.COLOR_GREEN,
+        "yellow":curses.COLOR_YELLOW,
+        "blue":curses.COLOR_BLUE,
+        "magenta":curses.COLOR_MAGENTA,
+        "cyan":curses.COLOR_CYAN,
     }
 
     colorPosibility = False
