@@ -65,13 +65,13 @@ class Layouts:
             elif path == "input":
 
                 #set mouse trail length
-                self.ui.slider("TRAIL", self.Trailider_update, 0, 0, 18, 2)
-                self.ui.textLine("TRAitle", "Set mouse cursor trail length", 0, 0)
+                self.ui.slider("SPEED", self.mousepeed_update, 0, 0, 22, 11)
+                self.ui.textLine("title", "Set mouse sensivity", 0, 0)
 
-                self.ui.textLine("TRAILext", "100", 0, 0)
+                self.ui.textLine("Lext", "1.0", 0, 0)
 
                 elements = (
-                "TRAitle", (True, "newline", 1), "TRAILext", (True, "glue", 1), "TRAIL"
+                "title", (True, "newline", 1), "Lext", (True, "glue", 1), "SPEED"
                 )
 
                 self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
@@ -110,4 +110,10 @@ class Layouts:
         self.ui.setText("TRAILext", val, type = "txts")
         Loghandler.Log(f"Trail length changed to {val}")
     
+    def mousepeed_update(self, val):
+        realval = round(float(1.0 + (val - 11) * 0.2), 1)
+        if val < 11:
+            realval = round(float(val / 13) + 0.04, 2)
+        self.ui.setText("Lext", str(realval), type = "txts")
+        Wmconfig.setMouseSensivity(realval)
             

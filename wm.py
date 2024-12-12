@@ -111,7 +111,6 @@ class Wm:
 			self.cursor_symbol = {"base":"#", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
 			self.holdout = wg.hold_time * wg.inputrate
 			self.mouse_cursor = "base"
-			self.mouse_speed = 0.23
 
 			self.trailength = 2
 			self.trail = [(0, 0) for i in range(self.trailength + 1)]
@@ -162,8 +161,8 @@ class Wm:
 
 		#mouse relativies
 
-		dy = self.control.mouse_dy * self.mouse_speed
-		dx = self.control.mouse_dx * self.mouse_speed
+		dy = self.control.mouse_dy * self.control.mouse_speed
+		dx = self.control.mouse_dx * self.control.mouse_speed
 
 		self.control.mouse_dy, self.control.mouse_dx = 0, 0
 
@@ -339,7 +338,7 @@ class Wm:
 					self.moving_node.reborder(2, self.control.mouse_rdy)
 		elif handler[0] == -1:
 		#That is post-release
-			if self.moving_node and self.control.mouse_y == 0:
+			if self.moving_node and self.move_type == 0 and self.control.mouse_y == 0 and self.control.mouse_x < self.screen_width - 5:
 				if not self.moving_node.is_maximized:
 					self.moving_node.toggle_maximize()
 			self.moving_node = False

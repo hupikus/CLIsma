@@ -5,6 +5,9 @@ class Wmconfig:
     def setTrailLength(val):
         Wmconfig.wm.trailength = val
         Wmconfig.wm.trail = [(0, 0) for i in range(val + 1)]
+    
+    def setMouseSensivity(val):
+        Wmconfig.wm.control.mouse_speed = val * 0.18
 
 class DesktopConfig:
     desktop = Singletons.Wm.desktop

@@ -13,6 +13,7 @@ class Controller:
 		self.mouse_y, self.mouse_x = (0, 0)
 		self.mouse_last_y, self.mouse_last_x = (0, 0)
 		self.mouse_buttons = [0, 0, 0]
+		self.mouse_speed = 0.18
 
 
 		#input types generation
