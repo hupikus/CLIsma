@@ -1,6 +1,6 @@
 import os.path
 from propertyparse import Parser
-#from loghandler import Loghandler
+#from integration.loghandler import Loghandler
 class App:
 
 	def __init__(self, name):

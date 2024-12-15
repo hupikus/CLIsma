@@ -1,4 +1,4 @@
-from loghandler import Loghandler
+from integration.loghandler import Loghandler
 from worldglobals import worldglobals
 
 from fastconfig import Wmconfig

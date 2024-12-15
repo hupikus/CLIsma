@@ -1,5 +1,5 @@
 from apps.apphabit import apphabit
-from loghandler import Loghandler
+from integration.loghandler import Loghandler
 class log(apphabit):
 
 	def __init__(self, id, node, controller, height, width, params):

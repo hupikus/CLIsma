@@ -1,22 +1,29 @@
 import os
-import curses
-
-from wm import Wm
-from inpdevices import DeviceHandler
-from screen import Screen
-from globalconfig import Config
-
-screen_height, screen_width = map(int, os.popen('stty size', 'r').read().split())
 
 class Singletons:
-    global screen_height
-    global screen_width
 
+    # Screenman = None
+    # Cfg = None
+    # Inpd = None
+    # Wm = None
+    
+    @classmethod
+    def start(cls):
+        from WMSquad.wm import Wm
+        from InputSquad.inpdevices import DeviceHandler
+        from WMSquad.screen import Screen
+        from globalconfig import Config
 
-    Screenman = Screen(screen_width, screen_height)
+        siz = tuple(map(int, os.popen('stty size', 'r').read().split()))
+        global screen_height 
+        screen_height = siz[0]
+        global screen_width
+        screen_width = siz[1]
 
-    Cfg = Config()
+        cls.Screenman = Screen(screen_width, screen_height)
 
-    Inpd = DeviceHandler()
+        cls.Cfg = Config()
 
-    Wm = Wm(Screenman, Inpd)
+        cls.Inpd = DeviceHandler()
+
+        cls.Wm = Wm(cls.Screenman, cls.Inpd)

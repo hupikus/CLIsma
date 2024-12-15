@@ -1,6 +1,6 @@
 import os
 from apps.apps import App
-from loghandler import Loghandler
+from integration.loghandler import Loghandler
 
 class Filehandler:
 

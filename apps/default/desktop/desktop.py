@@ -5,11 +5,24 @@ import math
 from apps.apps import App
 from apps.apphabit import apphabit
 from type.colors import Colors
+from singletons import Singletons
 
 from userglobals import userglobals
-from loghandler import Loghandler
+from integration.loghandler import Loghandler
 
 class desktop(apphabit):
+
+	def gen_cache(self):
+		fv = fv = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1)
+		#if self.wm.isMouse:
+		fv += 'x'
+		#else:
+			#fv += ' '
+		self.dekstop_str = (fv, '#' * self.width, ' ' * self.width, '_' * self.width)
+
+		self.range = tuple([range(3)] + [range(2 + a, self.height - 5, 3) for a in range(3)])
+
+
 
 
 	def setmaxstep(self, step):
@@ -44,16 +57,6 @@ class desktop(apphabit):
 		for i in range(self.applen):
 			self.node.ui.clickArea("app" + str(i), self.dockapp_clicked, self.height - 4, self.space * (i + 1), 3, 5)
 
-		#desktop view allocation (static partst)
-		self.dekstop_str = ["Bepis", "Bepis", "Bepis", "Bepis"]
-		if self.controller.mouse:
-			self.dekstop_str[0] = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1) + 'x'
-		else:
-			self.dekstop_str[0] = self.greetmsg + ' ' * (self.width - len(self.greetmsg))
-		self.dekstop_str[1] = '#' * self.width
-		self.dekstop_str[2] = ' ' * self.width
-		self.dekstop_str[3] = '_' * self.width
-
 		#ticks and fps counter
 		self.fpsc = 0
 		self.tickc = 0
@@ -66,6 +69,9 @@ class desktop(apphabit):
 		self.spawny = round(self.height * 0.3)
 		self.spawnx = round(self.width / 4)
 		self.setmaxstep(0)
+
+		#сache
+		self.gen_cache()
 
 	def fpsleep(self):
 		while self.ready == 0:
@@ -94,6 +100,7 @@ class desktop(apphabit):
 		self.id = id
 		self.node = node
 		self.controller = controller
+		#self.wm = Singletons.Wm
 		self.width = width
 		self.height = height
 		
@@ -147,24 +154,22 @@ class desktop(apphabit):
 
 		self.node.appendStr(1, 0, self.dekstop_str[1])
 
-		for y in range(2 + self.tick, self.height - 5, 3):
+		for y in self.range[self.tick + 1]:
 			self.node.appendStr(y, 0, self.dekstop_str[2])
 		self.node.appendStr(self.height - 1, 0, self.dekstop_str[2])
 
-		#if self.state == "regular":
-		#	self.node.appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS, frame {self.tick}")
+		if self.state == "regular":
+			self.node.appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS, frame {self.tick}")
 
 		self.node.appendStr(self.height - 5, 0, self.dekstop_str[3])
 
-		for y in range(3):
+		for y in self.range[0]:
 			#line = ''
 			self.node.appendStr(self.height - 4 + y, 0, self.menuapp.icon[y])
 			for i in range(self.applen):
 				self.node.appendStr(self.height - 4 + y, self.space * (i + 1), self.apps[i].icon[y])
 				#line = line + (' ' * self.space) + str(self.apps[i].icon[y])
 			#self.node.appendStr(self.height - 4 - 5 + y, 0, line)
-
-		#self.node.apply()
 
 		return 0
 

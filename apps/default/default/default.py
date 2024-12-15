@@ -1,5 +1,5 @@
 from type.colors import Colors
-from loghandler import Loghandler
+from integration.loghandler import Loghandler
 
 from apps.apphabit import apphabit
 class default(apphabit):

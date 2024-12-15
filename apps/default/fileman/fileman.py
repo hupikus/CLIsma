@@ -5,9 +5,9 @@ from apps.apps import App
 from apps.apphabit import apphabit
 
 from userglobals import userglobals
-from loghandler import Loghandler
+from integration.loghandler import Loghandler
 
-from filehandler import Filehandler
+from integration.filehandler import Filehandler
 class fileman(apphabit):
 
     def __init__(self, id, node, controller, height, width, params):

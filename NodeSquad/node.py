@@ -3,10 +3,10 @@ import os
 import pydoc
 import traceback
 
-from ui import UI
+from NodeSquad.ui import UI
 from apps.apps import App
 from type.colors import Colors
-from loghandler import Loghandler
+from integration.loghandler import Loghandler
 
 class Node:
 
@@ -140,7 +140,7 @@ class Node:
 				if x < 0:
 					x_offcut = -x
 				if self.from_x + x < 0:
-					x_offcut -= self.from_x - 1
+					x_offcut -= self.from_x
 				if x_offcut < ln:
 					self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen], mode)
 			else:

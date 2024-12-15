@@ -6,8 +6,8 @@ import time
 #import argparse
 
 from worldglobals import worldglobals
-
 from singletons import Singletons
+Singletons.start()
 
 work = True
 
@@ -62,27 +62,27 @@ def main_loop():
 
 
 
-draw_thread = threading.Thread(target=draw_loop)
-draw_thread.start()
-main_loop()
-#try:
-#	#draw
-#	draw_thread = threading.Thread(target=draw_loop)
-#	draw_thread.start()
-#	#process
-#	main_loop()
-#except KeyboardInterrupt:
-#	abort("\nAborted.\n")
-#except:
-#	error_logging = False
-#	if error_logging:
-#		#log = open("./error.log", "rw")
-#		#error = wm.newNode("apps.default", "error", 7, 15, 15, 65)
-#		#error.text = "Unknown Error"
-#		#wm.draw()
-#		abort("Unknown error.")
-#	else:
-#		work = False
-#		error = True
-#		#abort("Unknown error.")
+#draw_thread = threading.Thread(target=draw_loop)
+#draw_thread.start()
+#main_loop()
+try:
+	#draw
+	draw_thread = threading.Thread(target=draw_loop)
+	draw_thread.start()
+	#process
+	main_loop()
+except KeyboardInterrupt:
+	abort("\nAborted.\n")
+except:
+	error_logging = False
+	if error_logging:
+		#log = open("./error.log", "rw")
+		#error = wm.newNode("apps.default", "error", 7, 15, 15, 65)
+		#error.text = "Unknown Error"
+		#wm.draw()
+		abort("Unknown error.")
+	else:
+		work = False
+		error = True
+		#abort("Unknown error.")
 		

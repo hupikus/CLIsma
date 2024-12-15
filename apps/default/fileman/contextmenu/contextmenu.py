@@ -3,7 +3,7 @@ from type.colors import Colors
 from apps.apphabit import apphabit
 
 from userglobals import userglobals
-from loghandler import Loghandler
+from integration.loghandler import Loghandler
 class contextmenu(apphabit):
 
     def __init__(self, id, node, controller, height, width, params):
