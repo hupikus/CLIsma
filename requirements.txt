@@ -1,6 +1,3 @@
 curses
 evdev
-ptyprocess
-pydoc
-simpleaudio
 pydub
