@@ -182,7 +182,7 @@ for i in range(len(sys.argv)):
 		print(f"Apps installed: {len(appool.apps) - sysApps}")
 		print(f"System apps: {sysApps}")
 		text_shutdown = True
-	elif arg == "-#b" or arg == "--brief":
+	elif arg == "-#b" or arg == "--#brief":
 		from NodeSquad.appool import AppPool
 		appool = AppPool()
 		import utils.stringmethods as strutils
