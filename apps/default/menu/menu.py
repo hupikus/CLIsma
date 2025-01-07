@@ -26,50 +26,57 @@ class menu(apphabit):
 		#input
 		self.input_subscriptions = [controller.MouseEvents, controller.MouseWheelEvents]
 
-		self.apps = (
-		App("default/bangerplayer"),
-		App("default/colortest"),
-		App("default/default"),
-		App("default/fileman"),
-		App("default/log"),
-		App("default/settings"),
-		App("default/terminal"),
-		App("default/textplayer"),
-		)
-		self.possis = (4, 6, 8, 10, 12, 14, 16, 17)
+		self.apps = Singletons.appp.GetAppInstances()
+		self.display = []
+		self.clickapp = {}
+		self.scrollpos = 0
+		letter = ''
+		self.line = 3
+		for name in sorted(self.apps.keys()):
+			if name == "desktop": continue
+			if name[0].capitalize() != letter:
+				letter = name[0].capitalize()
+				self.display.append(letter)
+				self.line += 1
+			self.display.append((self.apps[name].name))
+			self.clickapp[self.line] = name
+			self.line += 1
+		self.viewlen = min(self.height, self.line - 3)
+			
 
 
 	def draw(self):
+		s = self.scrollpos
+		d = self.display
+		w = self.width
 		title = "CLIde menu"
 		titwid = self.width - 10
 		self.node.appendStr(0, 0, '-' * round(titwid >> 1) + title + '-' * ((titwid >> 1) + 1))
 		#self.node.appendStr(1, 0, ' ' * self.width)
-		title = "All apps"
-		titwid = self.width - 8
-		self.node.appendStr(2, 0, ' ' * round(titwid >> 1) + title + ' ' * ((titwid >> 1) + 1))
-		self.node.appendStr(3, 0, 'B', Colors.FXBold)
-		self.node.appendStr(4, 0, "Bangerplayer")
-		self.node.appendStr(5, 0, 'С', Colors.FXBold)
-		self.node.appendStr(6, 0, "Color Test")
-		self.node.appendStr(7, 0, 'D', Colors.FXBold)
-		self.node.appendStr(8, 0, "Default App")
-		self.node.appendStr(9, 0, 'F', Colors.FXBold)
-		self.node.appendStr(10, 0, "Fileman")
-		self.node.appendStr(11, 0, 'L', Colors.FXBold)
-		self.node.appendStr(12, 0, "Log")
-		self.node.appendStr(13, 0, 'S', Colors.FXBold)
-		self.node.appendStr(14, 0, "Settings")
-		self.node.appendStr(15, 0, 'T', Colors.FXBold)
-		self.node.appendStr(16, 0, "Terminal")
-		self.node.appendStr(17, 0, "Text Player")
+		if s < 2:
+			title = "All apps"
+			titwid = self.width - 8
+			self.node.appendStr(2 - s, 0, ' ' * round(titwid >> 1) + title + ' ' * ((titwid >> 1) + 1))
+		l = 3 - s
+		for i in range(max(0, s - 2), self.viewlen):
+			self.node.appendStr(l + i, 0, d[i].ljust(w, ' '))
 	
-
 	def click(self, device_id, button, y, x):
+		yr = y + self.scrollpos
 		if button == 0:
-			if y in self.possis:
-				self.desktop.launchApp(self.apps[self.possis.index(y)])
+			if yr in self.clickapp:
+				self.desktop.launchApp(self.apps[self.clickapp[yr]])
+	
+	def scroll(self, id, delta):
+		self.viewlen = min(self.height, self.line - 3)
+		self.scrollpos = min(max(0, self.scrollpos + delta), self.line - 3 - round(self.height * 0.8))
 
 	def process(self):
 		if not self.node.isActive():
 			self.desktop.ismenu = False
 			self.node.abort()
+	
+	def resize(self, height, width):
+		self.height = height
+		self.width = width
+		self.viewlen = min(height, self.line - 3)

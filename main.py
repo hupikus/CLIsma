@@ -10,6 +10,11 @@ force = False
 version = "1.3"
 text_shutdown = False
 
+if not os.path.exists("apps/.CLIsma_system_apps"):
+	print("Critical: user is not in CLIsma folder or app folder is not mounted")
+	print("cd to CLIsma folder before execution.")
+	exit()
+
 #argparse
 for i in range(len(sys.argv)):
 	arg = sys.argv[i]
@@ -33,7 +38,7 @@ for i in range(len(sys.argv)):
 		
 		text_shutdown = True
 	elif arg in ('-i', '--install', '-#r', '--#remove'):
-		text_shutdown = true
+		text_shutdown = True
 		from userglobals import userglobals
 		import zipfile
 		from globalconfig import Config
@@ -55,6 +60,9 @@ for i in range(len(sys.argv)):
 			print("{package_name} was expected; got " + f"'{packagename}'")
 			continue
 
+		if packagename in os.listdir("apps/default/"):
+			print(f"Package '{packagename}' already exist among system apps. Stop.")
+			continue
 		#file check
 		if os.path.exists(file):
 			print("Analysing containtment...")
@@ -108,7 +116,7 @@ for i in range(len(sys.argv)):
 		else:
 			print("Specified file does not exists.")
 	elif arg in ('-r', '--remove', '-#i', '--#install'):
-		text_shutdown = true
+		text_shutdown = True
 		from userglobals import userglobals
 		packagename = ""
 		if len(sys.argv) > i + 1:
@@ -193,10 +201,6 @@ for i in range(len(sys.argv)):
 if text_shutdown:
 	exit()
 
-if not os.path.exists("apps/.CLIsma_system_apps"):
-	print("Critical: user is not in CLIsma folder or app folder is not mounted")
-	print("cd to CLIsma folder before execution.")
-	exit()
 if os.geteuid() != 0:
 	print("Critical: no root permissions")
 	exit()

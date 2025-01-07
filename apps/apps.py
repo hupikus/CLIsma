@@ -21,7 +21,10 @@ class App:
 		#app info
 		if os.path.isfile(self.filepath + "/.app"):
 			self.data = Parser.Parse(self.filepath + "/.app")
-			self.name = self.data["name"]
+			if "name" in self.data:
+				self.name = self.data["name"]
+			else:
+				self.name = "Unknown"
 		else:
 			self.valid = False
 		

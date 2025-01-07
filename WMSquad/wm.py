@@ -14,6 +14,9 @@ from worldglobals import worldglobals as wg
 class Wm:
 
 	def newNode(self, parent_path, class_name, y, x, height, width, params, parent = None):
+		#sync active window
+		self.active[self.last_clicked] = self.id
+		self.pointers[self.last_clicked].focus_id = self.id
 		#node owes a window class
 		parent_path += '.' + class_name + '.' + class_name
 		if parent:
@@ -28,6 +31,10 @@ class Wm:
 		return node.win
 
 	def newNodeByApp(self, app, y, x, height, width, params, parent = None):
+		#sync active window
+		self.active[self.last_clicked] = self.id
+		self.pointers[self.last_clicked].focus_id = self.id
+
 		if parent:
 			node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, params, app = app, parent = parent)
 		else:
@@ -90,6 +97,7 @@ class Wm:
 			self.pointer_count = 1
 			self.pointers = []
 			self.active = []
+			self.last_clicked = 0
 
 			for id in range(self.pointer_count):
 				self.pointers.append(WmMouse(id, inpd, display, self, self.trailength))

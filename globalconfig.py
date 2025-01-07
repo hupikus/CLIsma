@@ -15,6 +15,8 @@ class Config:
 
 
             os.makedirs(userglobals.userpath + ".local/share/CLIsma/custom/apps", mode = 0o777)
+
+            os.system(f"ln -s {userglobals.userpath + ".local/share/CLIsma/custom/apps"} ./apps/external")
             
             sys.path.append(userglobals.userpath + ".local/share/CLIsma/custom")
             os.system("chmod 777 " + userglobals.userpath +".local/share/CLIsma/ -R")

@@ -130,6 +130,7 @@ class WmMouse:
                 else:
                     handler[i] = 3
                     ctr.mouse_buttons[i] = 3
+                    wm.last_clicked = devid
             elif ctr.mouse_buttons[i] == 3 or ctr.mouse_buttons[i] == 6:
                 self.buttons[i] = 0
                 ctr.mouse_buttons[i] = 0
