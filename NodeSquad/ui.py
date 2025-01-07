@@ -114,14 +114,14 @@ class UI:
 
 
 
-	def click(self, id, button, y, x):
+	def click(self, device_id, button, y, x):
 		r = True
 		arg_invoke = False
 		for j in self.uis["buttons"]:
 			butt = self.uis["buttons"][j]
 			if y >= butt[1] and y < butt[3]:
 				if x >= butt[2] and x < butt[4]:
-					arg_invoke = [j, "buttons", button]
+					arg_invoke = [j, "buttons", button, device_id]
 					r = False
 					break
 		if r:
@@ -129,7 +129,7 @@ class UI:
 				abutt = self.uis["tapArts"][j]
 				if y >= abutt[1] and y < abutt[3]:
 					if x >= abutt[2] and x < abutt[4]:
-						arg_invoke = [j, "tapArts", button]
+						arg_invoke = [j, "tapArts", button, device_id]
 						r = False
 						break
 		if button == 0:
@@ -478,8 +478,8 @@ class UI:
 
 	#custom events
 
-	def clicked(self, name, type, button):
-		self.uis[type][name][0](name, button)
+	def clicked(self, name, type, button, device_id):
+		self.uis[type][name][0](name, button, device_id)
 		
 
 	#public calculation events

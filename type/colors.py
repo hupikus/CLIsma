@@ -57,8 +57,19 @@ class Colors:
     def define_pairs():
         Colors.colorPosibility = True
         Colors.colorlen = curses.COLORS
-        for i in range(0, Colors.colorlen):
-            curses.init_pair(i + 1, i, -1)
+        if Colors.colorlen > 16:
+            depth = round((Colors.colorlen - 8) ** 0.333 - 0.5)
+            Colors.colorDepth = depth
+            step = round(Colors.colorlen / depth - 0.5)
+            rng = range(0, depth)
+            i = 9
+            for r in rng:
+                for g in rng:
+                    for b in rng:
+                        curses.init_color(i, r, 0, b)
+                        i += 1
+        for i in range(Colors.colorlen):
+            curses.init_pair(i, i, - 1)
     
     @staticmethod
     def newPair(forecolor, backcolor):

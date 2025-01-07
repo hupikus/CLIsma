@@ -56,7 +56,7 @@ class settings(apphabit):
         #self.ui.resize("tB", 0, round(width * 0.5))
     
 
-    def submenu(self, name, button):
+    def submenu(self, name, button, device_id):
         if button == 0:
             self.path += [name]
             self.layout = name
@@ -64,7 +64,7 @@ class settings(apphabit):
             self.state.loadState(self.layout)
     
 
-    def up(self, name, button):
+    def up(self, name, button, device_id):
         self.path = self.path[:-1]
         self.layout = self.path[-1]
         self.state.clearState()

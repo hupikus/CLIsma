@@ -14,15 +14,13 @@ class desktop(apphabit):
 
 	def gen_cache(self):
 		fv = fv = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1)
-		#if self.wm.isMouse:
-		fv += 'x'
-		#else:
-			#fv += ' '
+		if self.wm.isMouse:
+			fv += 'x'
+		else:
+			fv += ' '
 		self.dekstop_str = (fv, '#' * self.width, ' ' * self.width, '_' * self.width)
 
 		self.range = tuple([range(3)] + [range(2 + a, self.height - 5, 3) for a in range(3)])
-
-
 
 
 	def setmaxstep(self, step):
@@ -100,6 +98,7 @@ class desktop(apphabit):
 		self.id = id
 		self.node = node
 		self.controller = controller
+		self.wm = params
 		#self.wm = Singletons.Wm
 		self.width = width
 		self.height = height
@@ -178,15 +177,14 @@ class desktop(apphabit):
 		if self.ready == 2:
 			self.wm.shutdown()
 
-	def click(self, id, button, y, x):
+	def click(self, device_id, button, y, x):
 		if x == self.width - 1 and y == 0:
 			self.to_shutdown("user")
 
 
 
-	def menu(self, name, button):
+	def menu(self, name, button, device_id):
 		if button == 0:
-			
 			if not self.ismenu:
 				try:
 					self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4), '').node
@@ -199,10 +197,12 @@ class desktop(apphabit):
 			
 
 
-	def dockapp_clicked(self, name, button):
+	def dockapp_clicked(self, name, button, device_id):
 		if button == 0:
 			Loghandler.Log("open " + self.apps[int(name[3:])].name)
-			self.launchApp(self.apps[int(name[3:])])
+			node = self.launchApp(self.apps[int(name[3:])])
+			if node:
+				self.wm.pointers[device_id].focus_id = node.id
 
 	def launchApp(self, app, returned = False):
 		app = self.node.newNodeByApp(app, self.spawny, self.spawnx, 0, 0, '')

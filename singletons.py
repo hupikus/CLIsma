@@ -13,6 +13,10 @@ class Singletons:
         from InputSquad.inpdevices import DeviceHandler
         from WMSquad.screen import Screen
         from globalconfig import Config
+        from NodeSquad.appool import AppPool
+
+
+        cls.appp = AppPool()
 
         siz = tuple(map(int, os.popen('stty size', 'r').read().split()))
         global screen_height 

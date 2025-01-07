@@ -64,7 +64,7 @@ class menu(apphabit):
 		self.node.appendStr(17, 0, "Text Player")
 	
 
-	def click(self, id, button, y, x):
+	def click(self, device_id, button, y, x):
 		if button == 0:
 			if y in self.possis:
 				self.desktop.launchApp(self.apps[self.possis.index(y)])

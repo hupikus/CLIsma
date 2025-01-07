@@ -32,5 +32,5 @@ class default(apphabit):
 		self.node.appendStr(2, 0, "Default window contains minimal api usage")
 		self.node.appendStr(3, 0, str(Colors.colorlen))
 
-	def click(self, id, button, y, x):
+	def click(self, device_id, button, y, x):
 		self.counter += 1

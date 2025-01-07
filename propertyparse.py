@@ -5,7 +5,13 @@ class Parser:
         file = open(path, 'r')
         table = file.readlines()
         file.close()
+        val_type = 'auto'
         for i in table:
+            if i[0] == '#': continue
+            if i[0] == ':':
+                val_type = i[1:]
+                continue
+
             i = (i[:-1]).strip()
 
             if i[0] == '[' and i[-1] == ']': continue
@@ -17,13 +23,22 @@ class Parser:
             val = i[eq_ind + 1:]
 
             try:
-                if val[0] == '"' or val[0] == "'":
-                    val = val[1:-1]
-                elif '.' in val:
-                    val = float(val)
-                else:
-                    
+                if val_type == 'auto':
+                    if val[0] == '"' or val[0] == "'":
+                        val = val[1:-1]
+                    elif '.' in val:
+                        val = float(val)
+                    else:
+                        val = int(val)
+                elif val_type == 'int':
                     val = int(val)
+                elif val_type == 'float':
+                    val = float(val)
+                elif val_type == 'str':
+                    val = str(val)
+                elif val_type == 'bool':
+                    val = bool(val)
+                val_type = 'auto'
             except: continue
             
             is_not_array = True

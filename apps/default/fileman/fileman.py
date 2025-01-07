@@ -101,7 +101,7 @@ class fileman(apphabit):
         self.space = ' ' * width
         self.resizelist()
     
-    def click(self, id, button, y, x):
+    def click(self, device_id, button, y, x):
         if self.menu == 1:
             self.closemenu()
         if y >= 3 and y <= self.height - 1 and x >= 0 and x < self.width - 1:
@@ -157,7 +157,7 @@ class fileman(apphabit):
     
 
     #buttons and buttofs
-    def moveup(self, name, button):
+    def moveup(self, name, button, device_id):
         if self.dir != '/':
             if self.dir in self.cached_scrollposes:
                 del self.cached_scrollposes[self.dir]

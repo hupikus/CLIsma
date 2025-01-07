@@ -11,7 +11,7 @@ from InputSquad.mouse import Mice
 
 from integration.loghandler import Loghandler
 
-
+#define
 EV_MSC = 0x04
 EV_KEY = 0x01
 EV_REL = 0x02
@@ -22,7 +22,8 @@ REL_Y = 0x01
 
 KEY_Z = 44
 
-fast_hexes = {'0':"0000", '1':"0001", '2':"0010", '3':"0011", '4':"0100", '5':"0101", '6':"0110", '7':"0111", '8':"1000", '9':"1001", 'a':"1010", 'b':"1011", 'c':"1100", 'd':"1101", 'e':"1110", 'f':"1111"}
+SEPARATE_DEBUG_CURSORS = False
+
 reverse_hexes = {'0':"0000", '1':"1000", '2':"0100", '3':"1100", '4':"0010", '5':"1010", '6':"0110", '7':"1110", '8':"0001", '9':"1001", 'a':"0101", 'b':"1101", 'c':"0011", 'd':"1011", 'e':"0111", 'f':"1111"}
 
 class DeviceHandler:
@@ -91,7 +92,7 @@ class DeviceHandler:
 
 
 	def _mouse(self):
-		while True:
+		while self.isMouse:
 			if self.cursorlen > 0 and not self.queue_cursor:
 				self.mouse_class.readevent()
 				first = [True for i in self.pointer_range]

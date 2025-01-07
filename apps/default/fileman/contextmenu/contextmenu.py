@@ -31,6 +31,6 @@ class contextmenu(apphabit):
 
 
     def process(self):
-        if self.wm.focus_id != self.id:
+        if not self.node.isActive():
             self.wm.desktop.ismenu = False
             self.node.abort()

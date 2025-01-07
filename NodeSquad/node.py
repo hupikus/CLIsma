@@ -10,7 +10,7 @@ from integration.loghandler import Loghandler
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "isDoomed", "tasks", "oldsize")
+	__slots__ = ("id", "name", "wm", "controller", "display", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "isDoomed", "tasks", "oldsize", "root")
 	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params, app = None, parent = None):
 		self.id = id
 		self.wm = wm
@@ -116,6 +116,9 @@ class Node:
 			self.sub = False
 
 
+		#cache
+		self.root = self.display.root
+
 		#finished
 		self.ready_to_close = False
 		self.isDoomed = False
@@ -124,30 +127,61 @@ class Node:
 
 	def clear(self):
 		self.tasks = []
-	
-	#old
-	def appendStr(self, y, x, text, mode = Colors.FXNormal):
-		if y >= 0 and y <= self.height and y >= -self.from_y and y + self.from_y < self.display_height and x <= self.width and x + self.from_x < self.display_width - 1:
 
-			if not self.isActive() and not self.isChildActive():
+
+	#classic
+	def appendStr_old(self, y, x, text, mode = Colors.FXNormal):
+		fromy = self.from_y
+		fy = y + fromy
+		fromx = self.from_x
+		fx = x + fromx
+		if y >= 0 and y <= self.height and fy >= 0 and fy < self.display_height and x <= self.width and fx < self.display_width - 1:
+
+			if self.id != 0 and not self.isActive() and not self.isChildActive():
 				mode = Colors.FXPale
 			#x_offcut = -min(0, x)
 			x_offcut = 0
 			ln = len(text)
-			oblen = max(min(ln, self.width - x, self.display.width - x - self.from_x), 1)
+			oblen = max(min(ln, self.width - x, self.display.width - x - fromx), 1)
 
-			if x < 0 or self.from_x + x < 0:
+			if x < 0 or fx < 0:
 				if x < 0:
 					x_offcut = -x
-				if self.from_x + x < 0:
-					x_offcut -= self.from_x
+				else:
+					x_offcut -= fromx
 				if x_offcut < ln:
-					self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen], mode)
+					self.display.root.addstr(fy, fx + x_offcut, text[x_offcut:oblen], mode)
 			else:
-				self.display.root.addnstr(self.from_y + y, self.from_x + x, text, oblen, mode)
+				self.display.root.addnstr(fy, fx, text, oblen, mode)
 
-			#if x_offcut < ln and oblen > x_offcut:
-				#self.display.root.addstr(self.from_y + y, self.from_x + x + x_offcut, text[x_offcut:oblen], mode)
+
+	#i tried to over-optimize
+	def appendStr(self, y, x, text, mode = Colors.FXNormal):
+		fromy = self.from_y
+		fy = y + fromy
+		fromx = self.from_x
+		fx = x + fromx
+
+		#if y >= 0 and y <= self.height and fy >= 0 and fy < self.display_height and x <= self.width and fx < self.display_width - 1:
+		if 0 <= y <= self.height and 0 <= fy < self.display_height and x <= self.width and fx < self.display_width - 1:
+			if self.id != 0 and not self.isActive() and not self.isChildActive():
+				mode = Colors.FXPale
+			x_offcut = 0
+			ln = len(text)
+			oblen = max(min(ln, self.width - x, self.display_width - x - fromx), 1)
+
+
+			if x < 0 or fx < 0:
+				if x < 0:
+					x_offcut = -x
+				else:
+					x_offcut -= fromx
+				if x_offcut < ln:
+					self.root.addstr(fy, fx + x_offcut, text[x_offcut:oblen], mode)
+			else:
+				self.root.addnstr(fy, fx, text, oblen, mode)
+
+
 
 	#properties
 
@@ -259,11 +293,11 @@ class Node:
 
 #input listeners
 
-	def click(self, id, button, y, x):
+	def click(self, device_id, button, y, x):
 		if self.sub:
-			if self.ui.click(id, button, y - self.from_y, x - self.from_x):
+			if self.ui.click(device_id, button, y - self.from_y, x - self.from_x):
 				if self.sub[self.controller.MouseEvents]:
-					self.win.click(id, button,  y - self.from_y, x - self.from_x)
+					self.win.click(device_id, button,  y - self.from_y, x - self.from_x)
 	
 	def drag(self, id, button, stage, y, x):
 		if stage == 0:
@@ -294,13 +328,13 @@ class Node:
 #Conditions
 
 	def isActive(self):
-		return self.id == 0 or self.wm.focus_id == self.id
+		return self.id in self.wm.active
 	
 	def isChildActive(self):
 		ret = False
-		fi = self.wm.focus_id
+		fi = self.wm.active
 		for node in self.child_nodes:
 			if node:
-				ret = ret or node.id == fi
+				ret = ret or node.id in fi
 		return ret
 

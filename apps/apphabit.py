@@ -13,7 +13,7 @@ class apphabit:
 
     #INPUT
 
-    def click(self, id, button, y, x):
+    def click(self, device_id, button, y, x):
         pass
     
     def drag(self, id, button, stage, y, x):

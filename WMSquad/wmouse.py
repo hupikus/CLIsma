@@ -31,7 +31,7 @@ class WmMouse:
         self.buttons = [0, 0, 0]
         self.hasDelta = False
 
-        self.control = inpd.listen_to_mouse(self.input, [id])
+        self.control = inpd.listen_to_mouse(self.input, [0])
 
         #node management
         self.moving_node = False
@@ -48,8 +48,6 @@ class WmMouse:
         else:
             self.range.append(range(3))
         self.range.append(range(self.trailength, 0, -1))
-
-
 
     def draw(self):
         for i in self.range[1]:
@@ -70,6 +68,7 @@ class WmMouse:
         #aliases
         ctr = self.control
         wm = self.wm
+        devid = self.id
 
         #mouse relativies
 
@@ -77,7 +76,6 @@ class WmMouse:
         dx = ctr.mouse_dx * ctr.mouse_speed
 
         ctr.mouse_dy, ctr.mouse_dx = 0, 0
-
 
         ctr.mouse_ry = max(min(ctr.mouse_ry + dy, self.screen_height - 1), 0)
         ctr.mouse_rx = max(min(ctr.mouse_rx + dx, self.screen_width - 1), 0)
@@ -148,11 +146,11 @@ class WmMouse:
                         if ctr.mouse_y >= node.from_y - 1 and ctr.mouse_y <= node.to_y and ctr.mouse_x >= node.from_x and ctr.mouse_x <= node.to_x + 1:
                             if self.focus_id != id:
                                 self.focus_id = id
-                                if id != 0:
-                                    focus_changed = True
+                                #if id != 0:
+                                #    focus_changed = True
                             if ctr.mouse_y >= node.from_y:
                                 #click
-                                node.click(id, i, ctr.mouse_y, ctr.mouse_x)
+                                node.click(devid, i, ctr.mouse_y, ctr.mouse_x)
                                 break
                             elif i == 0:
                                 if ctr.mouse_x == node.to_x:
@@ -261,5 +259,7 @@ class WmMouse:
         if focus_changed:
             id_ind = wm.order.index(self.focus_id)
             wm.order[-1], wm.order[id_ind] = wm.order[id_ind], wm.order[-1]
+        
+        wm.active[devid] = self.focus_id
 
         return 0

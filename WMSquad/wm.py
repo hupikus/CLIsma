@@ -22,7 +22,7 @@ class Wm:
 			node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, params)
 		self.nodes.append(node)
 		self.order.append(self.id)
-		self.focus_id = self.id
+		#self.focus_id = self.id
 		self.id += 1
 		self.orderlen += 1
 		return node.win
@@ -34,7 +34,7 @@ class Wm:
 			node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, params, app = app)
 		self.nodes.append(node)
 		self.order.append(self.id)
-		self.focus_id = self.id
+		#self.focus_id = self.id
 		self.id += 1
 		self.orderlen += 1
 		return node.win
@@ -78,30 +78,36 @@ class Wm:
 		self.order = []
 		self.orderlen = 0
 
-		#startup nodes
-		#self.newNode(&Desktop)
-		self.desktop = self.newNode("apps.default", "desktop", 0, 0, self.screen_height, self.screen_width, '')
-		self.desktop.wm = self
-		self.desktop.node.is_fullscreen = True
-
-		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
-		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
-		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
-		#self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
-
-		#mouse
+				#mouse
 		self.isMouse = inpd.isMouse
+
 
 		if self.isMouse:
 			#prefs
 			self.trailength = 2
 
 			#cursor
-			self.pointer_count = inpd.mouselen
+			self.pointer_count = 1
 			self.pointers = []
+			self.active = []
 
 			for id in range(self.pointer_count):
 				self.pointers.append(WmMouse(id, inpd, display, self, self.trailength))
+				self.active.append(0)
+		else:
+			self.active = [0]
+
+		#startup nodes
+		#self.newNode(&Desktop)
+		self.desktop = self.newNode("apps.default", "desktop", 0, 0, self.screen_height, self.screen_width, self)
+		self.desktop.wm = self
+		self.desktop.node.is_fullscreen = True
+
+		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
+		if debug:
+			self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
+		#self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
 
 
 	def decoration(self, node):
@@ -159,7 +165,7 @@ class Wm:
 
 		#draw mouse
 		if self.isMouse:
-			#self.display.root.addstr(10, 5, str(self.control[0].mouse_buttons))
+			self.display.root.addstr(10, 5, str(self.active))
 
 			for pointer in self.pointers:
 				self.error += pointer.draw()
