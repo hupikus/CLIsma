@@ -92,7 +92,7 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 	elif arg == "-s" or arg == "--shell":
 		text_shutdown = True
 		import integration.shell.shell as shell
-		shell.shell(os.geteuid() == 0)
+		shell.shell()
 
 if text_shutdown:
 	exit()

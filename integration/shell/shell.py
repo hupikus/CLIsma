@@ -16,8 +16,8 @@ vars["alias"] = aliases
 echoing = True
 
 
-def shell(root):
-    prefix = '#' if root else '$'
+def shell():
+    prefix = '#' if os.geteuid() == 0 else '$'
     while True:
         #try:
         command = input(f"{os.path.basename(os.getcwd())} {prefix}> ")
@@ -48,7 +48,7 @@ def shell(root):
         #    exit()
 
 def run(args):
-    shell(os.geteuid() == 0)
+    shell()
 
 
 def execute(argc, args):
