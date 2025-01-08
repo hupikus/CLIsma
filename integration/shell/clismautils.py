@@ -1,9 +1,13 @@
+from userglobals import userglobals
 import importlib
 import os
 #standard shell utils
 
+NC = '\033[0m'
+RED = '\033[91m'
+
 def cd(argc, argv):
-    pathy = ' '.join(args[1:])
+    pathy = ' '.join(argv[1:])
     if os.path.exists(pathy):
         if os.path.isdir(pathy):
             os.chdir(pathy)
@@ -15,10 +19,11 @@ def cd(argc, argv):
         print(f"{pathy}: no such file or directory")
         return False
 
-def echo(argc, argv):
-    p = ' '.join(args[1:])
+def engrave(argc, argv):
+    p = ' '.join(argv[1:])
     print(p)
-    return p 
+    return p
+
 
 
 def desktop(argc, argv):
