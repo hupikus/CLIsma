@@ -1,51 +1,211 @@
 import integration.shell.clismautils as utils
 from userglobals import userglobals
+import utils.stringmethods as strutils
 import subprocess
 import importlib
+
+import threading
+import time
+
 import os
+import sys
+import termios
+import tty
+
+running = True
+update_interval = 1.0 / 60.0
+
+INVERSE = '\x1b[7m'
+REVERT = '\x1b[0m'
 
 term = os.getenv('TERM', 'xterm')
 
 modules = {"utils" : utils}
-vars = { "PATH":["/bin/", os.path.join(userglobals.userpath, ".local/bin/"), "/usr/bin/", "/usr/local/bin/"] }
+vars = {
+    "PATH" : ["/bin/", os.path.join(userglobals.userpath, ".local/bin/"), "/usr/bin/", "/usr/local/bin/"],
+    "HISTORY_LEN" : 1000
+    }
+
 path = vars["PATH"]
 
 aliases = {"ls" : "ls --color=always"}
 vars["alias"] = aliases
 
 echoing = True
+chmod = False
+
+buffer = ""
+last_getch = ''
+
+
+
+
+history = [""]
+
+def ever_getch():
+    global buffer
+    global last_getch
+    global echoing
+    global chmod
+
+
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+
+    #prefs
+    tty.setraw(fd)
+    print('\x1b[?25l', end = '', flush = True)
+
+    while running:
+        is_escape = False
+        try:
+            last_getch = sys.stdin.read(1)
+        except:
+            print("\x1b[?25h\r")
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            exit()
+        
+        if last_getch == '\x1b':  # Escape character
+            is_escape = True
+            last_getch += sys.stdin.read(2)
+                
 
 
 def shell():
+    global buffer
+    global last_getch
+    global echoing
+    global history
+
+    history_pos = 0
+    cursor = 0
+
     prefix = '#' if os.geteuid() == 0 else '$'
+    print(f"{os.path.basename(os.getcwd())} {prefix}> ", end = '', flush = True)
+
+
+    getch_thread = threading.Thread(target=ever_getch)
+    getch_thread.start()
     while True:
         #try:
-        command = input(f"{os.path.basename(os.getcwd())} {prefix}> ")
-        commands = [command]
-        if '&&' in command:
-            commands = command.split("&&")
-        for exe in commands:
-            if exe == "exit": exit()
+        #check for charactersc
+        match (last_getch):
+            case '':
+                pass
+            case '\t':
+                #autocomplete
+                if cursor > 0:
+                    sea = strutils.extract_word(buffer, cursor - 1)
+                    if sea != '':
+                        res = search(sea)
+                        lr = len(res)
+                        if lr == 0: pass
+                        elif lr == 1:
+                            history[-1] = history[-1][:cursor] + res[0] + history[-1][cursor:]
+                            cursor += len(res[0])
+                        elif lr < 21:
+                            print('\n\r' + ' '.join(res), end = '\n\r', flush = True)
+                        else:
+                            print(f"\r{lr} matches")
+                    
+            case '\n' | '\r':
+                print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer}\r")
+                #command = input(f"{os.path.basename(os.getcwd())} {prefix}> ")
+                buffer = buffer.strip()
+                if buffer == "": continue
+                commands = [buffer[:]]
+                buffer = ""
 
-            #parse vars and etc
-            args = parse_shell_args(exe)
+                #history
+                history.append("")
+                history_pos = -1
+                cursor = 0
 
-            if not args:
-                continue
 
-            #try:
-            proc = execute(len(args), args)
-            if isinstance(proc, subprocess.Popen):
-                proc.wait()
-                #for line in iter(proc.stdout.readline, b''):
-                #    print(line.decode(), end='')
-                #    print("\033[91m HHHH \033[0m")
-                stdout, stderr = proc.communicate()
-                print(stdout.decode())
-            #except:
-            #print("Execution failed.")
+                while len(history) > vars["HISTORY_LEN"]:
+                    history.pop(0)
+
+
+                if '&&' in commands[0]:
+                    commands = command.split("&&")
+                for exe in commands:
+                    #emergency
+                    if exe == "exit":
+                        running = False
+                        print("\rPress any key...\r")
+                        exit()
+
+                    #parse vars and etc
+                    args = parse_shell_args(exe)
+
+                    if not args:
+                        continue
+
+                    #try:
+                    proc = execute(len(args), args)
+                    if isinstance(proc, subprocess.Popen):
+                        proc.wait()
+                        for line in iter(proc.stdout.readline, b''):
+                            print(line.decode(), end = '\n\r', flush = True)
+                        #stdout, stderr = proc.communicate()
+                        #print(stdout.decode(), end = '\n\r')
+
+
+                    print('\r', end = '')
+                    #print(f"{os.path.basename(os.getcwd())} {prefix}>", end = ' ', flush = True)
+                    #except:
+                    #print("Execution failed.")
+
+            case '\x1b[A': #Up arrow
+                history_pos = max(history_pos - 1, -len(history))
+                history[-1] = history[history_pos][:]
+                cursor = len(history[-1])
+            case '\x1b[B': #Down arrow
+                if history_pos == -2:
+                    history[-1] = ""
+                    history_pos = -1
+                    cursor = 0
+                else:
+                    history_pos = min(history_pos + 1, -1)
+                    history[-1] = history[history_pos][:]
+                    cursor = len(history[-1])
+            case '\x1b[D': #Left arrow
+                history_pos = -1
+                cursor = max(0, cursor - 1)
+            case '\x1b[C': #Right arrow
+                history_pos = -1
+                cursor = min(len(buffer), cursor + 1)
+            case '\x7f': #Backspace
+                history_pos = -1
+                if cursor > 0:
+                    history[-1] = history[-1][:cursor - 1] + history[-1][cursor:]
+                    cursor -= 1
+            case _:
+                #any character
+                if chmod:
+                    history[-1] = last_getch
+                else:
+                    history[-1] = history[-1][:cursor] + last_getch + history[-1][cursor:]
+                    cursor += 1
+                #print(last_getch, end = '', flush = True)
+                history_pos = -1
+        buffer = history[-1]
+
+        #'cursor symbol is cursor - 1, but cursor should be drawn at cursor'
+        if len(buffer) > cursor:
+            print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer[:cursor]}{INVERSE}{buffer[cursor]}{REVERT}{buffer[cursor + 1:]}", end = '', flush = True)
+        else:
+            print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer}{INVERSE} {REVERT}", end = '', flush = True)
+
+                    
+        #clear
+        last_getch = ''
+        time.sleep(update_interval)
+
         #except:
         #    exit()
+        
+
 
 def run(args):
     shell()
@@ -211,3 +371,42 @@ def alias_replace(args):
             for el in repl[::-1]:
                 args.insert(0, el)
             break
+
+
+def search(prefix):
+    #check list
+    check = os.listdir()
+    lp = len(prefix)
+    result = []
+    
+    for matcha in check:
+        if matcha.startswith(prefix):
+            mp = matcha[lp:]
+            if os.path.isdir(prefix + mp):
+                result.append(mp + '/')
+            else:
+                result.append(mp)
+
+    if os.path.isdir(prefix):
+        for matcha in os.listdir(prefix):
+            if os.path.isdir(os.path.join(prefix, matcha)):
+                result.append(matcha + '/')
+            else:
+                result.append(matcha)
+
+    else:
+        ri = prefix.rfind('/')
+        if ri != -1:
+            try_topath = prefix[:ri + 1]
+            prefix = prefix[ri + 1:]
+            if os.path.isdir(try_topath):
+                for matcha in os.listdir(try_topath):
+                    if matcha.startswith(prefix):
+                        mp = matcha[len(prefix):]
+                        if os.path.isdir(os.path.join(try_topath, matcha)):
+                            result.append(mp + '/')
+                        else:
+                            result.append(mp)
+
+    
+    return result

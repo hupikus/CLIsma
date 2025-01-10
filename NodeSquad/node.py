@@ -129,32 +129,6 @@ class Node:
 		self.tasks = []
 
 
-	#classic
-	def appendStr_old(self, y, x, text, mode = Colors.FXNormal):
-		fromy = self.from_y
-		fy = y + fromy
-		fromx = self.from_x
-		fx = x + fromx
-		if y >= 0 and y <= self.height and fy >= 0 and fy < self.display_height and x <= self.width and fx < self.display_width - 1:
-
-			if self.id != 0 and not self.isActive() and not self.isChildActive():
-				mode = Colors.FXPale
-			#x_offcut = -min(0, x)
-			x_offcut = 0
-			ln = len(text)
-			oblen = max(min(ln, self.width - x, self.display.width - x - fromx), 1)
-
-			if x < 0 or fx < 0:
-				if x < 0:
-					x_offcut = -x
-				else:
-					x_offcut -= fromx
-				if x_offcut < ln:
-					self.display.root.addstr(fy, fx + x_offcut, text[x_offcut:oblen], mode)
-			else:
-				self.display.root.addnstr(fy, fx, text, oblen, mode)
-
-
 	#i tried to over-optimize
 	def appendStr(self, y, x, text, mode = Colors.FXNormal):
 		fromy = self.from_y
@@ -180,6 +154,27 @@ class Node:
 					self.root.addstr(fy, fx + x_offcut, text[x_offcut:oblen], mode)
 			else:
 				self.root.addnstr(fy, fx, text, oblen, mode)
+
+	
+
+	def writeStr(self, y, x, text, mode = Colors.FXNormal):
+		nfo = text.count('\n')
+		if nfo > 0:
+			calls = text.split('\n')
+			if y <= self.height:
+				i = 0
+				if y < 0:
+					lc = min(nfo + 1, self.height)
+					if -y < lc: return 0
+					i = -y
+				else:
+					lc = min(nfo + 1, self.height - y)
+
+				for n in range(i, lc):
+					self.appendStr(y + n, x, calls[n].expandtabs(), mode)
+
+		else:
+			self.appendStr(y, x, text, mode)
 
 
 

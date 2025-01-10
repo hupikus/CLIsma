@@ -172,8 +172,7 @@ class Wm:
 
 		#draw mouse
 		if self.isMouse:
-			self.display.root.addstr(10, 5, str(self.active))
-
+			#self.display.root.addstr(10, 5, str(self.active))
 			for pointer in self.pointers:
 				self.error += pointer.draw()
 

@@ -5,6 +5,9 @@ import os
 
 NC = '\033[0m'
 RED = '\033[91m'
+GREEN = '\033[92m'
+BLUE = '\033[94m'
+CYAN = '\033[96m'
 
 def cd(argc, argv):
     pathy = ' '.join(argv[1:])
@@ -23,6 +26,45 @@ def engrave(argc, argv):
     p = ' '.join(argv[1:])
     print(p)
     return p
+
+
+def listdir(argc, argv):
+    all = 0
+    path = './'
+    for arg in argv:
+        if arg == '-A' or arg == '--almost-all':
+            all = 1
+        elif arg == '-a' or arg == '--all':
+            all = 2
+        else:
+            if os.path.exists(arg):
+                if os.path.isdir(arg):
+                    path = arg
+                else:
+                    print(f"{arg}: is not a folder")
+
+    files = os.listdir(path)
+    if all == 2:
+        print(BLUE + '.' + NC, end = ' ')
+        if os.path.abspath(path) != '/':
+            print(BLUE + '..' + NC, end = ' ')
+
+    for file in files:
+        if os.path.isdir(file):
+            if file[0] == '.':
+                if all > 0:
+                    print(BLUE + file + NC, end = ' ')
+            else:
+                print(BLUE + file + NC, end = ' ')
+        else:
+            if file[0] == '.':
+                if all > 0:
+                    print(GREEN + file + NC, end = ' ')
+            else:
+                print(file, end = ' ')
+    print()
+
+
 
 
 

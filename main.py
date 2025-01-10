@@ -78,7 +78,7 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 		print(f"userID: {os.geteuid()}")
 		from NodeSquad.appool import AppPool
 		appool = AppPool()
-		sysApps = 12
+		sysApps = 13
 		print(f"Apps installed: {len(appool.apps) - sysApps}")
 		print(f"System apps: {sysApps}")
 		text_shutdown = True
@@ -86,7 +86,7 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 		from NodeSquad.appool import AppPool
 		appool = AppPool()
 		import utils.stringmethods as strutils
-		sysApps = 12
+		sysApps = 13
 		print(strutils.getPoem(version, os.geteuid(), sysApps, appool.apps))
 		text_shutdown = True
 	elif arg == "-s" or arg == "--shell":

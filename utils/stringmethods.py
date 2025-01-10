@@ -1,6 +1,7 @@
 from difflib import SequenceMatcher
 import os
 
+#closest match to a string from list
 def closest(given_name, list):
     match = ""
     max_ratio = 0
@@ -12,6 +13,29 @@ def closest(given_name, list):
             match = name
 
     return match
+
+
+#extracts word by given position in the text
+def extract_word(text, pos):
+    ldiff = pos
+    rdiff = pos
+    ln = len(text)
+    lf = False
+    rf = False
+    while not lf or not rf:
+        if ldiff >= 0 and text[ldiff] != ' ':
+            ldiff -= 1
+        else:
+            lf = True
+        if rdiff < ln and text[rdiff] != ' ':
+            rdiff += 1
+        else:
+            rf = True
+
+    return text[ldiff + 1 : rdiff]
+
+
+
 
 
 
