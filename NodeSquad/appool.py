@@ -23,7 +23,7 @@ class AppPool:
                 i -= 1
 
         self.apps += self.installedApps
-        Loghandler.Log('\n'.join(self.apps))
+        #Loghandler.Log('\n'.join(self.apps))
     
         self.appinst = {}
         for name in self.systemApps:

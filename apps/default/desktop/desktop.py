@@ -124,9 +124,9 @@ class desktop(apphabit):
 			self.apps = [App("default/settings"), App("default/fileman")]
 		else:
 			self.greetmsg = "Welcome to CLI System Management Accompanier! (" + userglobals.username + " session)"
-			self.apps = [App("default/settings"), App("default/colortest"), App("default/fileman"), App("default/terminal")]
+			self.apps = [App("default/settings"), App("default/fileman"), App("default/log")]
 
-		self.pinned = 3
+		self.pinned = len(self.apps)
 			
 		#App("default/terminal") App("default/colortest") App("default/log") App("default/textplayer")
 

@@ -112,7 +112,7 @@ class Wm:
 		self.desktop.node.is_fullscreen = True
 
 		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
-		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 		#self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
 

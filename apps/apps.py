@@ -19,6 +19,7 @@ class App:
 		#Loghandler.Log(self.class_name)
 
 		#app info
+		self.data = {}
 		if os.path.isfile(self.filepath + "/.app"):
 			self.data = Parser.Parse(self.filepath + "/.app")
 			if "name" in self.data:
@@ -28,7 +29,8 @@ class App:
 		else:
 			self.valid = False
 		
-
+		self.icon = []
+		#self.icon_height, self.icon_width = 0, 0
 		if self.valid:
 			#icon
 			self.icon = []
@@ -45,6 +47,17 @@ class App:
 				self.icon_width = 5
 				icon = open("./apps/default/default/icon.asc")
 				icon.readline()
+
+			for y in range(self.icon_height):
+				self.icon.append(icon.readline())
+
+			icon.close()
+		else: #NOT VALID
+		
+			self.icon_height = 3
+			self.icon_width = 5
+			icon = open("./apps/default/default/icon.asc")
+			icon.readline()
 
 			for y in range(self.icon_height):
 				self.icon.append(icon.readline())
