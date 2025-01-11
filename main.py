@@ -7,7 +7,7 @@ import time
 debug = False
 textmode = False
 force = False
-version = "1.3"
+version = "1.5"
 text_shutdown = False
 
 if not os.path.exists("apps/.CLIsma_system_apps"):
@@ -21,7 +21,7 @@ for i in range(len(sys.argv)):
 	if arg == '-h' or arg == '--help':
 		print(f"CLIsma v{version}")
 		print("""-------------
-Usage:
+Usage: main.py --flag1 {required1} (optional2) --flag2 ...
 Insert flags before others to control order of execution
 Use -# instead of - for opposite effect: supported commands marked with !
 Example: main.py -f       -r testapp -#f              -i /path/to/archive testapp
@@ -30,7 +30,7 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 !   -d, --debug                                      Debug mode
 !   -f, --force                                      Disable confirmation (Warning: force deletion with -r)
     -h, --help                                       Print help message
-!   -i, --install {archive_path} {package_name}      Install a package
+!   -i, --install {package_name} (archive_path)      Install a package
 !   -r, --remove {package_name}                      Remove a package
 !   -s, --shell                                      Shell mode (CLIsma shell only)""")
 		
@@ -38,15 +38,15 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 	elif arg in ('-i', '--install', '-#r', '--#remove'):
 		text_shutdown = True
 
-		file = ""
 		packagename = ""
+		file = ""
 		if len(sys.argv) > i + 1:
-			file = sys.argv[i + 1]
+			packagename = sys.argv[i + 1]
 		if len(sys.argv) > i + 2:
-			packagename = sys.argv[i + 2]
+			file = sys.argv[i + 2]
 
 		import integration.shell.carmen as carmen
-		carmen.install_CLI(file, packagename, force)
+		carmen.install_CLI(packagename, file, force)
 
 	elif arg in ('-r', '--remove', '-#i', '--#install'):
 		text_shutdown = True
@@ -61,6 +61,8 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 			continue
 
 		import integration.shell.carmen as carmen
+		from globalconfig import Config
+		Cfg = Config()
 		carmen.remove_CLI(packagename, force)
 
 	elif arg == '-d' or arg == '--debug':
@@ -78,7 +80,7 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 		print(f"userID: {os.geteuid()}")
 		from NodeSquad.appool import AppPool
 		appool = AppPool()
-		sysApps = 13
+		sysApps = 12
 		print(f"Apps installed: {len(appool.apps) - sysApps}")
 		print(f"System apps: {sysApps}")
 		text_shutdown = True
@@ -86,12 +88,14 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 		from NodeSquad.appool import AppPool
 		appool = AppPool()
 		import utils.stringmethods as strutils
-		sysApps = 13
+		sysApps = 12
 		print(strutils.getPoem(version, os.geteuid(), sysApps, appool.apps))
 		text_shutdown = True
 	elif arg == "-s" or arg == "--shell":
 		text_shutdown = True
 		import integration.shell.shell as shell
+		from globalconfig import Config
+		Cfg = Config()
 		shell.shell()
 
 if text_shutdown:

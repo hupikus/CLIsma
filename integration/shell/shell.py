@@ -13,7 +13,7 @@ import termios
 import tty
 
 running = True
-update_interval = 1.0 / 60.0
+update_interval = 1.0 / 120.0
 
 INVERSE = '\x1b[7m'
 REVERT = '\x1b[0m'
@@ -39,8 +39,21 @@ last_getch = ''
 
 
 
-
 history = [""]
+
+
+#redefine 'print' to include returning caret
+import builtins
+
+prev_print = builtins.print
+
+def raw_print(*args, **kwargs):
+    if 'end' not in kwargs:
+        kwargs['end'] = '\r\n'
+    prev_print(*args, **kwargs)
+
+builtins.print = raw_print
+
 
 def ever_getch():
     global buffer
@@ -54,20 +67,37 @@ def ever_getch():
 
     #prefs
     tty.setraw(fd)
-    print('\x1b[?25l', end = '', flush = True)
+    print('\x1b[?25l', end = '', flush = True) #hide cursor
+    #fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK)
 
     while running:
         is_escape = False
         try:
-            last_getch = sys.stdin.read(1)
+            r = sys.stdin.read(1)
         except:
-            print("\x1b[?25h\r")
+            print("\x1b[?25h\r") #show cursor
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
             exit()
-        
-        if last_getch == '\x1b':  # Escape character
-            is_escape = True
-            last_getch += sys.stdin.read(2)
+ 
+        if r != '':
+            last_getch = r
+            if last_getch == '\x1b':  # Escape character
+                is_escape = True
+                n = sys.stdin.read(1)
+                if n == '[':
+                    last_getch += n + sys.stdin.read(1)
+                else:
+                    last_getch += n
+            else:
+                od = ord(last_getch)
+                if od > 0x7F:                       #multi-byte character
+                    if 0xC0 <= od <= 0xDF:              #2-byte character
+                        last_getch += sys.stdin.read(1)
+                    elif 0xE0 <= od <= 0xEF:            #3-byte character
+                        last_getch += sys.stdin.read(2)
+                    elif 0xF0 <= od <= 0xF7:            #4-byte character
+                        last_getch += sys.stdin.read(3)
+        r = ''
                 
 
 
@@ -104,7 +134,7 @@ def shell():
                             history[-1] = history[-1][:cursor] + res[0] + history[-1][cursor:]
                             cursor += len(res[0])
                         elif lr < 21:
-                            print('\n\r' + ' '.join(res), end = '\n\r', flush = True)
+                            print('\r' + ' '.join(res), end = '\n\r', flush = True)
                         else:
                             print(f"\r{lr} matches")
                     
@@ -112,7 +142,9 @@ def shell():
                 print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer}\r")
                 #command = input(f"{os.path.basename(os.getcwd())} {prefix}> ")
                 buffer = buffer.strip()
-                if buffer == "": continue
+                if buffer == "":
+                    last_getch = ''
+                    continue
                 commands = [buffer[:]]
                 buffer = ""
 
@@ -145,10 +177,13 @@ def shell():
                     proc = execute(len(args), args)
                     if isinstance(proc, subprocess.Popen):
                         proc.wait()
-                        for line in iter(proc.stdout.readline, b''):
-                            print(line.decode(), end = '\n\r', flush = True)
+                        #while True:
+
+                        #for line in iter(proc.stdout.readline, b''):
+                        #    print(line.decode(), end = '\n\r', flush = True)
                         #stdout, stderr = proc.communicate()
                         #print(stdout.decode(), end = '\n\r')
+                    process = False
 
 
                     print('\r', end = '')
@@ -301,8 +336,8 @@ def execute(argc, args):
             for bin in path:
                 if os.path.exists(bin + name):
                     args[0] = bin + args[0]
-                    #return subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={"TERM":  term})
-                    return os.system(' '.join(args))
+                    return subprocess.Popen(args, stdin = None, stdout = None, stderr = None, env={"TERM":  term})
+                    #return os.system(' '.join(args))
     
             try:
                 #modules
