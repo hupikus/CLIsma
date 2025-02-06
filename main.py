@@ -5,6 +5,7 @@ import threading
 import time
 
 debug = False
+desktop = "default"
 textmode = False
 force = False
 version = "1.5"
@@ -28,6 +29,7 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
                  ^force   ^remove    ^disable force   ^install                   : Re-install a package\n
 !   -b  --brief                                      Quick common info
 !   -d, --debug                                      Debug mode
+    -D, --desktop {package_name}                     Launch CLIsma with custom desktop app
 !   -f, --force                                      Disable confirmation (Warning: force deletion with -r)
     -h, --help                                       Print help message
 !   -i, --install {package_name} (archive_path)      Install a package
@@ -97,6 +99,10 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 		from globalconfig import Config
 		Cfg = Config()
 		shell.shell()
+	elif arg == "-D" or arg == "--desktop":
+		if len(sys.argv) > i + 1:
+			v = sys.argv[i + 1]
+			desktop = sys.argv[i + 1]
 
 if text_shutdown:
 	exit()
@@ -108,7 +114,7 @@ if os.geteuid() != 0:
 
 from worldglobals import worldglobals
 from singletons import Singletons
-Singletons.start()
+Singletons.start(desktop)
 
 
 work = True

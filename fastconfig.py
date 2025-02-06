@@ -3,8 +3,11 @@ class Wmconfig:
     wm = Singletons.Wm
     @staticmethod
     def setTrailLength(val):
-        Wmconfig.wm.trailength = val
-        Wmconfig.wm.trail = [(0, 0) for i in range(val + 1)]
+        wm = Wmconfig.wm
+        wm.trailength = val
+        wm.trail = [(0, 0) for i in range(val + 1)]
+        for i in range(wm.pointer_count):
+            wm.pointers[i].update_trail(val)
     
     def setMouseSensivity(val):
         Wmconfig.wm.control.mouse_speed = val * 0.18

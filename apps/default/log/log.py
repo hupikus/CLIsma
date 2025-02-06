@@ -20,7 +20,6 @@ class log(apphabit):
 		#preferences
 		self.MaxLen = 20
 
-
 	def draw(self):
 		if Loghandler.loglen == 0:
 			self.node.appendStr(0, 0, "Nothing yet...".center(self.width, ' '))
@@ -30,5 +29,7 @@ class log(apphabit):
 			column = min(self.height, Loghandler.loglen)
 			for y in range(column):
 				self.node.writeStr(y, 0, Loghandler.history[-(y + 1)].center(self.width, ' '))
+			for y in range(column, self.height - 1):
+				self.node.appendStr(y + 1, 0, ' ' * self.width)
 
 		

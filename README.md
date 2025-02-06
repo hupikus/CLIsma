@@ -6,7 +6,7 @@
 - curses
 - evdev
 - pydoc
-- python 3.6 or newer
+- python 3.10 or newer
 
 ## Use
 Just execute **main.py** with sudo or root, while in the folder.

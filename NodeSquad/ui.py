@@ -31,10 +31,10 @@ class UI:
 			slider = self.uis["verticalSliders"][name]
 			for y in range( min(slider[3], self.node.to_y - slider[1])):
 				if y >= slider[4] and y <= slider[4] + slider[5]:
-					#                       y             x         '*'      FXNormal
+					#                       y             x      '*'         FXNormal
 					self.node.appendStr(slider[1] + y, slider[2], slider[9], slider[6])
 				else:
-					#                       y          x         '|'      FXNormal
+					#                       y          x         '|'         FXNormal
 					self.node.appendStr(slider[1] + y, slider[2], slider[8], slider[7])
 		for name in self.uis["fields"]:
 			field = self.uis["fields"][name]
@@ -48,7 +48,7 @@ class UI:
 			art = self.uis["tapArts"][name]
 			content = art[5]
 			for y in range(art[3] - art[1]):
-				self.node.appendStr(art[1] + y, art[2], content[y])
+				self.node.appendStr(art[1] + y, art[2], content[y], art[6])
 		for name in self.uis["txts"]:
 			text = self.uis["txts"][name]
 			self.node.appendStr(text[1], text[2], text[0], text[3])
@@ -71,6 +71,10 @@ class UI:
 			#	self.node.appendStr(text[1] + y, text[2] + x, str(i), colorMode)
 			#	x += len(str(i)) + 1
 			#break
+
+			#buffer = ""
+			#flush = False
+			#color = '\033[0m'
 			for i in content:
 				if mode == 'read':
 					if i == "<!C":
@@ -83,26 +87,32 @@ class UI:
 						mode = 'treadisc'
 					elif i == "<n>":
 						y += 1
-						x = 0
 						if y == text[3]: break
+						x = 0
+						#flush = True
 					elif i == "<endc>":
 						colorMode = Colors.colorPair(0)
 					elif i == "<endt>":
 						attrMode = Colors.FXNormal
 						effects = [Colors.FXNormal]
 					else:
+						#buffer += i
 						self.node.appendStr(text[1] + y, text[2] + x, i, colorMode | attrMode)
 						x += len(i)
 				elif mode == 'cread':
 					colorMode = Colors.colorPair(i)
+					#color = Colors.RawColor[i]
+					#buffer += color
 					mode = 'read'
 				elif mode == 'tread':
 					attrMode = Colors.FXHash[i]
 					mode = 'read'
+					#flush = True
 				elif mode == 'treadadd':
 					hash = Colors.FXHash[i]
 					attrMode = attrMode | hash
 					mode = 'read'
+					#flush = True
 				elif mode == 'treadisc':
 					hash = Colors.FXHash[i]
 					if hash in effects:
@@ -111,6 +121,17 @@ class UI:
 						for add in effects:
 							attrMode = attrMode | add
 					mode = 'read'
+					#flush = True
+				
+				#if flush:
+				#	self.node.appendStr(text[1] + y, text[2] + x, buffer, attrMode)
+				#	x += len(buffer) + 1
+				#	if i == "<n>":
+				#		y += 1
+				#		x = 0
+				#		self.node.appendStr(text[1] + y, text[2], color, attrMode)
+				#	buffer = ""
+				#	flush = False
 
 
 
@@ -277,7 +298,7 @@ class UI:
 					content[i] = content[i].center(width, ' ')
 				else:
 					content[i] = content[i].rjust(width, ' ')
-		self.uis["tapArts"][name] = [event, y, x, y + height, x + width, content]
+		self.uis["tapArts"][name] = [event, y, x, y + height, x + width, content, attr]
 
 	def textLine(self, name, content, y, x, attr = Colors.FXNormal):
 		#receive: content, y, x, (attr)
@@ -516,7 +537,6 @@ class UI:
 
 					#then start new line
 					if wlen <= 0: break
-					
 
 					if line == height and height > 0: break
 					line += 1
@@ -579,7 +599,10 @@ class UI:
 				#fat-wording
 				wlen = self.tagsoverheadcount(w)
 				startlen = 0
+				i = 0
 				while True:
+					if i >= 50: break
+					i += 1
 					#word is (still) does not fit, cut
 					part = w[:l]
 					newline = self.keepappending(part, displays)
@@ -596,7 +619,7 @@ class UI:
 					line += 1
 					l = width + 1
 					displays.append("<n>")
-					if displays.count("<n>") == height - 1 and height > 0: break
+					if displays.count("<n>") >= height - 1 and height > 0: break
 					
 
 					w = w[startlen:]
@@ -611,7 +634,7 @@ class UI:
 				#new line
 				line += 1
 				
-				if displays.count("<n>") == height - 1 and height > 0: break
+				if displays.count("<n>") >= height - 1 and height > 0: break
 
 				l = width + 1
 				displays.append("<n>")

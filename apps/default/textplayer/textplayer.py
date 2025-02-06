@@ -4,11 +4,10 @@ from apps.apphabit import apphabit
 class textplayer(apphabit):
     
     def readfile(self, filename):
-        file = open(filename)
-        text = file.readlines()
-        text = [i[:-1] for i in text]
-        self.ln = len(text)
-        file.close()
+        with open(filename, 'r') as file:
+            text = file.readlines()
+            text = [i[:-1] for i in text]
+            self.ln = len(text)
         self.ui.art("text", text, 1, 0, attr = Colors.FXNormal, align = 0)
         #self.ui.textBox("text", text, 1, 0, height, width, align = 1)
 

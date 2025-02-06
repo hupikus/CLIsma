@@ -8,7 +8,7 @@ class Singletons:
     # Wm = None
     
     @classmethod
-    def start(cls):
+    def start(cls, desktop):
         from WMSquad.wm import Wm
         from InputSquad.inpdevices import DeviceHandler
         from WMSquad.screen import Screen
@@ -30,4 +30,4 @@ class Singletons:
 
         cls.Inpd = DeviceHandler()
 
-        cls.Wm = Wm(cls.Screenman, cls.Inpd)
+        cls.Wm = Wm(cls.Screenman, cls.Inpd, desktop)

@@ -21,7 +21,7 @@ class Screen():
 		#set up the env
 		self.root.nodelay(1)
 		curses.cbreak()
-		#curses.noecho()
+		curses.noecho()
 		curses.curs_set(0)
 
 		#colors
@@ -30,10 +30,11 @@ class Screen():
 		if curses.has_colors():
 			Colors.define_pairs()
 		
-		curses.nonl()
+		#curses.nonl()
 		#curses.def_shell_mode()
 
 	def draw(self):
+		#sys.stdout.write("\033[0m")
 		self.root.refresh()
 		return 0
 

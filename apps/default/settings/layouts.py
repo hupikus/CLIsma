@@ -1,5 +1,6 @@
 from integration.loghandler import Loghandler
 from worldglobals import worldglobals
+from type.colors import Colors
 
 from fastconfig import Wmconfig
 
@@ -13,68 +14,82 @@ class Layouts:
 
         self.wm = Singletons.Wm
 
-        self.FPSlider = "60"
-
     def loadState(self, path):
-        
+        ui = self.ui
+        newline = (True, "newline", 1)
         if path == "zero":
-            self.ui.clickableArt("performance", self.sett.submenu, 0, 0, ["_____", "|  /|", "| o |", "I---I", " Performance "], align = 1)
-            self.ui.clickableArt("input", self.sett.submenu, 0, 0, ["  \\  ", "/-/-\\", "| ! |", "\\___/", "    Input    "], align = 1)
-            self.ui.clickableArt("customization", self.sett.submenu, 0, 0, ["  /\\  ", " _||_ ", "| || |", "|-\\/-|", "Customization"], align = 1)
+            ui.clickableArt("performance", self.sett.submenu, 0, 0, ["_____", "|  /|", "| o |", "I---I", " Performance "], align = 1)
+            ui.clickableArt("input", self.sett.submenu, 0, 0, ["  \\  ", "/-/-\\", "| ! |", "\\___/", "    Input    "], align = 1)
+            ui.clickableArt("customization", self.sett.submenu, 0, 0, ["  /\\  ", " _||_ ", "| || |", "|-\\/-|", "Customization"], align = 1)
 
-            self.ui.list("list", ("input", "performance", "customization"), 0, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+            ui.list("list", ("input", "performance", "customization"), 0, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
-            self.ui.remove("back", type = "tapArts")
+            ui.remove("back", type = "tapArts")
 
         else:
             if self.path == "zero":
-                self.ui.clickableArt("back", self.sett.up, 0, 0, ["Back"])
+                ui.clickableArt("back", self.sett.up, 0, 0, ["Back"])
 
             if path == "performance":
                 #FPS slider
-                self.ui.slider("FPS", self.FPSlider_update, 0, 0, 24, 11)
-                self.ui.textLine("FPSTitle", "Set Framerate", 0, 0)
+                ui.slider("FPS", self.FPSlider_update, 0, 0, 24, (5 // worldglobals.framerate) - 1)
+                ui.textLine("FPSTitle", "Set Framerate", 0, 0)
 
-                self.ui.textLine("FPSText", "60", 0, 0)
+                ui.textLine("FPSText", str(worldglobals.framerate), 0, 0)
 
                 #process slider
-                self.ui.slider("TICK", self.TICKlider_update, 0, 0, 44, 11)
-                self.ui.textLine("TICKTitle", "Set Tickrate", 0, 0)
+                if worldglobals.processrate < 5:
+                    rate = worldglobals.processrate - 1
+                else:
+                    rate = (worldglobals.processrate // 5) + 3
+                ui.slider("TICK", self.TICKlider_update, 0, 0, 44, rate)
+                ui.textLine("TICKTitle", "Set Tickrate", 0, 0)
 
-                self.ui.textLine("TICKText", "100", 0, 0)
+                ui.textLine("TICKText", str(worldglobals.processrate), 0, 0)
 
                 elements = (
-                "FPSTitle", (True, "space", 2, 2), (True, "newline", 1), "FPSText", (True, "glue", 1), "FPS",
-                (True, "newline", 1), "TICKTitle", (True, "space", 2, 2), (True, "newline", 1), "TICKText", (True, "glue", 1), "TICK"
+                "FPSTitle", (True, "space", 2, 2), newline, "FPSText", (True, "glue", 1), "FPS",
+                newline, "TICKTitle", (True, "space", 2, 2), newline, "TICKText", (True, "glue", 1), "TICK"
                 )
 
-                self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+                ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+
             elif path == "customization":
 
                 #set mouse trail length
-                self.ui.slider("TRAIL", self.Trailider_update, 0, 0, 18, 2)
-                self.ui.textLine("TRAitle", "Set mouse cursor trail length", 0, 0)
+                ui.slider("TRAIL", self.trailider_update, 0, 0, 18, Wmconfig.wm.trailength)
+                ui.textLine("TRAitle", "Set mouse cursor trail length", 0, 0)
 
-                self.ui.textLine("TRAILext", "100", 0, 0)
+                ui.textLine("TRAILext", str(Wmconfig.wm.trailength), 0, 0)
+
+                #cursor color
+                cursorColor = ()
+                if Colors.colorPosibility:
+                    ui.textLine("CursorColorTitle", "Cursor color", 0, 0)
+                    txt = ["   " for i in (0, 0)]
+                    for i in range(7):
+                        ui.clickableArt("color" + str(i), self.set_cursor_color, 0, 0, txt, attr = Colors.colorPair(i) | Colors.FXReverse)
+                    cursorColor = ("CursorColorTitle", newline, newline) + tuple("color" + str(i) for i in range(7))
 
                 elements = (
-                "TRAitle", (True, "newline", 1), "TRAILext", (True, "glue", 1), "TRAIL"
-                )
+                "TRAitle", newline, "TRAILext", (True, "glue", 1), "TRAIL", newline
+                ) + cursorColor
 
-                self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+                ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+
             elif path == "input":
 
                 #set mouse trail length
-                self.ui.slider("SPEED", self.mousepeed_update, 0, 0, 22, 11)
-                self.ui.textLine("title", "Set mouse sensivity", 0, 0)
+                ui.slider("SPEED", self.mousepeed_update, 0, 0, 22, 11)
+                ui.textLine("title", "Set mouse sensivity", 0, 0)
 
-                self.ui.textLine("Lext", "1.0", 0, 0)
+                ui.textLine("Lext", "1.0", 0, 0)
 
                 elements = (
-                "title", (True, "newline", 1), "Lext", (True, "glue", 1), "SPEED"
+                "title", newline, "Lext", (True, "glue", 1), "SPEED"
                 )
 
-                self.ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+                ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
         self.path = path
 
@@ -85,12 +100,12 @@ class Layouts:
     #UI events
 
     def FPSlider_update(self, val):
-        self.FPSlider = (val + 1) * 5
-        worldglobals.framerate = self.FPSlider
-        worldglobals.framedelta = 1 / self.FPSlider
-        self.FPSlider = str(self.FPSlider)
-        self.ui.setText("FPSText", self.FPSlider, type = "txts")
-        Loghandler.Log(f"FPS changed to {self.FPSlider}")
+        FPSlider = (val + 1) * 5
+        worldglobals.framerate = FPSlider
+        worldglobals.framedelta = 1 / FPSlider
+        FPSlider = str(FPSlider)
+        self.ui.setText("FPSText", FPSlider, type = "txts")
+        Loghandler.Log(f"FPS changed to {FPSlider}")
     
     def TICKlider_update(self, val):
         
@@ -104,7 +119,7 @@ class Layouts:
         self.ui.setText("TICKText", self.TickSlider, type = "txts")
         Loghandler.Log(f"Tickrate changed to {self.TickSlider}")
     
-    def Trailider_update(self, val):
+    def trailider_update(self, val):
         Wmconfig.setTrailLength(val)
         val = str(val)
         self.ui.setText("TRAILext", val, type = "txts")
@@ -116,4 +131,9 @@ class Layouts:
             realval = round(float(val / 13) + 0.04, 2)
         self.ui.setText("Lext", str(realval), type = "txts")
         Wmconfig.setMouseSensivity(realval)
+    
+    def set_cursor_color(self, name, button, device_id):
+        val = int(name[-1])
+        wm = self.wm
+        wm.pointers[device_id].color = Colors.colorPair(val)
             

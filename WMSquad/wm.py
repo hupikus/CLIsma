@@ -1,5 +1,6 @@
 import os
 import gc
+#import sys
 
 from WMSquad.screen import Screen
 from NodeSquad.node import Node
@@ -65,7 +66,7 @@ class Wm:
 		self.shutdown_ready = True
 
 
-	def __init__(self, display, inpd):
+	def __init__(self, display, inpd, desktop):
 
 		#display
 		self.screen_height = display.height
@@ -84,6 +85,8 @@ class Wm:
 		#draw and click order
 		self.order = []
 		self.orderlen = 0
+
+		self.draw_as_maximized = False
 
 				#mouse
 		self.isMouse = inpd.isMouse
@@ -107,7 +110,10 @@ class Wm:
 
 		#startup nodes
 		#self.newNode(&Desktop)
-		self.desktop = self.newNode("apps.default", "desktop", 0, 0, self.screen_height, self.screen_width, self)
+		if desktop == "default":
+			self.desktop = self.newNode("apps.default", "desktop", 0, 0, self.screen_height, self.screen_width, self)
+		else:
+			self.desktop = self.newNode("apps.default", desktop, 0, 0, self.screen_height, self.screen_width, self)
 		self.desktop.wm = self
 		self.desktop.node.is_fullscreen = True
 
@@ -143,9 +149,11 @@ class Wm:
 				mxln = min(self.screen_width - x_offcut, node.width)
 				if x_offcut < 0:
 					x_offcut *= -1
+					#sys.stdout.write(f"\033[{max(node.from_y - 1, 0)};{0}H{text[x_offcut:mxln]}")
 					self.display.root.addstr(max(node.from_y - 1, 0), 0, text[x_offcut:mxln])
 				else:
 					self.display.root.addnstr(max(node.from_y - 1, 0), x_offcut, text, mxln)
+					#sys.stdout.write(f"\033[{max(node.from_y - 1, 0)};{x_offcut}H{text[:mxln]}")
 
 				#bottom decoration
 				t = True
@@ -155,20 +163,27 @@ class Wm:
 					mxln = min(self.screen_width - x_offcut, node.width)
 					if x_offcut < 0:
 						x_offcut *= -1
+						#sys.stdout.write(f"\033[{max(node.to_y + 1, 0)};{0}H{text[x_offcut:mxln]}")
 						self.display.root.addstr(max(node.to_y + 1, 0), 0, text[x_offcut:mxln])
 					else:
+						#sys.stdout.write(f"\033[{max(node.to_y + 1, 0)};{x_offcut}H{text[:mxln]}")
 						self.display.root.addnstr(max(node.to_y + 1, 0), x_offcut, text, mxln)
 
 
 	def draw(self):
 		#draw all nodes
-		for id in self.order:
-			node = self.nodes[id]
-			if node:
-				node.draw()
-				self.decoration(node)
-				#if node.is_maximized or node.is_fullscreen:
-				#	break
+		self.draw_as_maximized = self.nodes[self.order[-1]].is_maximized
+		if self.draw_as_maximized:
+			self.nodes[self.order[-1]].draw()
+			self.desktop.draw()
+		else:
+			for id in self.order:
+				node = self.nodes[id]
+				if node:
+					node.draw()
+					self.decoration(node)
+					#if node.is_maximized or node.is_fullscreen:
+					#	break
 
 		#draw mouse
 		if self.isMouse:

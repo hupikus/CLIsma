@@ -7,10 +7,15 @@ import importlib
 import threading
 import time
 
-import os
-import sys
-import termios
-import tty
+import os      #\
+import sys     # \
+import termios #  -
+import tty     # /
+import io      #/
+
+import pty
+import select
+
 
 running = True
 update_interval = 1.0 / 120.0
@@ -37,29 +42,76 @@ chmod = False
 buffer = ""
 last_getch = ''
 
-
-
 history = [""]
 
 
-#redefine 'print' to include returning caret
+#redefine print() to control stdout
 import builtins
 
 prev_print = builtins.print
 
+#usual redirection
 def raw_print(*args, **kwargs):
     if 'end' not in kwargs:
         kwargs['end'] = '\r\n'
     prev_print(*args, **kwargs)
 
-builtins.print = raw_print
+#redirection, write to stdout
+def stdout_print(*args, **kwargs):
+    sys.stdout.write(' '.join(args))
+    if 'end' not in kwargs:
+        sys.stdout.write('\r\n')
 
+#redirection, write to pty slave
+def pty_print(*args, **kwargs):
+    global master
+    global slave
+    os.write(slave,  bytes(' '.join(args), 'utf-8'))
+    if 'end' not in kwargs:
+        os.write(slave, b'\r\n')
+    elif kwargs["end"] != '':
+       os.write(slave, bytes(kwargs["end"], 'utf-8'))
+
+
+def redirect_print(print_func):
+    builtins.print = print_func
+
+redirect_print(stdout_print)
+
+#PTY
+def set_pty_raw(fd):
+    attrs = termios.tcgetattr(fd)
+    attrs[3] &= ~(termios.ICANON | termios.ECHO)
+    termios.tcsetattr(fd, termios.TCSANOW, attrs)
+
+
+master, slave = pty.openpty()
+set_pty_raw(master)
+
+
+def ever_stdout():
+    global echoing
+    global chmod
+    global master
+    global slave
+    global running
+
+    while running:
+        try:
+            rlist, _, _ = select.select([master], [], [])
+            if master in rlist:
+                output = os.read(master, 1).decode()
+                print(output, end='') 
+        except:
+            break
 
 def ever_getch():
     global buffer
     global last_getch
     global echoing
     global chmod
+    global master
+    global running
 
 
     fd = sys.stdin.fileno()
@@ -77,6 +129,7 @@ def ever_getch():
         except:
             print("\x1b[?25h\r") #show cursor
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            shell_exit()
             exit()
  
         if r != '':
@@ -98,14 +151,30 @@ def ever_getch():
                     elif 0xF0 <= od <= 0xF7:            #4-byte character
                         last_getch += sys.stdin.read(3)
         r = ''
+        #try:
+        #    os.write(master, bytes(last_getch, 'utf-8'))
+        #except:
+        #    shell_exit()
+        #    exit()
+ 
                 
-
+def shell_exit():
+    global running
+    global master
+    global slave
+    running = False
+    os.close(master)
+    os.close(slave)
+    print("\x1b[?25h\r")
 
 def shell():
     global buffer
     global last_getch
     global echoing
     global history
+    global master
+    global slave
+    global running
 
     history_pos = 0
     cursor = 0
@@ -116,7 +185,10 @@ def shell():
 
     getch_thread = threading.Thread(target=ever_getch)
     getch_thread.start()
-    while True:
+    setch_thread = threading.Thread(target=ever_stdout)
+    setch_thread.start()
+
+    while running:
         #try:
         #check for charactersc
         match (last_getch):
@@ -163,8 +235,10 @@ def shell():
                 for exe in commands:
                     #emergency
                     if exe == "exit":
-                        running = False
                         print("\rPress any key...\r")
+                        running = False
+                        #setch_thread.join()
+                        shell_exit()
                         exit()
 
                     #parse vars and etc
@@ -177,12 +251,6 @@ def shell():
                     proc = execute(len(args), args)
                     if isinstance(proc, subprocess.Popen):
                         proc.wait()
-                        #while True:
-
-                        #for line in iter(proc.stdout.readline, b''):
-                        #    print(line.decode(), end = '\n\r', flush = True)
-                        #stdout, stderr = proc.communicate()
-                        #print(stdout.decode(), end = '\n\r')
                     process = False
 
 
@@ -226,6 +294,11 @@ def shell():
                 history_pos = -1
         buffer = history[-1]
 
+
+        #clear
+        last_getch = ''
+        time.sleep(update_interval)
+
         #'cursor symbol is cursor - 1, but cursor should be drawn at cursor'
         if len(buffer) > cursor:
             print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer[:cursor]}{INVERSE}{buffer[cursor]}{REVERT}{buffer[cursor + 1:]}", end = '', flush = True)
@@ -233,12 +306,11 @@ def shell():
             print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer}{INVERSE} {REVERT}", end = '', flush = True)
 
                     
-        #clear
-        last_getch = ''
-        time.sleep(update_interval)
 
         #except:
         #    exit()
+    shell_exit()
+    exit()
         
 
 
@@ -247,6 +319,9 @@ def run(args):
 
 
 def execute(argc, args):
+    global master
+    global slave
+
     name = args[0]
 
     #search order
@@ -264,7 +339,7 @@ def execute(argc, args):
         if key == "alias":
             print("'alias' is set to read-only. Use 'alias cmd=some cool command' instead.")
             return False
-        if key == "PATH":
+        elif key == "PATH":
             print("'PATH' is set to read-only. Use 'bpath' instead.")
             return False
 
@@ -336,7 +411,7 @@ def execute(argc, args):
             for bin in path:
                 if os.path.exists(bin + name):
                     args[0] = bin + args[0]
-                    return subprocess.Popen(args, stdin = None, stdout = None, stderr = None, env={"TERM":  term})
+                    return subprocess.Popen(args, stdin = None, stdout = slave, stderr = slave, env={"TERM":  term})
                     #return os.system(' '.join(args))
     
             try:

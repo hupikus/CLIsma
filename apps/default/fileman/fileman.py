@@ -62,6 +62,7 @@ class fileman(apphabit):
         self.menuclass = None
 
     def draw(self):
+        self.node.appendStr(self.height - 1, 0, self.space)
         if self.childfolder == '':
             self.node.appendStr(0, 0, '/'.center(self.width, ' '), Colors.FXBold)
         else:

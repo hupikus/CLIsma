@@ -58,7 +58,7 @@ class Node:
 				self.preferred_height = self.app.data["prefHeight"]
 				self.preferred_width = self.app.data["prefWidth"]
 			else:
-				self.preferred_height, self.preferred_width, = 8, 45
+				self.preferred_height, self.preferred_width, = 14, 45
 
 			self.to_x = self.preferred_width + from_x - 1
 			self.to_y = self.preferred_height + from_y - 1
@@ -138,8 +138,8 @@ class Node:
 
 		#if y >= 0 and y <= self.height and fy >= 0 and fy < self.display_height and x <= self.width and fx < self.display_width - 1:
 		if 0 <= y <= self.height and 0 <= fy < self.display_height and x <= self.width and fx < self.display_width - 1:
-			if self.id != 0 and not self.isActive() and not self.isChildActive():
-				mode = Colors.FXPale
+			#if self.id != 0 and not self.isActive() and not self.isChildActive():
+			#	mode = Colors.FXPale
 			x_offcut = 0
 			ln = len(text)
 			oblen = max(min(ln, self.width - x, self.display_width - x - fromx), 1)
@@ -151,8 +151,10 @@ class Node:
 				else:
 					x_offcut -= fromx
 				if x_offcut < ln:
+					#sys.stdout.write('\033[' + str(fy) + ';' + str(fx) + 'H' + text[x_offcut:oblen])
 					self.root.addstr(fy, fx + x_offcut, text[x_offcut:oblen], mode)
 			else:
+				#sys.stdout.write('\033[' + str(fy) + ';' + str(fx) + 'H' + text[:oblen])
 				self.root.addnstr(fy, fx, text, oblen, mode)
 
 	
@@ -171,7 +173,9 @@ class Node:
 					lc = min(nfo + 1, self.height - y)
 
 				for n in range(i, lc):
-					self.appendStr(y + n, x, calls[n].expandtabs(), mode)
+					self.appendStr(y + n, x, '', mode)
+					sys.stdout.write(calls[n])
+					#self.appendStr(y + n, x, calls[n].expandtabs(), mode)
 
 		else:
 			self.appendStr(y, x, text, mode)
@@ -210,6 +214,12 @@ class Node:
 			self.from_x -= dd - self.width
 			self.width = dd
 		self.win.onresize(self.height, self.width)
+	
+	def resize(self, height, width):
+		self.to_y = self.from_y + height
+		self.to_x = self.from_x + width
+		self.height = height
+		self.width = width
 
 
 	def process(self):
@@ -313,7 +323,10 @@ class Node:
 		self.isDoomed = True
 		if self.parent and self in self.parent.child_nodes:
 			self.parent.child_nodes.remove(self)
-		self.win.abort()
+		try:
+			self.win.abort()
+		except Exception as ex:
+			self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} got an error while closing: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
 		try:
 			del self.win
 		finally:

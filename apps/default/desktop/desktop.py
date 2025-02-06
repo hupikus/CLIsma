@@ -13,12 +13,13 @@ from integration.loghandler import Loghandler
 class desktop(apphabit):
 
 	def gen_cache(self):
-		fv = fv = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1)
+		header = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1)
 		if self.wm.isMouse:
-			fv += 'x'
+			header += 'x'
 		else:
-			fv += ' '
-		self.dekstop_str = (fv, '#' * self.width, ' ' * self.width, '_' * self.width)
+			header += ' '
+		header_window = header[:-5] + "- m x"
+		self.dekstop_str = (header, '#' * self.width, ' ' * self.width, '_' * self.width, header_window)
 
 		self.range = tuple([range(3)] + [range(2 + a, self.height - 5, 3) for a in range(3)])
 
@@ -46,7 +47,8 @@ class desktop(apphabit):
 			self.spawny = round(self.height * 0.3 + math.cos(self.spawnstep) * -self.maxstep)
 			self.spawnx = round(self.width / 4 + math.sin(self.spawnstep) * -self.maxstep * 1.4)
 
-
+	def abort(self):
+		self.to_shutdown("myself")
 
 	def start(self):
 		self.tick = 0
@@ -140,17 +142,26 @@ class desktop(apphabit):
 		#self.node.appendStr(min(max(2, y), self.height - 6), 0, ' ' * self.width)
 
 
-	def draw(self):
+	def draw_header(self, isMax):
 		self.tick = (self.tick + 1) % 3
 		self.fpsc += 1
 		#self.tick = (self.tick + 1) % (self.height - 8)
 
 		if self.state == "regular":
-			self.node.appendStr(0, 0, self.dekstop_str[0])
+			if isMax:
+				self.node.appendStr(0, 0, self.dekstop_str[4])
+			else:
+				self.node.appendStr(0, 0, self.dekstop_str[0], Colors.colorPair(2))
 		elif self.state == "shutdown":
-			self.node.appendStr(0, 0, "shutdown" + '.' * (self.width - 8))
+			self.node.appendStr(0, 0, "shutdown" + '.' * (self.width - 8), Colors.colorPair(2))
+		return isMax
 
 
+	def draw(self):
+
+		if self.draw_header(self.wm.draw_as_maximized): return
+
+		###################
 		self.node.appendStr(1, 0, self.dekstop_str[1])
 
 		for y in self.range[self.tick + 1]:
@@ -158,15 +169,16 @@ class desktop(apphabit):
 		self.node.appendStr(self.height - 1, 0, self.dekstop_str[2])
 
 		if self.state == "regular":
-			self.node.appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS, frame {self.tick}")
+			self.node.appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS")
 
-		self.node.appendStr(self.height - 5, 0, self.dekstop_str[3])
+		#__________________
+		self.node.appendStr(self.height - 5, 0, self.dekstop_str[3], Colors.colorPair(3))
 
 		for y in self.range[0]:
 			#line = ''
-			self.node.appendStr(self.height - 4 + y, 0, self.menuapp.icon[y])
+			self.node.appendStr(self.height - 4 + y, 0, self.menuapp.icon[y], Colors.colorPair(6) | Colors.FXBold)
 			for i in range(self.applen):
-				self.node.appendStr(self.height - 4 + y, self.space * (i + 1), self.apps[i].icon[y])
+				self.node.appendStr(self.height - 4 + y, self.space * (i + 1), self.apps[i].icon[y], Colors.colorPair(6))
 				#line = line + (' ' * self.space) + str(self.apps[i].icon[y])
 			#self.node.appendStr(self.height - 4 - 5 + y, 0, line)
 
@@ -189,8 +201,8 @@ class desktop(apphabit):
 				try:
 					self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4), '').node
 					self.menunode.windowed = False
-				finally:
-					self.ismenu = True
+				except:
+					pass
 			else:
 				self.node.closeNode(self.menunode)
 			self.ismenu = not self.ismenu

@@ -1,5 +1,6 @@
 import threading
 import time
+import integration.shell.shell as sh
 
 from type.colors import Colors
 from apps.apphabit import apphabit
@@ -22,11 +23,16 @@ class terminal(apphabit):
 
 		self.space = ' ' * self.width
 
+		self.text = ""
+		sh.redirect_print(self.addtext)
+		self.shell_thread = threading.Thread(target=sh.shell)
+		#self.shell_thread.start()
+
 
 	def draw(self):
 		for y in range(self.height):
 			self.node.appendStr(y, 0, self.space)
-		self.node.writeStr(2, 0, "str1\nSTR2\n		STR3!!!!!!!!!!!\n\tstr4 こんにちは")
+		self.node.writeStr(0, 0, self.text)
 	
 
 	def onresize(self, height, width):
@@ -37,4 +43,9 @@ class terminal(apphabit):
 	
 	
 	def abort(self):
-		self.shutdown = False
+		sh.running = False
+		#self.shell_thread.join()
+	
+
+	def addtext(self, *args, **kwargs):
+		self.text += ' '.join(args)

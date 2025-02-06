@@ -47,8 +47,22 @@ class Colors:
         "yellow":curses.COLOR_YELLOW,
         "blue":curses.COLOR_BLUE,
         "magenta":curses.COLOR_MAGENTA,
-        "cyan":curses.COLOR_CYAN,
+        "cyan":curses.COLOR_CYAN
     }
+
+    RawColorHash = {
+        "white":'\033[0m',
+        "black":'\033[30m',
+        "red":'\033[91m',
+        "green":'\033[92m',
+        "yellow":'\033[93m',
+        "blue":'\033[94m',
+        "magenta":'\033[95m',
+        "cyan":'\033[96m',
+        "darkcyan":'\033[36m'
+    }
+    RawColor = [ '\033[0m', '\033[30m', '\033[91m', '\033[92m', '\033[93m', '\033[94m', '\033[95m', '\033[96m', '\033[36m' ]
+
 
     colorPosibility = False
     colorlen = 2

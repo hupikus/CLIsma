@@ -1,6 +1,6 @@
 
 from type.colors import Colors
-
+#import sys
 from worldglobals import worldglobals as wg
 from integration.loghandler import Loghandler
 
@@ -16,7 +16,12 @@ class WmMouse:
         self.screen_height = display.height
         self.screen_width = display.width
         
+
+        #customization
         self.isReversed = isReversed
+        self.update_trail(trailength)
+
+        self.color = 0
 
         #device
         self.mouse = inpd.mouse_class
@@ -24,9 +29,6 @@ class WmMouse:
         self.cursor_symbol = {"base":"#", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
         self.holdout = wg.hold_time * wg.inputrate
         self.mouse_cursor = "base"
-
-        self.trailength = trailength
-        self.trail = [(0, 0) for i in range(trailength + 1)]
 
         self.buttons = [0, 0, 0]
         self.hasDelta = False
@@ -41,13 +43,8 @@ class WmMouse:
         #focus and focused input
         self.focus_id = 0
 
-        #cache
-        self.range = []
-        if isReversed:
-            self.range.append((1, 0, 2))
-        else:
-            self.range.append(range(3))
-        self.range.append(range(self.trailength, 0, -1))
+
+
 
     def draw(self):
         for i in self.range[1]:
@@ -59,9 +56,12 @@ class WmMouse:
             if i > 0 and self.trail[i] == self.trail[i - 1]: continue
             mouse_last_y = self.trail[i][0]
             mouse_last_x = self.trail[i][1]
-            self.display.root.addstr(mouse_last_y, mouse_last_x, self.display.root.instr(mouse_last_y, mouse_last_x, 1), Colors.FXReverse)
+            #sys.stdout.write(f"\033[{mouse_last_y};{mouse_last_x}H{'#'}")
+            self.display.root.addstr(mouse_last_y, mouse_last_x, self.display.root.instr(mouse_last_y, mouse_last_x, 1), Colors.FXReverse | self.color)
             #self.display.root.addstr(mouse_last_y, mouse_last_x, '#')
         return 0
+
+
 
     def input(self):
 
@@ -264,3 +264,17 @@ class WmMouse:
         wm.active[devid] = self.focus_id
 
         return 0
+    
+
+    #settings
+    def update_trail(self, length):
+        self.trailength = length
+        self.trail = [(0, 0) for i in range(length + 1)]
+
+        #cache
+        self.range = []
+        if self.isReversed:
+            self.range.append((1, 0, 2))
+        else:
+            self.range.append(range(3))
+        self.range.append(range(length, 0, -1))
