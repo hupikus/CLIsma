@@ -74,7 +74,7 @@ class Node:
 
 		#window class
 		#cls = getattr(__import__(class_path), class_name)
-		#mod = exec("from " + class_path + " import " + class_name)	
+		#mod = exec("from " + class_path + " import " + class_name)
 		cls = False
 		ex = False
 		try:
@@ -92,11 +92,11 @@ class Node:
 		else:
 			cls = pydoc.locate("apps.default" + ".error" * 3)
 			self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} is unreachable: <c2> <tbold>' + "Class " + class_path + " does not exist (" + str(ex) + ')' + '<endt> <endc>"')
-			
 
-		self.min_height = 1
+
+		self.min_height = 8
 		self.max_height = 999
-		self.min_width = 1
+		self.min_width = 8
 		self.max_width = 999
 		#TODO: minimal size should be in .app file
 
@@ -157,7 +157,7 @@ class Node:
 				#sys.stdout.write('\033[' + str(fy) + ';' + str(fx) + 'H' + text[:oblen])
 				self.root.addnstr(fy, fx, text, oblen, mode)
 
-	
+
 
 	def writeStr(self, y, x, text, mode = Colors.FXNormal):
 		nfo = text.count('\n')
@@ -189,7 +189,7 @@ class Node:
 		self.from_x = min(max(self.from_x + x, 1 - self.width), self.display.width - 1)
 		self.to_y = self.from_y + self.height - 1
 		self.to_x = self.from_x + self.width - 1
-	
+
 	def moveTo(self, y, x):
 		if y >= 0:
 			self.from_y = min(y, self.display.height - 1)
@@ -214,7 +214,7 @@ class Node:
 			self.from_x -= dd - self.width
 			self.width = dd
 		self.win.onresize(self.height, self.width)
-	
+
 	def resize(self, height, width):
 		self.to_y = self.from_y + height
 		self.to_x = self.from_x + width
@@ -241,7 +241,7 @@ class Node:
 		except Exception as ex:
 			self.abort()
 			self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} draw closed with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
-	
+
 	def toggle_maximize(self):
 		if self.is_maximized:
 			self.height, self.width, self.from_y, self.from_x = self.oldsize
@@ -271,7 +271,7 @@ class Node:
 			newin = self.wm.newNode(parent_path, class_name, y, x, height, width, params)
 		self.child_nodes.append(newin.node)
 		return newin
-	
+
 	def newNodeByApp(self, app, y, x, height, width, params):
 		if self.isDoomed: return 0
 		if self.id > 0 and len(self.child_nodes) > 13: return False
@@ -303,7 +303,7 @@ class Node:
 			if self.ui.click(device_id, button, y - self.from_y, x - self.from_x):
 				if self.sub[self.controller.MouseEvents]:
 					self.win.click(device_id, button,  y - self.from_y, x - self.from_x)
-	
+
 	def drag(self, id, button, stage, y, x):
 		if stage == 0:
 			y -= self.from_y
@@ -312,7 +312,7 @@ class Node:
 			if self.ui.drag(id, button, stage, y, x):
 				if self.sub[self.controller.MouseEvents]:
 					self.win.drag(id, button, stage, y, x)
-	
+
 	def scroll(self, id, delta):
 		if self.sub:
 			#if self.ui.scroll(id, delta):
@@ -328,16 +328,18 @@ class Node:
 		except Exception as ex:
 			self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} got an error while closing: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
 		try:
-			del self.win
+			if hasattr(self, "win"):
+				del self.win
 		finally:
-			del self.ui
+			if hasattr(self, "ui"):
+				del self.ui
 		self.ready_to_close = True
-	
+
 #Conditions
 
 	def isActive(self):
 		return self.id in self.wm.active
-	
+
 	def isChildActive(self):
 		ret = False
 		fi = self.wm.active

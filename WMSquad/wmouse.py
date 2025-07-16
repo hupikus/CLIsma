@@ -32,7 +32,7 @@ class WmMouse:
         self.buttons = [0, 0, 0]
         self.hasDelta = False
 
-        self.control = inpd.listen_to_mouse(self.input, [0])
+        self.control = inpd.listen_to_mouse(self.input, [id])
 
         #node management
         self.moving_node = False
@@ -263,11 +263,11 @@ class WmMouse:
         if focus_changed:
             id_ind = wm.order.index(self.focus_id)
             wm.order[-1], wm.order[id_ind] = wm.order[id_ind], wm.order[-1]
-        
+
         wm.active[devid] = self.focus_id
 
         return 0
-    
+
 
     #settings
     def update_trail(self, length):

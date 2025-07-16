@@ -2,7 +2,7 @@ from type.colors import Colors
 from apps.apphabit import apphabit
 
 class textplayer(apphabit):
-    
+
     def readfile(self, filename):
         with open(filename, 'r') as file:
             text = file.readlines()
@@ -15,7 +15,7 @@ class textplayer(apphabit):
         self.displayappname = self.appname.center(self.width, ' ')
 
         self.scrollpos = 0
-        
+
         #self.oblen = min(height - 1, self.ln - self.scrollpos)
 
     def __init__(self, id, node, controller, height, width, params):
@@ -35,8 +35,8 @@ class textplayer(apphabit):
             self.readfile(params)
         else:
             self.ui.art("open", ["--------", "| open |", "--------"], width / 2 - 5, 3, attr = Colors.FXNormal)
-        
-    
+
+
     def draw(self):
         if self.appname != '':
             self.node.appendStr(0, 0, self.displayappname, Colors.FXBold)
@@ -47,7 +47,7 @@ class textplayer(apphabit):
             self.displayappname = self.appname.center(width, ' ')
             self.ui.resize("text", min(height + self.scrollpos, self.ln), width, type = "arts")
             #self.oblen = min(height - 1, self.ln)
-    
+
     def scroll(self, id, delta):
         self.scrollpos = max(0, self.scrollpos + delta)
         self.ui.moveTo("text", 1 - self.scrollpos, 0)

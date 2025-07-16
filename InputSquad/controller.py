@@ -13,7 +13,7 @@ class Controller:
 		#raw
 		self.mouselen = 0
 		self.minicontroller = []
-		
+
 		self.fn = self
 
 		#input types generation
@@ -27,7 +27,7 @@ class Controller:
 
 		#temp
 		self.key = -1
-	
+
 	def __getitem__(self, id = None):
 		if id == None or id > self.mouselen or id < 0:
 			return self
@@ -37,10 +37,10 @@ class Controller:
 
 	def relMousePos(node):
 		return self.mouse_y - node.from_y, self.mouse_x - node.from_x
-	
+
 	def isAtWindow(self, node):
 		return self.mouse_y >= node.from_y and self.mouse_y <= node.to_y and self.mouse_x >= node.from_x and self.mouse_x <= node.to_x
-	
+
 	#properties (fucking abomination)
 
 	@property
@@ -126,7 +126,7 @@ class Controller:
 	@mouse_speed.setter
 	def mouse_speed(self, val):
 		self.fn.mouse_speed = val
-	
+
 	#end of (fucking abomination)
 
 
@@ -149,10 +149,10 @@ class miniMouseController:
 		self.startDragEvent = 0
 		self.dragEvent = 1
 		self.endDragEvent = 2
-	
+
 
 	def relMousePos(node):
 		return self.mouse_y - node.from_y, self.mouse_x - node.from_x
-	
+
 	def isAtWindow(self, node):
 		return self.mouse_y >= node.from_y and self.mouse_y <= node.to_y and self.mouse_x >= node.from_x and self.mouse_x <= node.to_x

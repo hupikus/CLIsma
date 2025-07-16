@@ -6,7 +6,7 @@ from type.colors import Colors
 
 class Screen():
 
-	def __init__(self, width, height):
+	def __init__(self, width, height, forceColor):
 		self.width = width
 		self.height = height
 
@@ -28,8 +28,8 @@ class Screen():
 		curses.start_color()
 		curses.use_default_colors()
 		if curses.has_colors():
-			Colors.define_pairs()
-		
+			Colors.define_pairs(forceColor)
+
 		#curses.nonl()
 		#curses.def_shell_mode()
 

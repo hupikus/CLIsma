@@ -4,10 +4,17 @@ class Colors:
 
     colorMode = {}
 
+
+    FXItalic = curses.A_NORMAL
+
+
     FXNormal = curses.A_NORMAL
     FXBold = curses.A_BOLD
     #There is no italic in bodhi linux e.g., ill figure it out
-    #FXItalic = curses.A_ITALIC
+    try:
+        FXItalic = curses.A_ITALIC
+    except:
+        FXItalic = curses.A_NORMAL
     FXPale = curses.A_DIM
     FXHighlight = curses.A_STANDOUT
     FXUnderline = curses.A_UNDERLINE
@@ -68,23 +75,29 @@ class Colors:
     colorlen = 2
 
     @staticmethod
-    def define_pairs():
+    def define_pairs(forceColor):
         Colors.colorPosibility = True
         Colors.colorlen = curses.COLORS
+        if forceColor:
+            Colors.colorlen = 8
         if Colors.colorlen > 16:
-            depth = round((Colors.colorlen - 8) ** 0.333 - 0.5)
-            Colors.colorDepth = depth
-            step = round(Colors.colorlen / depth - 0.5)
-            rng = range(0, depth)
-            i = 9
-            for r in rng:
-                for g in rng:
-                    for b in rng:
-                        curses.init_color(i, r, 0, b)
-                        i += 1
+            try:
+                depth = round((Colors.colorlen - 8) ** 0.333 - 0.5)
+                Colors.colorDepth = depth
+                step = round(Colors.colorlen / depth - 0.5)
+                rng = range(0, depth)
+                i = 9
+                for r in rng:
+                    for g in rng:
+                        for b in rng:
+                            curses.init_color(i, r, 0, b)
+                            i += 1
+            except:
+                print("Color error. try launching CLIsma with -l option or changing the environment.")
+                exit()
         for i in range(Colors.colorlen):
             curses.init_pair(i, i, - 1)
-    
+
     @staticmethod
     def newPair(forecolor, backcolor):
         curses.init_pair(Colors.colorlen, forecolor, backcolor)

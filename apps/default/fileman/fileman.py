@@ -21,7 +21,7 @@ class fileman(apphabit):
 
 		#input
         self.input_subscriptions = [controller.MouseEvents, controller.MouseWheelEvents, controller.KeyboardEvents]
-        
+
         self.space = ' ' * self.width
 
         #file management
@@ -42,10 +42,10 @@ class fileman(apphabit):
         if self.colors == 256:
             self.colormode = [Colors.colorPair(88), Colors.colorPair(229), Colors.colorPair(138), Colors.colorPair(40)]
         elif self.colors >= 8:
-            self.colormode = [Colors.colorPair(6), Colors.colorPair(4), Colors.colorPair(7), Colors.colorPair(3)]
+            self.colormode = [Colors.colorPair(6), Colors.colorPair(5), Colors.colorPair(7), Colors.colorPair(3)]
         else:
-            self.colormode = [Colors.colorPair(0)]
-        
+            self.colormode = [Colors.colorPair(0) for i in range(4)]
+
         #uis
         self.ui = self.node.ui
         self.ui.clickableArt("upb", self.moveup, 1, 0, ["Up "], width = 3)
@@ -88,20 +88,20 @@ class fileman(apphabit):
                         ind = 1
                     if file[0] == '.':
                         ind = 3 - ind
-                    
+
                     #try:
                     #self.node.appendStr(3 + y, 0, self.filelist[y + self.scrollpos], self.colormode[ind] | m)
                     self.node.appendStr(3 + y, 0, self.filelist[y + self.scrollpos].ljust(self.width - self.is_slider, ' '), self.colormode[ind] | m)
                     #except:
                         #Loghandler.Log(str(self.filelist))
                         #self.node.abort()
-    
+
     def onresize(self, height, width):
         self.height = height
         self.width = width
         self.space = ' ' * width
         self.resizelist()
-    
+
     def click(self, device_id, button, y, x):
         if self.menu == 1:
             self.closemenu()
@@ -123,31 +123,36 @@ class fileman(apphabit):
                         self.filelist = self.scandir()
                         self.resizelist()
                     else:
-                        
+
                         app = Filehandler.appToUse(appath)
                         if app != None:
                             self.node.wm.newNodeByApp(app, y - 2, x - 10, 0, 0, appath)
-                        
                 elif button == 1:
                     Loghandler.Log(f"options for {filename}")
                     self.menu = 1
                     self.menuclass = self.node.newNodeByApp(self.menuapp, y, x, 6, 15, '')
+            elif button == 1:
+                self.moveup('', 0, 0)
+
 
     def scroll(self, id, delta):
         self.scrollpos = min(max(0, self.scrollpos + delta), self.filelen - 2)
         self.ui.setSliderPos("fileSlider", round(self.scrollpos / self.filelen * self.height), type = "verticalSliders")
-        
+
 
     def scandir(self, path = ''):
         isSet = False
         if path == '':
             path = self.dir
             isSet = True
-        c = os.listdir(path)
-        if path != '' and isSet:
-            self.filelen = len(c)
-        return c
-    
+        if os.access(path, os.R_OK):
+            c = os.listdir(path)
+            if path != '' and isSet:
+                self.filelen = len(c)
+            return c
+        else:
+            return []
+
     def resizelist(self):
         self.oblen = min(self.height - 4, self.filelen)
         self.is_slider = 0
@@ -155,7 +160,7 @@ class fileman(apphabit):
         if self.oblen == self.height - 4:
             self.slider = 1
             self.ui.verticalSlider("fileSlider", self.scrollfileviaslider, 0, self.width - 1, self.height, round(self.scrollpos / self.filelen * self.height), railChar = '|', buttonChar = '*', buttonHeight = max(1, round(self.height / self.filelen)), railAttr = Colors.FXPale, buttonAttr = Colors.FXBold)
-    
+
 
     #buttons and buttofs
     def moveup(self, name, button, device_id):
@@ -173,14 +178,14 @@ class fileman(apphabit):
                 self.scrollpos = 0
             self.resizelist()
             Loghandler.Log("cd to ../")
-    
+
 
 
     def closemenu(self):
         self.menu = 0
         self.menuclass.node.abort()
         self.menuclass = None
-    
+
 
     def scrollfileviaslider(self, y):
         self.scrollpos = round(y / self.height * self.filelen)

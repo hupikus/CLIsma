@@ -260,7 +260,7 @@ class UI:
 			cached = tuple(inv(i, width, ' ') for i in content)
 
 		self.uis["arts"][name] = [cached, y, x, height, width, attr, align, content]
-	
+
 	def coloredArt(self, name, content, y, x, width = 0, align = 0):
 		#receive: content, y, x, (align)
 		#write: content, y, x, height, width
@@ -270,7 +270,7 @@ class UI:
 				g = len(i)
 				if g > width:
 					width = g
-		
+
 		if align > 2 or align <= -1: align = -1
 		else:
 			inv = str.ljust
@@ -313,7 +313,7 @@ class UI:
 		words = content.replace('\n', '').split()
 		display = self.arrangeTextBox(words, height, width, align)
 		self.uis["textBoxes"][name] = [words, y, x, height, width, align, display, len(display), attr]
-	
+
 	def coloredTextBox(self, name, content, y, x, height, width):
 		#receive: content, y, x, height, width
 		#write: content, y, x, height, width, display text
@@ -330,7 +330,7 @@ class UI:
 		railChar = railChar[0]
 		buttonChar = buttonChar[0]
 		self.uis["sliders"][name] = [event, y, x, width, startPos, buttonWidth, buttonAttr, railAttr, railChar, buttonChar]
-	
+
 	def verticalSlider(self, name, event, y, x, height, startPos, railChar = '|', buttonChar = '*', buttonHeight = 1, railAttr = Colors.FXNormal, buttonAttr = Colors.FXNormal):
 		#receive: event, y, x, height, startPosition, (railChar), (buttonChar), (buttonHeight), (railAttr), (buttonAttr)
 		#write: event, y, x, height, position, buttonHeight, buttonAttr, railAttr, railChar, buttonChar
@@ -343,7 +343,7 @@ class UI:
 		#receive: variable to write input to, y, x, width, max length of an input: -1 to disable
 		#write: variable, y, x, width, max len, text cursor position
 		self.uis["fields"][name] = [var, y, x, width, maxlen, cursorpos]
-	
+
 	def list(self, name, contents, y, x, height, width, margin_y, margin_x, fitAll = False, vertical = False):
 		#receive: contents, y, x, height, width, y margin, x margin, (fit all), (is vertical)
 		#write: contents, y, x, height, width, y margin, x margin, fit all, is vertical
@@ -357,8 +357,8 @@ class UI:
 				content_search[namex] = self.determineType(namex)
 		self.uis["lists"][name] = [content_search, y, x, height, width, margin_y, margin_x, fitAll, vertical]
 		self.generate_list(*self.uis["lists"][name])
-	
-	
+
+
 
 
 	#common commands
@@ -378,7 +378,7 @@ class UI:
 				#adjust yEnd and xEnd
 				i[3] += y
 				i[4] += x
-	
+
 	def moveTo(self, name, y, x, type = ''):
 		if type == '':
 			for type in self.ids:
@@ -396,7 +396,7 @@ class UI:
 
 			i[1] = y
 			i[2] = x
-	
+
 	def remove(self, name, type = ''):
 		if type == '':
 			type = self.determineType(name)
@@ -404,7 +404,7 @@ class UI:
 				del self.uis[type][name]
 		elif name in self.uis[type]:
 				del self.uis[type][name]
-	
+
 
 	def removeRecursive(self, name):
 		if name in self.uis["lists"]:
@@ -452,7 +452,7 @@ class UI:
 				content = tuple(inv(art[7][i], width, ' ') for i in range(min(height, len(art[7]))))
 				art[0] = content
 
-	
+
 	def setAttribut(self, name, attr, type = ''):
 		if type == '':
 			type = self.determineType(name, searchBy = ("txts", "textBoxes", "arts"))
@@ -462,7 +462,7 @@ class UI:
 			self.uis[type][name][8] = attr
 		elif type in ("txts", "arts"):
 			self.uis[type][name][3] = attr
-	
+
 
 	def setSliderPos(self, name, pos, type = ''):
 		if type == '' or type != "verticalSliders":
@@ -470,7 +470,7 @@ class UI:
 		if name in self.uis[type]:
 			slider = self.uis[type][name]
 			slider[4] = max(0, min(slider[3] - slider[5], pos))
-	
+
 	def setText(self, name, content, type = '', searchBy = ("txts", "textBoxes", "arts")):
 		if type == '':
 			type = self.determineType(name, searchBy = ("textBoxes", "txts", "arts", "tapArts"))
@@ -478,7 +478,7 @@ class UI:
 
 		if type == "textBoxes":
 			textbox = self.uis[type][name]
-			
+
 			words = content.replace('\n', '').split()
 			display = self.arrangeTextBox(words, textbox[3], textbox[4], textbox[5])
 
@@ -499,7 +499,7 @@ class UI:
 
 	def clicked(self, name, type, button, device_id):
 		self.uis[type][name][0](name, button, device_id)
-		
+
 
 	#public calculation events
 
@@ -550,7 +550,7 @@ class UI:
 			else:
 				#new line
 				line += 1
-				
+
 				displays[line - 1] = displays[line - 1][:-1]
 				if line == height and height > 0: break
 
@@ -558,7 +558,7 @@ class UI:
 				displays.append('')
 				displays[line] = w + ' '
 				l = l - size - 1
-			
+
 		if align > 0:
 			if align == 1:
 				for i in range(line):
@@ -571,10 +571,10 @@ class UI:
 			while line < height:
 				displays.append(space)
 				line += 1
-			
+
 
 		return displays
-	
+
 	#private calculation methods
 
 	def generatecachedtextbox(self, words, height, width):
@@ -598,13 +598,15 @@ class UI:
 				wlen = self.tagsoverheadcount(w)
 				startlen = 0
 				i = 0
-				while True:
+				extrabreak = 0
+				while extrabreak < 50:
+					extrabreak += 1
 					if i >= 50: break
 					i += 1
 					#word is (still) does not fit, cut
 					part = w[:l]
 					newline = self.keepappending(part, displays)
-					
+
 					#if newline >= 0:
 					#	l = width + 1 - newline
 					displays[-1] = (displays[-1])[:-1]
@@ -613,52 +615,54 @@ class UI:
 					startlen = l
 					#then start new line
 					if wlen <= 0: break
-					
+
 					line += 1
 					l = width + 1
 					displays.append("<n>")
 					if displays.count("<n>") >= height - 1 and height > 0: break
-					
+
 
 					w = w[startlen:]
 					if wlen <= width:
 						#we can fit remains at the new line
 						l -= wlen
-						
+
 						self.keepappending(w, displays)
 						wlen = 0
 						break
 			else:
 				#new line
 				line += 1
-				
+
 				if displays.count("<n>") >= height - 1 and height > 0: break
 
 				l = width + 1
 				displays.append("<n>")
-				
+
 				newline = self.keepappending(w, displays)
 				#if newline >= 0:
 				#	l = width + 1 - newline
 				#else:
 				l = l - size - 1
-			
+
 		if line < height and height > 0:
 			space = ' ' * width
 			while line < height:
 				displays.append(space)
 				displays.append("<n>")
 				line += 1
-			
+
 
 		return displays
-	
+
 	def keepappending(self, w, displays):
 		#displays (array) is linked, w (text) is not
 		ind = -1
 		minlen = 0
 		newline = -1
-		while True:
+		extrabreak = 0
+		while extrabreak < 50:
+			extrabreak += 1
 			#search for color and attribute tags
 			tags = ("<c", "<t", "<tAdd", "<tNo", "<endc>", "<endt>", "<n>")
 			mallen = 7
@@ -734,7 +738,7 @@ class UI:
 			w = w[indend + 1:]
 
 		return newline
-	
+
 	def tagsoverheadcount(self, string):
 		d = len(string)
 		string = string.replace("<endc>", '').replace("<endt>", '').replace("<n>", '')
@@ -769,7 +773,7 @@ class UI:
 
 		isVertical = int(isVertical)
 
-		#glue is tool which allows to block line break
+		#glue is the tool that allows to prevent line break
 		glue = 0
 
 		for name in contents:
@@ -834,16 +838,16 @@ class UI:
 				n_height = table[indexy]
 			elif n_height < 0:
 				n_height = table[indexy] - table[indexy - 2]
-			
+
 			#relative size
 			n_inline = n_width
 			n_inewline = n_height
 			if isVertical == 1:
 				n_inline = n_height
 				n_inewline = n_width
-			
+
 			if n_inewline > maxsize: maxsize = n_inewline
-			
+
 
 			if line > 0:
 				prebreak_len = line

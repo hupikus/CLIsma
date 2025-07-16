@@ -48,13 +48,18 @@ class settings(apphabit):
         #self.node.appendStr(4, 0, "FPS limit")
         #self.node.appendStr(5, 27, self.FPSlider)
 
+    def click(self, device_id, button, y, x):
+        if button == 1:
+            if self.layout != "zero":
+                self.up('', 0, 0)
+
     def onresize(self, height, width):
         self.height = height
         self.width = width
         self.ui.resize("list", height, width, type = "lists")
         self.space = ' ' * self.width
         #self.ui.resize("tB", 0, round(width * 0.5))
-    
+
 
     def submenu(self, name, button, device_id):
         if button == 0:
@@ -62,7 +67,7 @@ class settings(apphabit):
             self.layout = name
             self.state.clearState()
             self.state.loadState(self.layout)
-    
+
 
     def up(self, name, button, device_id):
         self.path = self.path[:-1]

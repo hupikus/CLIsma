@@ -6,3 +6,4 @@ class textblot(apphabit):
 
 
 	def __init__(self, id, node, controller):
+            pass

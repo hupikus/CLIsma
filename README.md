@@ -1,23 +1,64 @@
-#  CLISMA
-**CLISMA** is an console-based desktop enviroment. Mostly for fun.
+# CLISMA
+
+**CLISMA** is an console-based desktop enviroment. Made mostly for fun using python.
+
 > Stands for 'Command-Line-Interface System Manager Accompanier'
 
+![](./assets/readme_images/screenshot1.png)
+
+## Cool Features
+
+- poorly documented
+
+- external apps support; package manager
+
+- all input and windowing job are done for you; just append strings to the window
+
+- premade ui elements: sliders, buttons, text fields
+
+- multitasking window system
+
+- many mouse cursors support
+
+- runs smooth on old pcs
+
+
+
+This app is currently unfinished and requies testing.
+
+
+
 ## Requirements
-- curses
-- evdev
-- pydoc
+
+- curses for python
+- alsa
+- evdev (pip)
+- pydoc (pip)
 - python 3.10 or newer
+  additional: (unneccesary)
+- pympler (pip)
 
 ## Use
-Just execute **main.py** with sudo or root, while in the folder.
-> sudo is required because of reading device input from /dev/input. 
+
+Just execute **main.py**, while in the folder. *You must* have access to /dev/input.
+This could be arranged by adding your user into input group or running python with sudo or root.
+
+> all input is received from from /dev/input.
 > root privilegies isn't required for CLIsma shell.
+
 ```
-cd ./CLIsma
-sudo python main.py
+sudo usermod -aG input $USER
 ```
 
-### Recently, CLIsma had got an arguments:
+```
+cd ./CLIsma
+pip install -r ./requirements-extra.txt
+python main.py
+```
+
+### 
+
+### CLIsma have shell arguiments:
 
 ```
 Usage: main.py --flag1 {required1} (optional2) --flag2 ...
@@ -26,8 +67,9 @@ Use -# instead of - for opposite effect: supported commands marked with !
 !   -b  --brief                                      Quick common info
 !   -d, --debug                                      Debug mode
 !   -f, --force                                      Disable confirmation (Warning: force deletion with -r)
-!   -h, --help                                       Print help message
+!   -h, --help                                       Print this message
 !   -i, --install {package_name} (archive_path)      Install a package
 !   -r, --remove {package_name}                      Remove a package
 !   -s, --shell                                      Shell mode (start CLIsma Shell)
+    -l, --low-color                                  Force low color mode (compatibility)
 ```

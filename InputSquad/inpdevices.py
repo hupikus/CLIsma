@@ -100,7 +100,6 @@ class DeviceHandler:
 				for dev in self.mouse_range:
 					id = self.pointer_events[dev]
 
-					
 					if first[id]:
 						self.controller[id].mouse_dy = self.mouse_class.y[dev]
 						self.controller[id].mouse_dx = self.mouse_class.x[dev]
@@ -130,7 +129,7 @@ class DeviceHandler:
 
 				Loghandler.Log("New pointer rules applied")
 				self.queue_cursor = False
-	
+
 	def abort(self):
 		self.isMouse = False
 		self.mouse_class.abort()
@@ -148,7 +147,7 @@ class DeviceHandler:
 
 		self.queue_cursor = True
 		return control
-	
+
 	def connect_mouse(self):
 		self.pointer_events.append(0)
 		self.mouselen += 1

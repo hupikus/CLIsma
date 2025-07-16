@@ -34,13 +34,13 @@ class menu(apphabit):
 		self.line = 2
 		for name in sorted(self.apps.keys()):
 			if name == "desktop": continue
-			self.line += 1
 			if name[0].capitalize() != letter:
 				letter = name[0].capitalize()
 				self.display.append(letter)
 				self.line += 1
 			self.display.append((self.apps[name].name))
 			self.clickapp[self.line] = name
+			self.line += 1
 		self.viewlen = min(self.height, self.line - 2)
 
 

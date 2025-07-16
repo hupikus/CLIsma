@@ -6,9 +6,9 @@ class Singletons:
     # Cfg = None
     # Inpd = None
     # Wm = None
-    
+
     @classmethod
-    def start(cls, desktop):
+    def start(cls, forceColor, desktop):
         from WMSquad.wm import Wm
         from InputSquad.inpdevices import DeviceHandler
         from WMSquad.screen import Screen
@@ -19,12 +19,12 @@ class Singletons:
         cls.appp = AppPool()
 
         siz = tuple(map(int, os.popen('stty size', 'r').read().split()))
-        global screen_height 
+        global screen_height
         screen_height = siz[0]
         global screen_width
         screen_width = siz[1]
 
-        cls.Screenman = Screen(screen_width, screen_height)
+        cls.Screenman = Screen(screen_width, screen_height, forceColor)
 
         cls.Cfg = Config()
 

@@ -1,6 +1,5 @@
 import os
 import gc
-#import sys
 
 from WMSquad.screen import Screen
 from NodeSquad.node import Node
@@ -52,7 +51,6 @@ class Wm:
 			node.win.abort()
 
 	def delNode(self, node):
-		#self.nodes.remove(node)
 		self.nodes[node.id] = False
 		self.order.remove(node.id)
 		self.orderlen -= 1
@@ -97,7 +95,7 @@ class Wm:
 			self.trailength = 2
 
 			#cursor
-			self.pointer_count = 1
+			self.pointer_count = inpd.mouselen
 			self.pointers = []
 			self.active = []
 			self.last_clicked = 0
@@ -120,7 +118,6 @@ class Wm:
 		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
 		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
-		#self.newNode("apps.default", "colortest", 23, 14, 0, 0, '')
 
 
 	def decoration(self, node):
@@ -139,7 +136,6 @@ class Wm:
 				elif node.width > 1:
 					bts = 'x'
 					ln = 1
-				
 				if node.width >= 5:
 					text = '_' * ln + node.name.center(node.width - ln * 2, '_') + bts
 				else:
@@ -181,10 +177,9 @@ class Wm:
 				node = self.nodes[id]
 				if node:
 					node.draw()
-					self.decoration(node)
 					#if node.is_maximized or node.is_fullscreen:
-					#	break
-
+					#	continue
+					self.decoration(node)
 		#draw mouse
 		if self.isMouse:
 			#self.display.root.addstr(10, 5, str(self.active))
@@ -203,4 +198,3 @@ class Wm:
 					node.process()
 
 		return self.error
-	

@@ -1,5 +1,5 @@
 class apphabit:
-    
+
     preferred_height = 9
     preferred_width = 45
 
@@ -15,10 +15,10 @@ class apphabit:
 
     def click(self, device_id, button, y, x):
         pass
-    
+
     def drag(self, id, button, stage, y, x):
         pass
-    
+
     def scroll(self, id, delta):
         pass
 

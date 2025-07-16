@@ -3,7 +3,7 @@ import urllib.request
 #from ftplib import FTP
 import os
 
-def install_CLI(file, packagename, force):
+def install_CLI(packagename, file, force):
     mode = "Local"
     #wrong or missing arguments
     if packagename == "" or packagename[0] == '-' or packagename[0] == '-':

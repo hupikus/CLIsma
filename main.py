@@ -8,7 +8,8 @@ debug = False
 desktop = "default"
 textmode = False
 force = False
-version = "1.5"
+forceColor = False
+version = "1.6"
 text_shutdown = False
 
 if not os.path.exists("apps/.CLIsma_system_apps"):
@@ -34,8 +35,9 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
     -h, --help                                       Print help message
 !   -i, --install {package_name} (archive_path)      Install a package
 !   -r, --remove {package_name}                      Remove a package
-!   -s, --shell                                      Shell mode (CLIsma shell only)""")
-		
+!   -s, --shell                                      Shell mode (CLIsma shell only)
+    -l, --low-color                                  Low color mode""")
+
 		text_shutdown = True
 	elif arg in ('-i', '--install', '-#r', '--#remove'):
 		text_shutdown = True
@@ -77,6 +79,9 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 	elif arg == '-#f' or arg == '--#force':
 		force = False
 
+	elif arg == '-l' or arg == '--low-color':
+		forceColor = True
+
 	elif arg == "-b" or arg == "--brief":
 		print(f"CLIsma v{version}\n-------------")
 		print(f"userID: {os.geteuid()}")
@@ -107,14 +112,14 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 if text_shutdown:
 	exit()
 
-if os.geteuid() != 0:
-	print("Critical: no root permissions")
+if not os.access("/dev/input/event0", os.R_OK):
+	print("Critical: don't have access to /dev/input")
 	exit()
 
 
 from worldglobals import worldglobals
 from singletons import Singletons
-Singletons.start(desktop)
+Singletons.start(forceColor, desktop)
 
 
 work = True
@@ -139,7 +144,7 @@ display = Singletons.Screenman
 def draw_loop():
 	while work:
 		error = 0
-	
+
 		error += wm.draw()
 
 		error += display.draw()

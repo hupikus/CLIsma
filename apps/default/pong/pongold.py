@@ -4,6 +4,7 @@ from integration.loghandler import Loghandler
 import math
 
 class pong(apphabit):
+
     def __init__(self, id, node, controller, height, width, params):
         self.id = id
         self.node = node
@@ -34,8 +35,6 @@ class pong(apphabit):
         w = self.platform_width
         p1 = self.player1_y
         p2 = self.player2_y
-        speedangle = 80
-
 
         for y in range(16):
             if y >= p1 and y < p1 + w:
@@ -49,14 +48,15 @@ class pong(apphabit):
 
         if self.ball_rx <= 0.5 and self.ball_ry >= p1 and self.ball_ry < p1 + w:
             self.ball_dir = 180 - self.ball_dir
-            self.ball_dir += speedangle * self.player1_speed
-            self.ball_dir %= 360
+            hit_offset = (self.ball_ry - (p1 + w / 2)) / (w / 2)  # -1 to 1
+            self.ball_dir += hit_offset * 30
             self.ball_rx = 1.0
+
 
         elif self.ball_rx >= 63.5 and self.ball_ry >= p2 and self.ball_ry < p2 + w:
             self.ball_dir = 180 - self.ball_dir
-            self.ball_dir += speedangle * self.player2_speed
-            self.ball_dir %= 360
+            hit_offset = (self.ball_ry - (p2 + w / 2)) / (w / 2)
+            self.ball_dir += hit_offset * 30
             self.ball_rx = 63.0
 
         if self.ball_ry <= 0.5:
@@ -67,7 +67,6 @@ class pong(apphabit):
             self.ball_dir = -self.ball_dir
             self.ball_ry = 14.0
 
-        #reset
         if self.ball_rx < -0.5:
             self.p2score += 1
             self.ball_dir = 45.0
@@ -79,10 +78,8 @@ class pong(apphabit):
             self.ball_ry = 7.0
             self.ball_rx = 32.0
 
-
         self.ball_y = round(self.ball_ry)
         self.ball_x = round(self.ball_rx)
-
 
         p1 = min(max(self.controller[0].mouse_y - self.node.from_y, 0), self.height) - (w >> 1)
         if self.mouselen > 1:
@@ -90,10 +87,11 @@ class pong(apphabit):
         else:
             p2 = self.player1_y
 
-        self.player1_speed += (p1 - self.player1_y - self.player1_speed) / 5
-        self.player2_speed += (p2 - self.player2_y - self.player2_speed) / 5
+        self.player1_speed += (p1 - self.player1_y - self.player1_speed) / 20
+        self.player2_speed += (p2 - self.player2_y - self.player2_speed) / 20
         self.player1_y = p1
         self.player2_y = p2
+
 
         write(3, 31, f"{self.p1score}:{self.p2score}")
 
