@@ -18,7 +18,7 @@ class Config:
                 
                 #custom
                 if p == "custom/apps":
-                    os.system(f"ln -s {d + "custom/apps"} ./apps/external")
+                    os.system(f"ln -s {d}custom/apps ./apps/external")
                 elif p == "custom":
                     sys.path.append(d + "custom")
 

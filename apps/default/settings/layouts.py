@@ -32,7 +32,7 @@ class Layouts:
 
             if path == "performance":
                 #FPS slider
-                ui.slider("FPS", self.FPSlider_update, 0, 0, 24, (5 // worldglobals.framerate) - 1)
+                ui.slider("FPS", self.FPSlider_update, 0, 0, 30, (5 // worldglobals.framerate) - 1)
                 ui.textLine("FPSTitle", "Set Framerate", 0, 0)
 
                 ui.textLine("FPSText", str(worldglobals.framerate), 0, 0)

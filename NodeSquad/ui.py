@@ -122,7 +122,7 @@ class UI:
 							attrMode = attrMode | add
 					mode = 'read'
 					#flush = True
-				
+
 				#if flush:
 				#	self.node.appendStr(text[1] + y, text[2] + x, buffer, attrMode)
 				#	x += len(buffer) + 1
@@ -189,7 +189,7 @@ class UI:
 			if arg_invoke != False:
 				self.clicked(*arg_invoke)
 		return r
-	
+
 	def drag(self, id, button, stage, y, x):
 		r = True
 		if button == 0:
@@ -197,8 +197,8 @@ class UI:
 				for j in self.uis["sliders"]:
 					slider = self.uis["sliders"][j]
 					if y == slider[1]:
-						if x >= slider[2] and x < slider[2] + slider[3]:
-							#click is outside slider button
+						if (x >= slider[2] and x < slider[2] + slider[3]):
+							#click is inside a slider button
 							if x < slider[4] or x > slider[4] + slider[5]:
 								slider[4] = x - slider[2] - ( slider[5] >> 1 )
 								slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
@@ -221,26 +221,24 @@ class UI:
 			elif stage == self.controller.dragEvent:
 				for i in self.dragged_sliders:
 					slider = self.uis[i[1]][i[0]]
-					
-					if i[1] == "sliders": dt = x
-					else: dt = y
-					if dt == 0: break
 
-					slider[4] += dt
+					if i[1] == "sliders": slider[4] += x
+					else: slider[4] += y
+
 					slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
 					slider[0](slider[4])
 			else:
 				for i in range(len(self.dragged_sliders) - 1, -1, -1):
 					if self.dragged_sliders[i][2] == id:
 						self.dragged_sliders.pop(i)
-	
+
 	#creation
 
 	def clickArea(self, name, event, y, x, height, width):
 		#receive: event, yStart, xStart, height, width
 		#write: event, yStart, xStart, yEnd, xEnd
 		self.uis["buttons"][name] = [event, y, x, y + height, x + width]
-	
+
 	def art(self, name, content, y, x, attr = Colors.FXNormal, align = -1):
 		#receive: content, y, x, (attr), (align)
 		#write: content, y, x, height, width, attr

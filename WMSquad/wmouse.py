@@ -15,7 +15,6 @@ class WmMouse:
         self.display = display
         self.screen_height = display.height
         self.screen_width = display.width
-        
 
         #customization
         self.isReversed = isReversed
@@ -26,7 +25,7 @@ class WmMouse:
         #device
         self.mouse = inpd.mouse_class
 
-        self.cursor_symbol = {"base":"#", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
+        self.cursor_symbol = {"base":" ", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
         self.holdout = wg.hold_time * wg.inputrate
         self.mouse_cursor = "base"
 
@@ -94,7 +93,7 @@ class WmMouse:
         #mouse buttons
         handler = [0, 0, 0]
 
-        
+
         #0 ("none"), 1 ("clicked"), 2 ("held"), 3 ("released"), 4 ("dragstarted"), 5 ("drag"), 6 ("dragended"), -1 ("post-release")
         #only 1, 3, 4 and 6 are handler events
         for i in self.range[0]:
@@ -136,6 +135,7 @@ class WmMouse:
                 ctr.mouse_buttons[i] = 0
                 handler[i] = -1
         #end of buttons behaviour
+        #Loghandler.Log(str(ctr.mouse_buttons))
 
         focus_changed = False
         for i in self.range[0]:
@@ -174,17 +174,20 @@ class WmMouse:
                     node = wm.nodes[id]
                     if ctr.mouse_y >= node.from_y and ctr.mouse_y <= node.to_y and ctr.mouse_x >= node.from_x and ctr.mouse_x <= node.to_x:
                         node.drag(id, i, ctr.startDragEvent, ctr.mouse_y, ctr.mouse_x)
-                        node.drag(id, i, ctr.dragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
+                        #node.drag(id, i, ctr.dragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
                         self.drag_on_node = node.id
+                        #Loghandler.Log("node drag on " + str(node.id))
+                        break
 
             elif self.drag_on_node >= 0:
                 node = wm.nodes[self.drag_on_node]
-                if ctr.mouse_buttons[i] == 5 and self.hasDelta:
-                    node.drag(self.drag_on_node, i, ctr.dragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
-                elif handler[i] == 6:
-                    node.drag(self.drag_on_node, i, ctr.endDragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
-                    self.drag_on_node = -1
-            #if handler[i] == 6:
+                if node:
+                    if ctr.mouse_buttons[i] == 5 and self.hasDelta:
+                        node.drag(self.drag_on_node, i, ctr.dragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
+                    elif handler[i] == 6:
+                        node.drag(self.drag_on_node, i, ctr.endDragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
+                        self.drag_on_node = -1
+                    #if handler[i] == 6:
 
         if ctr.mouse_wheel != 0:
             for id in wm.order[::-1]:

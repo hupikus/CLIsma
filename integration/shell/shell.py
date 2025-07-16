@@ -76,7 +76,7 @@ def pty_print(*args, **kwargs):
 def redirect_print(print_func):
     builtins.print = print_func
 
-redirect_print(stdout_print)
+redirect_print(raw_print)
 
 #PTY
 def set_pty_raw(fd):
@@ -186,15 +186,14 @@ def shell():
     getch_thread = threading.Thread(target=ever_getch)
     getch_thread.start()
     setch_thread = threading.Thread(target=ever_stdout)
-    setch_thread.start()
+    #setch_thread.start()
 
     while running:
-        #try:
+        try:
         #check for charactersc
-        match (last_getch):
-            case '':
+            if last_getch == '':
                 pass
-            case '\t':
+            elif last_getch == '\t':
                 #autocomplete
                 if cursor > 0:
                     sea = strutils.extract_word(buffer, cursor - 1)
@@ -208,10 +207,10 @@ def shell():
                         elif lr < 21:
                             print('\r' + ' '.join(res), end = '\n\r', flush = True)
                         else:
-                            print(f"\r{lr} matches")
-                    
-            case '\n' | '\r':
-                print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer}\r")
+                            print('\r' + f"{lr} matches")
+
+            elif last_getch == '\n' or last_getch == '\r':
+                print('\r' + '\x1b[2K' + f"{os.path.basename(os.getcwd())} {prefix}> {buffer}" + '\r')
                 #command = input(f"{os.path.basename(os.getcwd())} {prefix}> ")
                 buffer = buffer.strip()
                 if buffer == "":
@@ -259,11 +258,11 @@ def shell():
                     #except:
                     #print("Execution failed.")
 
-            case '\x1b[A': #Up arrow
+            elif last_getch == '\x1b[A': #Up arrow
                 history_pos = max(history_pos - 1, -len(history))
                 history[-1] = history[history_pos][:]
                 cursor = len(history[-1])
-            case '\x1b[B': #Down arrow
+            elif last_getch == '\x1b[B': #Down arrow
                 if history_pos == -2:
                     history[-1] = ""
                     history_pos = -1
@@ -272,18 +271,18 @@ def shell():
                     history_pos = min(history_pos + 1, -1)
                     history[-1] = history[history_pos][:]
                     cursor = len(history[-1])
-            case '\x1b[D': #Left arrow
+            elif last_getch == '\x1b[D': #Left arrow
                 history_pos = -1
                 cursor = max(0, cursor - 1)
-            case '\x1b[C': #Right arrow
+            elif last_getch == '\x1b[C': #Right arrow
                 history_pos = -1
                 cursor = min(len(buffer), cursor + 1)
-            case '\x7f': #Backspace
+            elif last_getch == '\x7f': #Backspace
                 history_pos = -1
                 if cursor > 0:
                     history[-1] = history[-1][:cursor - 1] + history[-1][cursor:]
                     cursor -= 1
-            case _:
+            else:
                 #any character
                 if chmod:
                     history[-1] = last_getch
@@ -292,23 +291,23 @@ def shell():
                     cursor += 1
                 #print(last_getch, end = '', flush = True)
                 history_pos = -1
-        buffer = history[-1]
+            buffer = history[-1]
 
 
-        #clear
-        last_getch = ''
-        time.sleep(update_interval)
+            #clear
+            last_getch = ''
+            time.sleep(update_interval)
 
-        #'cursor symbol is cursor - 1, but cursor should be drawn at cursor'
-        if len(buffer) > cursor:
-            print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer[:cursor]}{INVERSE}{buffer[cursor]}{REVERT}{buffer[cursor + 1:]}", end = '', flush = True)
-        else:
-            print(f"\r{'\x1b[2K'}{os.path.basename(os.getcwd())} {prefix}> {buffer}{INVERSE} {REVERT}", end = '', flush = True)
+            #'cursor symbol is cursor - 1, but cursor should be drawn at cursor'
+            if len(buffer) > cursor:
+                print('\r' + '\x1b[2K' + f"{os.path.basename(os.getcwd())} {prefix}> {buffer[:cursor]}{INVERSE}{buffer[cursor]}{REVERT}{buffer[cursor + 1:]}", end = '', flush = True)
+            else:
+                print('\r' + '\x1b[2K' + f"{os.path.basename(os.getcwd())} {prefix}> {buffer}{INVERSE} {REVERT}", end = '', flush = True)
 
                     
 
-        #except:
-        #    exit()
+        except:
+            exit()
     shell_exit()
     exit()
         
@@ -348,11 +347,11 @@ def execute(argc, args):
         vars[key] = val
         return val
 
-    match name:
+    try:
 
-        case "shell":
+        if name == "shell":
             run(args)
-        case "alias":
+        elif name == "alias":
             if argc < 2:
                 print("Specify an alias.")
                 return False
@@ -366,7 +365,7 @@ def execute(argc, args):
                 if n[:i] == val:
                     del aliases[n[:i]]
                 return val
-        case "bpath":
+        elif name == "bpath":
             if argc == 1:
                 print("Help\n  -a, --add           Add to the PATH\n  -r, --remove        Remove from the PATH\n  -h, --help          Print Help message")
             elif argc == 2:
@@ -381,7 +380,7 @@ def execute(argc, args):
                     path.append(args[2])
             else:
                 print("Wrong arguments.")
-        case "reload":
+        elif name == "reload":
             if argc > 1:
                 module = args[1]
                 if module in modules:
@@ -394,10 +393,10 @@ def execute(argc, args):
                         return False
             else:
                 print("Specify a module to reload.")
-        case "vars":
+        elif name == "vars":
             print(vars)
             return True
-        case _:
+        else:
             #alias
             alias_replace(args)
             name = args[0]
@@ -411,7 +410,8 @@ def execute(argc, args):
             for bin in path:
                 if os.path.exists(bin + name):
                     args[0] = bin + args[0]
-                    return subprocess.Popen(args, stdin = None, stdout = slave, stderr = slave, env={"TERM":  term})
+                    #return subprocess.Popen(args, stdin = None, stdout = slave, stderr = slave, env={"TERM":  term})
+                    return subprocess.Popen(args, stdin = None, stdout = None, stderr = None, env={"TERM":  term})
                     #return os.system(' '.join(args))
     
             try:
@@ -424,7 +424,8 @@ def execute(argc, args):
                     return os.system(' '.join(args))
                 else:
                     print(f"Shell: {name}: command not found")
-
+    except:
+        pass
 
 
 def parse_shell_args(argt):
@@ -433,27 +434,29 @@ def parse_shell_args(argt):
     quote_depth = False
     bracket_depth = 0
     for i in argt:
-        match i:
-            case ' ':
+        try:
+            if i == ' ':
                 if not quote_depth:
                     #vars
                     args.append(kvar(buffer))
                     buffer = ''
-            case '"':
+            elif i == '"':
                 quote_depth = not quote_depth
-            case '(':
+            elif i == '(':
                 if not quote_depth:
                     bracket_depth += 1
                 buffer += i
-            case ')':
+            elif i == ')':
                 if not quote_depth:
                     bracket_depth -= 1
                     if bracket_depth < 0:
                         print("')': wrong syntax")
                         return False
                 buffer += i
-            case _:
+            else:
                 buffer += i
+        except:
+            pass
 
     if buffer != '' and buffer != ' ':
         args.append(kvar(buffer.strip()))
