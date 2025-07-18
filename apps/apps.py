@@ -1,5 +1,5 @@
 import os.path
-from propertyparse import Parser
+from FileSquad.propertyparse import Parser
 from userglobals import userglobals
 from integration.loghandler import Loghandler
 class App:

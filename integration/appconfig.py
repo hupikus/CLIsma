@@ -2,6 +2,7 @@ import threading
 import os
 
 from type.descriptor import Descriptor
+import FileSquad.clismaconfig as Cfg
 
 class Appconfig:
 
@@ -57,3 +58,17 @@ class Appconfig:
 		classname = app.class_name
 		configpath = app.config_path + "config"
 		content = {}
+
+		with threading.Lock():
+
+			try:
+				file = open(configpath, 'r')
+				c = file.read()
+				file.close()
+				content = Cfg.Parse(c)
+			except:
+				return {}
+
+		if "config" in content:
+			return content["config"]
+		return content

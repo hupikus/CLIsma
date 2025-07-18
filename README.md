@@ -35,6 +35,7 @@ This app is currently unfinished and requies testing.
 - evdev (pip)
 - pydoc (pip)
 - python 3.10 or newer
+
   additional: (unneccesary)
 - pympler (pip)
 
