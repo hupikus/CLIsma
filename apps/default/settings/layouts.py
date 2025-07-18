@@ -21,8 +21,10 @@ class Layouts:
             ui.clickableArt("performance", self.sett.submenu, 0, 0, ["_____", "|  /|", "| o |", "I---I", " Performance "], align = 1)
             ui.clickableArt("input", self.sett.submenu, 0, 0, ["  \\  ", "/-/-\\", "| ! |", "\\___/", "    Input    "], align = 1)
             ui.clickableArt("customization", self.sett.submenu, 0, 0, ["  /\\  ", " _||_ ", "| || |", "|-\\/-|", "Customization"], align = 1)
+            ui.clickableArt("apps", self.sett.submenu, 0, 0, ["  _|_ ", " |\\|/|", " | V |", " |---|", "Applications"], align = 1)
 
-            ui.list("list", ("input", "performance", "customization"), 0, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+
+            ui.list("list", ("input", "performance", "customization", "apps"), 0, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
             ui.remove("back", type = "tapArts")
 
@@ -47,9 +49,15 @@ class Layouts:
 
                 ui.textLine("TICKText", str(worldglobals.processrate), 0, 0)
 
+                ui.textLine("title1", "Optimizations", 0, 0, attr = Colors.FXBold)
+                ui.textLine("StrText", "Interlaced Desktop Refresh", 0, 0)
+                ui.radioButton("StrRadio", self.strUpdate, 0, 0, False)
+
+
                 elements = (
-                "FPSTitle", (True, "space", 2, 2), newline, "FPSText", (True, "glue", 1), "FPS",
-                newline, "TICKTitle", (True, "space", 2, 2), newline, "TICKText", (True, "glue", 1), "TICK"
+                "FPSTitle", (True, "space", 2, 2), newline, "FPSText", (True, "glue", 1), "FPS", newline,
+                "TICKTitle", (True, "space", 2, 2), newline, "TICKText", (True, "glue", 1), "TICK", newline, newline,
+                "title1", newline,  (True, "glue", 3), "StrText", (True, "space", 1, 2), "StrRadio"
                 )
 
                 ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
@@ -96,19 +104,19 @@ class Layouts:
 
     def clearState(self):
         self.ui.removeRecursive("list")
-    
+
     #UI events
 
-    def FPSlider_update(self, val):
+    def FPSlider_update(self, name, val):
         FPSlider = (val + 1) * 5
         worldglobals.framerate = FPSlider
         worldglobals.framedelta = 1 / FPSlider
         FPSlider = str(FPSlider)
         self.ui.setText("FPSText", FPSlider, type = "txts")
         Loghandler.Log(f"FPS changed to {FPSlider}")
-    
-    def TICKlider_update(self, val):
-        
+
+    def TICKlider_update(self, name, val):
+
         if val < 4:
             self.TickSlider = val + 1
         else:
@@ -118,22 +126,24 @@ class Layouts:
         self.TickSlider = str(self.TickSlider)
         self.ui.setText("TICKText", self.TickSlider, type = "txts")
         Loghandler.Log(f"Tickrate changed to {self.TickSlider}")
-    
-    def trailider_update(self, val):
+
+    def trailider_update(self, name, val):
         Wmconfig.setTrailLength(val)
         val = str(val)
         self.ui.setText("TRAILext", val, type = "txts")
         Loghandler.Log(f"Trail length changed to {val}")
-    
-    def mousepeed_update(self, val):
+
+    def mousepeed_update(self, name, val):
         realval = round(float(1.0 + (val - 11) * 0.2), 1)
         if val < 11:
             realval = round(float(val / 13) + 0.04, 2)
         self.ui.setText("Lext", str(realval), type = "txts")
         Wmconfig.setMouseSensivity(realval)
-    
+
     def set_cursor_color(self, name, button, device_id):
         val = int(name[-1])
         wm = self.wm
         wm.pointers[device_id].color = Colors.colorPair(val)
-            
+
+    def strUpdate(self, name, val, button, device_id):
+        Wmconfig.setDesktopRefresh(val)

@@ -1,7 +1,9 @@
 import os
-import pydub
+import sys
+import gi
 
 from type.colors import Colors
+from integration.loghandler import Loghandler
 
 from apps.apphabit import apphabit
 class bangerplayer(apphabit):
@@ -14,8 +16,33 @@ class bangerplayer(apphabit):
         self.height = height
         self.width = width
 
-		#input
+        #input
         self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
 
-        #os.system(f"play {params}")
-        #self.sound = nava.play(params, async_mode=True, loop=False)
+
+        self.player = Gst.ElementFactory.make("playbin", "player")
+        if player:
+            path = params
+            if path[] != "file://":
+                path = "file://" + path
+
+            player.set_property("uri", path)
+            player.set_state(Gst.State.PLAYING)
+
+
+def pause(self, pause):
+    if pause:
+        self.player.set_state(Gst.State.PAUSED)
+    else:
+        self.player.set_state(Gst.State.PLAYING)
+
+
+def draw(self, delta):
+    self.node.addstr()
+
+def process(self, delta):
+    state = bus.timed_pop_filtered(Gst.CLOCK_TIME_NONE, Gst.MessageType.EOS | Gst.MessageType.ERROR)
+
+
+def abort(self):
+    self.player.set_state(Gst.State.NULL)

@@ -1,4 +1,5 @@
 import os
+import sys
 
 from userglobals import userglobals
 from integration.loghandler import Loghandler
@@ -11,15 +12,17 @@ class AppPool:
 
         self.systemApps = os.listdir("apps/default/")
         self.apps = self.systemApps[:]
-        if not os.path.exists(userglobals.userpath + ".local/share/CLIsma/custom/apps/"):
-            os.makedirs(userglobals.userpath + ".local/share/CLIsma/custom/apps/")
-        self.installedApps = os.listdir(userglobals.userpath + ".local/share/CLIsma/custom/apps/")
+        external = userglobals.userpath + ".local/share/CLIsma/custom/apps/external/"
+        if not os.path.exists(external):
+            os.makedirs(external)
+        self.installedApps = os.listdir(external)
+        sys.path.append(userglobals.userpath + ".local/share/CLIsma/custom/")
 
         i = len(self.installedApps) - 1
         if i >= 0:
             while i != 0:
                 app = self.installedApps[i]
-                if not os.path.isdir(userglobals.userpath + ".local/share/CLIsma/custom/apps/" + app):
+                if not os.path.isdir(external + app):
                     self.installedApps.pop(i)
                 i -= 1
 

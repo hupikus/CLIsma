@@ -10,12 +10,13 @@ from integration.loghandler import Loghandler
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "isDoomed", "tasks", "oldsize", "root")
+	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "isDoomed", "tasks", "oldsize", "root")
 	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params, app = None, parent = None):
 		self.id = id
 		self.wm = wm
 		self.controller = wm.control
 		self.display = display
+		self.hidden = False
 		self.from_y = from_y
 		self.from_x = from_x
 		self.height = height
@@ -37,6 +38,8 @@ class Node:
 		if app == None:
 			if class_path[:12] == "apps.default":
 				self.app = App("default/" + class_name)
+			elif class_path[:13] == "apps.external":
+				self.app = App("external/" + class_name)
 			else:
 				self.app = App(class_name)
 		else:
@@ -94,7 +97,7 @@ class Node:
 			self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} is unreachable: <c2> <tbold>' + "Class " + class_path + " does not exist (" + str(ex) + ')' + '<endt> <endc>"')
 
 
-		self.min_height = 8
+		self.min_height = 1
 		self.max_height = 999
 		self.min_width = 8
 		self.max_width = 999
@@ -222,21 +225,21 @@ class Node:
 		self.width = width
 
 
-	def process(self):
+	def process(self, delta):
 		if self.isDoomed: return 0
 		if not self.process_running:
 			self.process_running = True
 			try:
-				self.win.process()
+				self.win.process(delta)
 			except Exception as ex:
 				self.abort()
 				self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} process event closed with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
 			self.process_running = False
 
-	def draw(self):
-		if self.isDoomed: return 0
+	def draw(self, delta):
+		if self.isDoomed or self.hidden: return 0
 		try:
-			self.win.draw()
+			self.win.draw(delta)
 			self.ui.draw()
 		except Exception as ex:
 			self.abort()
@@ -259,6 +262,8 @@ class Node:
 		self.win.onresize(self.height, self.width)
 
 
+	def hide(self, state):
+		self.hidden = state
 
 #Window Manager
 	def newNode(self, parent_path, class_name, y, x, height, width, params):
@@ -309,15 +314,21 @@ class Node:
 			y -= self.from_y
 			x -= self.from_x
 		if self.sub:
-			if self.ui.drag(id, button, stage, y, x):
-				if self.sub[self.controller.MouseEvents]:
-					self.win.drag(id, button, stage, y, x)
+			try:
+				if self.ui.drag(id, button, stage, y, x):
+					if self.sub[self.controller.MouseEvents]:
+						self.win.drag(id, button, stage, y, x)
+			except:
+				pass
 
 	def scroll(self, id, delta):
 		if self.sub:
 			#if self.ui.scroll(id, delta):
-			if self.sub[self.controller.MouseWheelEvents]:
-				self.win.scroll(id, delta)
+			if self.controller.MouseWheelEvents in self.sub:
+				try:
+					self.win.scroll(id, delta)
+				except:
+					pass
 
 	def abort(self):
 		self.isDoomed = True

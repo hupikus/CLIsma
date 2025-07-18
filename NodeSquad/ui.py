@@ -6,7 +6,9 @@ class UI:
 		self.node = node
 		self.controller = self.node.controller
 
-		self.ids = ("buttons", "sliders", "verticalSliders", "fields", "arts", "tapArts", "txts", "textBoxes", "coloredTextBoxes", "lists")
+		self.ids = ("buttons", "sliders", "verticalSliders", "fields",
+			    "arts", "tapArts", "txts", "textBoxes", "coloredTextBoxes",
+			    "lists", "radioButtons")
 
 		#self.uis = {"buttons":{}, "sliders":{}, "fields":{}} #e.t.c.
 		self.uis = {i:{} for i in self.ids}
@@ -27,6 +29,13 @@ class UI:
 			self.node.appendStr(slider[1], slider[2], slider[8] * slider[3], slider[7])
 			#                       y          x                    '*'          1       FXNormal
 			self.node.appendStr(slider[1], slider[2] + slider[4], slider[9] * slider[5], slider[6])
+		for name in self.uis["radioButtons"]:
+			radio = self.uis["radioButtons"][name]
+			#                       y         x      '[*]'    FXNormal
+			self.node.appendStr(radio[1], radio[2], radio[5], radio[4])
+			if not radio[3]:
+				#                       y         x              FXNormal
+				self.node.appendStr(radio[1], radio[2] + 1, ' ', radio[4])
 		for name in self.uis["verticalSliders"]:
 			slider = self.uis["verticalSliders"][name]
 			for y in range( min(slider[3], self.node.to_y - slider[1])):
@@ -153,6 +162,15 @@ class UI:
 						arg_invoke = [j, "tapArts", button, device_id]
 						r = False
 						break
+		if r:
+			for j in self.uis["radioButtons"]:
+				radio = self.uis["radioButtons"][j]
+				if y == radio[1]:
+					if x >= radio[2] and x < radio[2] + 3:
+						radio[3] = not radio[3]
+						radio[0](j, radio[3], button, device_id)
+						r = False
+						break
 		if button == 0:
 			if r:
 				for j in self.uis["sliders"]:
@@ -161,7 +179,7 @@ class UI:
 						if x >= slider[2] and x < slider[2] + slider[3]:
 							slider[4] = x - slider[2] - ( slider[5] >> 1 )
 							slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
-							slider[0](slider[4])
+							slider[0](j, slider[4])
 							r = False
 							break
 			if r:
@@ -171,7 +189,7 @@ class UI:
 						if y >= slider[1] and y < slider[1] + slider[3]:
 							slider[4] = y - slider[1] - ( slider[5] >> 1 )
 							slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
-							slider[0](slider[4])
+							slider[0](j, slider[4])
 							r = False
 							break
 			if r:
@@ -202,7 +220,7 @@ class UI:
 							if x < slider[4] or x > slider[4] + slider[5]:
 								slider[4] = x - slider[2] - ( slider[5] >> 1 )
 								slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
-								slider[0](slider[4])
+								slider[0](j, slider[4])
 							r = False
 							self.dragged_sliders.append([j, "sliders", id])
 							break
@@ -214,7 +232,7 @@ class UI:
 								if y < slider[4] or y > slider[4] + slider[5]:
 									slider[4] = y - slider[1] - ( slider[5] >> 1 )
 									slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
-									slider[0](slider[4])
+									slider[0](j, slider[4])
 								r = False
 								self.dragged_sliders.append([j, "verticalSliders", id])
 								break
@@ -226,7 +244,7 @@ class UI:
 					else: slider[4] += y
 
 					slider[4] = max(0, min(slider[3] - slider[5], slider[4]))
-					slider[0](slider[4])
+					slider[0](i, slider[4])
 			else:
 				for i in range(len(self.dragged_sliders) - 1, -1, -1):
 					if self.dragged_sliders[i][2] == id:
@@ -238,6 +256,11 @@ class UI:
 		#receive: event, yStart, xStart, height, width
 		#write: event, yStart, xStart, yEnd, xEnd
 		self.uis["buttons"][name] = [event, y, x, y + height, x + width]
+
+	def radioButton(self, name, event, y, x, default, attr = Colors.FXNormal, look = "[*]"):
+		#receive: event, yStart, xStart, default value, (attr), (button look)
+		#write: event, yStart, xStart, value, attr, button look
+		self.uis["radioButtons"][name] = [event, y, x, default, attr, look]
 
 	def art(self, name, content, y, x, attr = Colors.FXNormal, align = -1):
 		#receive: content, y, x, (attr), (align)
@@ -822,6 +845,11 @@ class UI:
 			elif type == "verticalSliders":
 				indexy = 3
 				n_width = 1
+			elif type == "radioButtons":
+				indexx = 0
+				indexy = 0
+				n_width = 3
+				n_height = 1
 
 			if indexx < 0 and indexy < 0: continue
 

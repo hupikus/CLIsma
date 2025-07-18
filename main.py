@@ -142,43 +142,55 @@ display = Singletons.Screenman
 
 
 def draw_loop():
+	timestamp = time.time()
+	deltaTime = 0
 	while work:
+		time.sleep(worldglobals.framedelta)
+		deltaTime = time.time() - timestamp
+		timestamp += deltaTime
+
 		error = 0
 
-		error += wm.draw()
+		error += wm.draw(deltaTime)
 
 		error += display.draw()
 
 		if error > 0:
-			abort("Display exited with code 1.")
+			abort(f"Display exited with code {error}.")
 
-		time.sleep(worldglobals.framedelta)
 
 #main loop
 def main_loop():
-		l = threading.Lock()
-		l.acquire()
-		while work:
-			time.sleep(worldglobals.processdelta)
+	#l = threading.Lock()
+	#l.acquire()
 
-			error = 0
+	timestamp = time.time()
+	deltaTime = 0
+	while work:
+		deltaTime = time.time() - timestamp
+		timestamp += deltaTime
 
-			wm.process()
+		error = 0
 
-			if error > 0:
-				abort("Window Manager exited with code 1.")
-				break
+		wm.process(deltaTime)
 
-			if wm.shutdown_ready:
-				abort("\nAborted.\n")
-				break
-		wm.shutdown()
+		if error > 0:
+			abort(f"Window Manager exited with code {error}.")
+			break
+
+		if wm.shutdown_ready:
+			abort("\nAborted.\n")
+			break
+
+		time.sleep(worldglobals.processdelta)
+
+	wm.shutdown()
 
 
 
-#draw_thread = threading.Thread(target=draw_loop)
-#draw_thread.start()
-#main_loop()
+# draw_thread = threading.Thread(target=draw_loop)
+# draw_thread.start()
+# main_loop()
 try:
 	#draw
 	draw_thread = threading.Thread(target=draw_loop)

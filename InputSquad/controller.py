@@ -1,4 +1,5 @@
 from type.inpevents import InputEvents
+
 class Controller:
 
 	def connect_pointer(self):
@@ -16,10 +17,10 @@ class Controller:
 
 		self.fn = self
 
-		#input types generation
-		self.KeyboardEvents = InputEvents("!x000")
-		self.MouseEvents = InputEvents("!x001")
-		self.MouseWheelEvents = InputEvents("!x002")
+		#input types binds
+		self.KeyboardEvents = InputEvents.KEYBOARD
+		self.MouseEvents = InputEvents.MOUSE
+		self.MouseWheelEvents = InputEvents.MOUSEWHEEL
 
 		self.startDragEvent = 0
 		self.dragEvent = 1
@@ -34,6 +35,9 @@ class Controller:
 		return self.minicontroller[id]
 
 	#public
+
+	def getPlayerNumber(self):
+		return self.mouselen
 
 	def relMousePos(node):
 		return self.mouse_y - node.from_y, self.mouse_x - node.from_x

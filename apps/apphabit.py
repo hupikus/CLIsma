@@ -5,10 +5,10 @@ class apphabit:
 
     #ABCS
 
-    def draw(self):
+    def draw(self, delta):
         pass
 
-    def process(self):
+    def process(self, delta):
         pass
 
     #INPUT

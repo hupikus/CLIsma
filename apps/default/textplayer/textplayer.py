@@ -37,7 +37,7 @@ class textplayer(apphabit):
             self.ui.art("open", ["--------", "| open |", "--------"], width / 2 - 5, 3, attr = Colors.FXNormal)
 
 
-    def draw(self):
+    def draw(self, delta):
         if self.appname != '':
             self.node.appendStr(0, 0, self.displayappname, Colors.FXBold)
 

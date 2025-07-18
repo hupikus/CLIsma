@@ -1,0 +1,15 @@
+info : {
+  version : 1,
+  public : false,
+  autoupdate : true,
+  remove_oldkeys : true
+},
+config : {
+  input : {},
+  performance : {
+    fpsrate : int : (5:) : 60,
+    tickrate : int : (1:) : 40,
+    refresh : bool : false
+  },
+  customization : {}
+}

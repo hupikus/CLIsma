@@ -82,7 +82,7 @@ def remove_CLI(packagename, force):
             print(f"Error: package not found.")
         return False
 
-    config_path = userglobals.userpath + ".local/share/CLIsma/config/apps/" + packagename
+    config_path = userglobals.userpath + ".local/share/CLIsma/config/apps/external/" + packagename
     if os.path.exists(config_path):
         ans = 'y'
         if not force:
@@ -93,8 +93,7 @@ def remove_CLI(packagename, force):
                 print("Config removed")
             except:
                 print("Failed.")
-    
-    
+
     print("Removing package...")
     try:
         shutil.rmtree(package_path)
@@ -147,12 +146,12 @@ def run(argc, args):
                 packagename = args[i + 1]
             if len(args) > i + 2:
                 file = args[i + 2]
-            install_CLI(file, packagename, force)
+            install_CLI(packagename, file, force)
         elif arg == '-r' or arg == '--remove':
             packagename = ""
             if len(args) > i + 1:
                 packagename = args[i + 1]
-            remove_CLI(file, packagename, force)
+            remove_CLI(packagename, force)
         elif arg == '-u' or arg == '--update':
             update_CLI()
 
@@ -160,7 +159,7 @@ def run(argc, args):
 def search_host(name):
     if not os.path.exists(database_path):
         update_CLI()
-    
+
     return tuple()
 
 def search_host_strict(name):
@@ -221,7 +220,7 @@ def install_system(packagename, file, mode, force):
                     if mode == "Local": print(f'Entry file {packagename}.py is missing. Did you mean "{similarname[:-3]}"?')
                     else: print("Error: Package is corrupted by author.")
                     return False
-                
+
                 #package already exists
                 if os.path.exists(userglobals.userpath + ".local/share/CLIsma/custom/apps/" + packagename):
                     ans = 'y'
@@ -240,7 +239,7 @@ def install_system(packagename, file, mode, force):
                     print("Unpacking...")
                     archive.extractall(p)
                     print("Creating config...")
-                    p = userglobals.userpath + ".local/share/CLIsma/config/apps/" + packagename
+                    p = userglobals.userpath + ".local/share/CLIsma/config/apps/default" + packagename
                     if not os.path.exists(p):
                         os.makedirs(p, mode = 0o777)
                     config_path = p + '/main.conf'

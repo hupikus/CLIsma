@@ -1,3 +1,5 @@
-class InputEvents:
-	def __init__(self, name):
-		self.name = name
+from enum import Enum
+class InputEvents(Enum):
+	KEYBOARD = 0
+	MOUSE = 1
+	MOUSEWHEEL = 2

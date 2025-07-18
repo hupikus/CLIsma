@@ -1,0 +1,11 @@
+info : {
+  version : 1,
+  public : false
+},
+config : {
+counter : int : 8 : (0:100),
+temperature : float
+message : string : "hello!",
+responce : enum : "hello!~" : "bye!",
+color_order : int[]
+}

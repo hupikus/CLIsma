@@ -1,5 +1,8 @@
 from type.colors import Colors
+from type.descriptor import Descriptor
+
 from integration.loghandler import Loghandler
+from integration.appconfig import Appconfig
 
 from apps.apphabit import apphabit
 class default(apphabit):
@@ -23,14 +26,18 @@ class default(apphabit):
 		else:
 			self.colorPairs = [Colors.colorPair(1), Colors.colorPair(4), Colors.colorPair(7), Colors.colorPair(5)]
 
+		self.descriptor = Appconfig.OpenConfig(node.app)
 
-	def draw(self):
-		
-		self.node.appendStr(0, 0, '*' * self.width)
-		self.node.appendStr(1, 0, str(self.counter).center(self.width, '*'))
+		ui = self.node.ui
+
+		ui.textLine("description", "Default window contains minimal api usage", 2, 0)
+
+
+	def draw(self, delta):
+		self.node.appendStr(0, 0, '-' * self.width)
+		self.node.appendStr(1, 0, str(self.counter).center(self.width, '-'))
 		self.node.appendStr(0, 0, "This is default window", self.colorPairs[self.counter % 4])
-		self.node.appendStr(2, 0, "Default window contains minimal api usage")
-		self.node.appendStr(3, 0, str(Colors.colorlen))
+		self.node.appendStr(3, 0, '-' * self.width)
 
 	def click(self, device_id, button, y, x):
 		self.counter += 1

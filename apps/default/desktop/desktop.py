@@ -1,5 +1,3 @@
-import threading
-import time
 import math
 
 from apps.apps import App
@@ -19,9 +17,9 @@ class desktop(apphabit):
 		else:
 			header += ' '
 		header_window = header[:-5] + "- m x"
-		self.dekstop_str = (header, '#' * self.width, ' ' * self.width, '_' * self.width, header_window)
+		self.dekstop_str = (header, '─' * self.width, ' ' * self.width, '_' * self.width, header_window)
 
-		self.range = tuple([range(3)] + [range(2 + a, self.height - 5, 3) for a in range(3)])
+		self.range = tuple([range(3)] + [range(2 + a, self.height - 5, 3) for a in range(3)] + [range(2, self.height - 5)])
 
 
 	def setmaxstep(self, step):
@@ -48,67 +46,57 @@ class desktop(apphabit):
 			self.spawnx = round(self.width / 4 + math.sin(self.spawnstep) * -self.maxstep * 1.4)
 
 	def abort(self):
-		self.to_shutdown("myself")
+		self.to_shutdown("code")
 
 	def start(self):
 		self.tick = 0
-		#self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
+		self.refresh = False
 		self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
 		for i in range(self.applen):
 			self.node.ui.clickArea("app" + str(i), self.dockapp_clicked, self.height - 4, self.space * (i + 1), 3, 5)
-
-		#ticks and fps counter
-		self.fpsc = 0
-		self.tickc = 0
-		self.fps_rate = "60"
-		self.tick_rate = "40"
-		counter_thread = threading.Thread(target=self.fpsleep)
-		counter_thread.start()
 
 		#window spawn
 		self.spawny = round(self.height * 0.3)
 		self.spawnx = round(self.width / 4)
 		self.setmaxstep(0)
 
-		#сache
+		#cache
 		self.gen_cache()
-
-	def fpsleep(self):
-		while self.ready == 0:
-			time.sleep(1)
-			self.fps_rate = str(self.fpsc)
-			self.tick_rate = str(self.tickc)
-			self.fpsc = 0
-			self.tickc = 0
-		self.ready += 1
-	
 
 	def to_shutdown(self, name):
 		self.state = "shutdown"
 		self.ready = 1
+		if name != "code":
+			self.wm.shutdown()
 
 
 	def recalculate_dock(self):
 		self.applen = len(self.apps)
 		self.maxtrey = round(self.width / 6 - 0.5)
-		#self.space = round((self.width - 6) / (self.applen + 1) - 0.5) - 2
 		self.rightfrom = min(round(self.width * 0.85), self.width - 12)
 		self.space = round( ( self.rightfrom - (5 * self.applen)) / (self.applen + 0.5) ) - 5
-		#                     right panel      apps itself         number of apps
+		#                     right panel       apps itself          number of apps
 
 	def __init__(self, id, node, controller, height, width, params):
 		self.id = id
 		self.node = node
 		self.controller = controller
 		self.wm = params
-		#self.wm = Singletons.Wm
 		self.width = width
 		self.height = height
-		
+
 		self.preferred_height = 80
 		self.preferred_width = 24
 		self.ismenu = False
-		
+
+
+		self.neotick = 0
+		self.neofps = 0
+		self.tick_rate = "0"
+		self.fps_rate = "0"
+		self.process_timer = 0.0
+		self.draw_timer = 0.0
+
 
 		if self.height < 14 or self.width < 27:
 			self.state = "minimal"
@@ -129,13 +117,13 @@ class desktop(apphabit):
 			self.apps = [App("default/settings"), App("default/fileman"), App("default/log")]
 
 		self.pinned = len(self.apps)
-			
+
 		#App("default/terminal") App("default/colortest") App("default/log") App("default/textplayer")
 
 		#constants
 		self.recalculate_dock()
 
-		self.ready = 0
+		#self.ready = 0
 		self.start()
 
 	#def updateb(self, y):
@@ -144,7 +132,6 @@ class desktop(apphabit):
 
 	def draw_header(self, isMax):
 		self.tick = (self.tick + 1) % 3
-		self.fpsc += 1
 		#self.tick = (self.tick + 1) % (self.height - 8)
 
 		if self.state == "regular":
@@ -157,15 +144,29 @@ class desktop(apphabit):
 		return isMax
 
 
-	def draw(self):
+	def draw(self, delta):
+
+		self.neofps += 1
+		self.draw_timer += delta
+
+		if self.draw_timer >= 1.0:
+			self.draw_timer -= 1.0
+			self.fps_rate = str(self.neofps)
+			self.neofps = 0
 
 		if self.draw_header(self.wm.draw_as_maximized): return
 
 		###################
 		self.node.appendStr(1, 0, self.dekstop_str[1])
 
-		for y in self.range[self.tick + 1]:
-			self.node.appendStr(y, 0, self.dekstop_str[2])
+		if self.refresh:
+			#interlace refresh
+			for y in self.range[self.tick + 1]:
+				self.node.appendStr(y, 0, self.dekstop_str[2])
+		else:
+			for y in self.range[4]:
+				self.node.appendStr(y, 0, self.dekstop_str[2])
+
 		self.node.appendStr(self.height - 1, 0, self.dekstop_str[2])
 
 		if self.state == "regular":
@@ -184,10 +185,17 @@ class desktop(apphabit):
 
 		return 0
 
-	def process(self):
-		self.tickc += 1
-		if self.ready == 2:
-			self.wm.shutdown()
+	def process(self, delta):
+		self.neotick += 1
+		self.process_timer += delta
+
+		if self.process_timer >= 1.0:
+			self.process_timer -= 1.0
+			self.tick_rate = str(self.neotick)
+			self.neotick = 0
+
+		#if self.ready == 2:
+			#self.wm.shutdown()
 
 	def click(self, device_id, button, y, x):
 		if x == self.width - 1 and y == 0:
@@ -206,7 +214,6 @@ class desktop(apphabit):
 			else:
 				self.node.closeNode(self.menunode)
 			self.ismenu = not self.ismenu
-			
 
 
 	def dockapp_clicked(self, name, button, device_id):

@@ -29,11 +29,11 @@ class terminal(apphabit):
 		#self.shell_thread.start()
 
 
-	def draw(self):
+	def draw(self, delta):
 		for y in range(self.height):
 			self.node.appendStr(y, 0, self.space)
 		self.node.writeStr(0, 0, self.text)
-	
+
 
 	def onresize(self, height, width):
 		self.height = height

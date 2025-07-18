@@ -18,7 +18,6 @@ class Parser:
             eq_ind = i.find("=")
             if eq_ind == -1: continue
             key = i[:eq_ind]
-            
 
             val = i[eq_ind + 1:]
 
@@ -40,7 +39,7 @@ class Parser:
                     val = bool(val)
                 val_type = 'auto'
             except: continue
-            
+
             is_not_array = True
             if eq_ind > 6:
                 if key[-2] == '[' and key[-1] == ']':

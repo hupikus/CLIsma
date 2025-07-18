@@ -109,11 +109,11 @@ class Wm:
 		#startup nodes
 		#self.newNode(&Desktop)
 		if desktop == "default":
-			self.desktop = self.newNode("apps.default", "desktop", 0, 0, self.screen_height, self.screen_width, self)
-		else:
-			self.desktop = self.newNode("apps.default", desktop, 0, 0, self.screen_height, self.screen_width, self)
+			desktop = "desktop"
+		self.desktop = self.newNode("apps.default", desktop, 0, 0, self.screen_height, self.screen_width, self)
 		self.desktop.wm = self
 		self.desktop.node.is_fullscreen = True
+		Loghandler.Log("WM initialized")
 
 		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
 		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
@@ -166,17 +166,18 @@ class Wm:
 						self.display.root.addnstr(max(node.to_y + 1, 0), x_offcut, text, mxln)
 
 
-	def draw(self):
+	def draw(self, delta):
 		#draw all nodes
+		if self.shutdown_ready: return 0
 		self.draw_as_maximized = self.nodes[self.order[-1]].is_maximized
 		if self.draw_as_maximized:
-			self.nodes[self.order[-1]].draw()
-			self.desktop.draw()
+			self.nodes[self.order[-1]].draw(delta)
+			self.desktop.draw(delta)
 		else:
 			for id in self.order:
 				node = self.nodes[id]
-				if node:
-					node.draw()
+				if node and not node.hidden:
+					node.draw(delta)
 					#if node.is_maximized or node.is_fullscreen:
 					#	continue
 					self.decoration(node)
@@ -188,13 +189,13 @@ class Wm:
 
 		return self.error
 
-	def process(self):
+	def process(self, delta):
 		for id in self.order:
 			node = self.nodes[id]
 			if node:
 				if node.ready_to_close:
 					self.delNode(node)
 				else:
-					node.process()
+					node.process(delta)
 
 		return self.error

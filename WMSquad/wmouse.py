@@ -144,25 +144,31 @@ class WmMouse:
                 for id in wm.order[::-1]:
                     node = wm.nodes[id]
                     if node:
-                        if ctr.mouse_y >= node.from_y - 1 and ctr.mouse_y <= node.to_y and ctr.mouse_x >= node.from_x and ctr.mouse_x <= node.to_x + 1:
+                        if ctr.mouse_y >= node.from_y - 1 and ctr.mouse_y <= node.to_y and ctr.mouse_x >= node.from_x and ctr.mouse_x <= node.to_x:
                             if self.focus_id != id:
                                 self.focus_id = id
-                                #if id != 0:
-                                #    focus_changed = True
+                                if id != 0:
+                                    focus_changed = True
                             if ctr.mouse_y >= node.from_y:
                                 #click
                                 node.click(devid, i, ctr.mouse_y, ctr.mouse_x)
                                 break
-                            elif i == 0:
-                                if ctr.mouse_x == node.to_x:
-                                    Loghandler.Log("close " + node.app.name)
-                                    node.abort()
-                                elif ctr.mouse_x == node.to_x - 2:
-                                    node.toggle_maximize()
-                                elif ctr.mouse_x == node.to_x - 4:
+                            else:
+                                if i == 0: # left button click
+                                    if ctr.mouse_x == node.to_x:
+                                        Loghandler.Log("close " + node.app.name)
+                                        node.abort()
+                                    elif ctr.mouse_x == node.to_x - 2:
+                                        node.toggle_maximize()
+                                    elif ctr.mouse_x == node.to_x - 4:
+                                        node.hide(True)
+                                elif i == 1: #right button click
                                     pass
-                                    #node.hide()
-                                break
+                                else: # middle button click
+                                    node.abort()
+                                    Loghandler.Log("close " + node.app.name)
+                            break
+
             elif handler[i] == 4:
                 if self.moving_node:
                     #custom behaviour (like custom size) for startdrag event
@@ -201,45 +207,52 @@ class WmMouse:
             #start of drag
             for id in wm.order[::-1]:
                 node = wm.nodes[id]
+                breaky = False
                 if node and not node.is_fullscreen and node.windowed:
-                    if ctr.mouse_x >= node.from_x and ctr.mouse_y == node.from_y - 1 and ctr.mouse_x < node.to_x:
-                        #focus and move
-                        if self.focus_id != id:
-                                self.focus_id = id
-                                if id != 0:
-                                    focus_changed = True
-                        self.moving_node = node
-                        self.move_type = 0
+                    if ctr.mouse_x >= node.from_x and ctr.mouse_y >= node.from_y and ctr.mouse_y <= node.to_y and ctr.mouse_x <= node.to_x:
                         break
-                    elif ctr.mouse_y >= node.from_y - 1 and ctr.mouse_y <= node.to_y + 1 and (ctr.mouse_x == node.to_x + 1 or ctr.mouse_x == node.from_x - 1):
-                        #focus and move right or left side
-                        if ctr.mouse_x == node.to_x + 1:
-                            self.move_type = 1
-                        else:
-                            self.move_type = 3
+                    else:
+                        if ctr.mouse_x > node.from_x and ctr.mouse_y == node.from_y - 1 and ctr.mouse_x < node.to_x:
+                            #focus and move
+                            if self.focus_id != id:
+                                    self.focus_id = id
+                                    if id != 0:
+                                        focus_changed = True
+                            self.moving_node = node
+                            self.move_type = 0
+                            break
+                        elif ctr.mouse_y >= node.from_y - 1 and ctr.mouse_y <= node.to_y + 1 and (ctr.mouse_x == node.to_x + 1 or ctr.mouse_x == node.from_x - 1):
+                            #focus and move right or left side
+                            if ctr.mouse_x == node.to_x + 1:
+                                self.move_type = 1
+                            else:
+                                self.move_type = 3
 
-                        if self.focus_id != id:
-                                self.focus_id = id
-                                if id != 0:
-                                    focus_changed = True
-                        self.moving_node = node
-                        #break
-                    if ctr.mouse_x >= node.from_x - 1 and ctr.mouse_x <= node.to_x + 1 and ctr.mouse_y == node.to_y + 1:
-                        #focus and move bottom side
-                        if self.focus_id != id:
-                                self.focus_id = id
-                                if id != 0:
-                                    focus_changed = True
-                        if self.move_type == -1 or self.moving_node != node:
-                            self.move_type = 2
-                        elif self.move_type == 1:
-                            self.move_type = 21
-                        elif self.move_type == 3:
-                            self.move_type = 23
-                        else:
-                            self.move_type = 2
-                        self.moving_node = node
-                        break
+                            if self.focus_id != id:
+                                    self.focus_id = id
+                                    if id != 0:
+                                        focus_changed = True
+                            self.moving_node = node
+                            breaky = True
+                        if ctr.mouse_x >= node.from_x - 1 and ctr.mouse_x <= node.to_x + 1 and ctr.mouse_y == node.to_y + 1:
+                            #focus and move bottom side
+                            if self.focus_id != id:
+                                    self.focus_id = id
+                                    if id != 0:
+                                        focus_changed = True
+                            if self.move_type == -1 or self.moving_node != node:
+                                self.move_type = 2
+                            elif self.move_type == 1:
+                                self.move_type = 21
+                            elif self.move_type == 3:
+                                self.move_type = 23
+                            else:
+                                self.move_type = 2
+                            self.moving_node = node
+                            break
+                if breaky:
+                    break
+
 
         if self.moving_node and ctr.mouse_buttons[0] == 5 and self.hasDelta:
             if self.move_type == 0:
@@ -252,7 +265,6 @@ class WmMouse:
                 if self.move_type > 20:
                     self.moving_node.reborder(2, ctr.mouse_rdy)
         elif handler[0] == -1:
-        #That is post-release
             if self.moving_node and self.move_type == 0 and ctr.mouse_y == 0 and ctr.mouse_x < self.screen_width - 5:
                 if not self.moving_node.is_maximized:
                     self.moving_node.toggle_maximize()

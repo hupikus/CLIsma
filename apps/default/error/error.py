@@ -23,12 +23,12 @@ class error(apphabit):
 					break
 			elif mode == "append":
 				self.text  = self.text + ' ' + i
-		
+
 		self.text = self.text[:-1]
 		self.displaytext = self.text.center(self.width, ' ')
 		mode = ''
-				
-		
+
+
 
 	def __init__(self, id, node, controller, height, width, params):
 		self.id = id
@@ -46,11 +46,11 @@ class error(apphabit):
 
 		self.node.ui.coloredTextBox("errormessage", self.displaytext, 1, 0, self.height - 1, self.width)
 
-	def draw(self):
+	def draw(self, delta):
 		self.node.appendStr(0, 0, '-' * self.width)
 		for y in range(self.height - 1):
 			self.node.appendStr(y + 1, 0, self.space)
-	
+
 	def onresize(self, height, width):
 		self.height = height
 		self.width = width

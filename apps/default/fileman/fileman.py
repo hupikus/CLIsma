@@ -35,6 +35,8 @@ class fileman(apphabit):
         self.scrollpos = 0
         self.cached_scrollposes = {}
         self.is_slider = 0
+        self.error_messages = ['', "Folder is empty", "Permission denied"]
+        self.errorno = 0
 
         #colors
         self.colors = Colors.colorlen
@@ -61,7 +63,7 @@ class fileman(apphabit):
         self.menu = 0
         self.menuclass = None
 
-    def draw(self):
+    def draw(self, delta):
         self.node.appendStr(self.height - 1, 0, self.space)
         if self.childfolder == '':
             self.node.appendStr(0, 0, '/'.center(self.width, ' '), Colors.FXBold)
@@ -70,7 +72,7 @@ class fileman(apphabit):
         self.node.appendStr(1, 0, self.space)
         self.node.appendStr(2, 0, '_' * self.width)
         if self.filelen == 0:
-            self.node.appendStr(3, 0, "Folder is empty".center(self.width, ' '), Colors.FXPale)
+            self.node.appendStr(3, 0, self.error_messages[self.errorno].center(self.width, ' '), Colors.FXPale)
             return 0
         for y in range(self.oblen):
             self.node.appendStr(3 + y, 0, self.space)
@@ -79,9 +81,11 @@ class fileman(apphabit):
                 ind = 0
 
                 m = Colors.FXNormal
-                if self.menu == 0 and self.controller.mouse_x >= self.node.from_x and self.controller.mouse_x < self.node.to_x:
-                    if y + 3 == self.controller.mouse_y - self.node.from_y:
-                        m = Colors.FXReverse
+                for i in range(self.controller.getPlayerNumber()):
+                    if self.menu == 0 and self.controller[i].mouse_x >= self.node.from_x and self.controller[i].mouse_x < self.node.to_x:
+                        if y + 3 == self.controller[i].mouse_y - self.node.from_y:
+                            m = Colors.FXReverse
+                            break
 
                 if self.colors >= 2:
                     if os.path.isdir(self.dir + file):
@@ -136,8 +140,9 @@ class fileman(apphabit):
 
 
     def scroll(self, id, delta):
-        self.scrollpos = min(max(0, self.scrollpos + delta), self.filelen - 2)
-        self.ui.setSliderPos("fileSlider", round(self.scrollpos / self.filelen * self.height), type = "verticalSliders")
+        if self.filelen > 0:
+            self.scrollpos = min(max(0, self.scrollpos + delta), self.filelen - 2)
+            self.ui.setSliderPos("fileSlider", round(self.scrollpos / self.filelen * self.height), type = "verticalSliders")
 
 
     def scandir(self, path = ''):
@@ -149,15 +154,18 @@ class fileman(apphabit):
             c = os.listdir(path)
             if path != '' and isSet:
                 self.filelen = len(c)
+                self.errorno = 1
             return c
         else:
+            self.filelen = 0
+            self.errorno = 2
             return []
 
     def resizelist(self):
         self.oblen = min(self.height - 4, self.filelen)
         self.is_slider = 0
         self.ui.remove("fileSlider")
-        if self.oblen == self.height - 4:
+        if self.oblen == self.height - 4 and self.filelen > 0:
             self.slider = 1
             self.ui.verticalSlider("fileSlider", self.scrollfileviaslider, 0, self.width - 1, self.height, round(self.scrollpos / self.filelen * self.height), railChar = '|', buttonChar = '*', buttonHeight = max(1, round(self.height / self.filelen)), railAttr = Colors.FXPale, buttonAttr = Colors.FXBold)
 
@@ -187,7 +195,7 @@ class fileman(apphabit):
         self.menuclass = None
 
 
-    def scrollfileviaslider(self, y):
+    def scrollfileviaslider(self, name, y):
         self.scrollpos = round(y / self.height * self.filelen)
 
 

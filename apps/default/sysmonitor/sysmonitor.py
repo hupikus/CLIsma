@@ -33,24 +33,24 @@ class terminal(apphabit):
 		self.space = ' ' * self.width
 
 
-	def draw(self):
+	def draw(self, delta):
 		for y in range(self.height):
 			self.node.appendStr(y, 0, self.space)
 		self.node.appendStr(2, 0, self.mem)
 		self.node.appendStr(3, 0, self.cpu)
-	
+
 
 	def onresize(self, height, width):
 		self.height = height
 		self.width = width
 		self.space = ' ' * self.width
 		#self.node.ui.resize("errormessage", height, width)
-	
+
 	def statUpdate(self):
 		while self.shutdown:
 			self.mem = str(asizeof.asizeof(self.node.wm)) + " B"
 			self.cpu = str(psutil.cpu_percent()) + "% CPU used"
 			time.sleep(self.interval)
-	
+
 	def abort(self):
 		self.shutdown = False

@@ -8,9 +8,14 @@ class Wmconfig:
         wm.trail = [(0, 0) for i in range(val + 1)]
         for i in range(wm.pointer_count):
             wm.pointers[i].update_trail(val)
-    
+
     def setMouseSensivity(val):
         Wmconfig.wm.control.mouse_speed = val * 0.18
+
+
+    def setDesktopRefresh(val):
+        Wmconfig.wm.desktop.refresh = val
+
 
 class DesktopConfig:
     desktop = Singletons.Wm.desktop

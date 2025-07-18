@@ -38,7 +38,7 @@ class settings(apphabit):
         self.start()
 
 
-    def draw(self):
+    def draw(self, delta):
         for y in range(self.height):
             self.node.appendStr(y, 0, self.space)
         #self.node.appendStr(6, 0, str(*[self.ui.uis["lists"]]), Colors.FXReverse)

@@ -9,7 +9,7 @@ import time
 
 import os      #\
 import sys     # \
-import termios #  -
+import termios #  - - - -
 import tty     # /
 import io      #/
 
@@ -131,7 +131,7 @@ def ever_getch():
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
             shell_exit()
             exit()
- 
+
         if r != '':
             last_getch = r
             if last_getch == '\x1b':  # Escape character
@@ -156,8 +156,7 @@ def ever_getch():
         #except:
         #    shell_exit()
         #    exit()
- 
-                
+
 def shell_exit():
     global running
     global master

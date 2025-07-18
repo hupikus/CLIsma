@@ -2,6 +2,8 @@ from singletons import Singletons
 from apps.apps import App
 from type.colors import Colors
 
+from integration.loghandler import Loghandler
+
 from apps.apphabit import apphabit
 class menu(apphabit):
 
@@ -33,6 +35,7 @@ class menu(apphabit):
 		letter = ''
 		self.line = 2
 		for name in sorted(self.apps.keys()):
+			Loghandler.Log((self.apps[name].name))
 			if name == "desktop": continue
 			if name[0].capitalize() != letter:
 				letter = name[0].capitalize()
@@ -45,7 +48,7 @@ class menu(apphabit):
 
 
 
-	def draw(self):
+	def draw(self, delta):
 		s = self.scrollpos
 		d = self.display
 		w = self.width
@@ -78,7 +81,7 @@ class menu(apphabit):
 		self.viewlen = min(self.height, self.line - 2)
 		self.scrollpos = min(max(0, self.scrollpos + delta), self.line - 2 - round(self.height * 0.8))
 
-	def process(self):
+	def process(self, delta):
 		if not self.node.isActive():
 			self.desktop.ismenu = False
 			self.node.abort()
