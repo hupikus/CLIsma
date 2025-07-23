@@ -15,8 +15,9 @@ class Wm:
 
 	def newNode(self, parent_path, class_name, y, x, height, width, params, parent = None):
 		#sync active window
-		self.active[self.last_clicked] = self.id
-		self.pointers[self.last_clicked].focus_id = self.id
+		if self.isMouse:
+			self.active[self.last_clicked] = self.id
+			self.pointers[self.last_clicked].focus_id = self.id
 		#node owes a window class
 		parent_path += '.' + class_name + '.' + class_name
 		if parent:
@@ -32,8 +33,9 @@ class Wm:
 
 	def newNodeByApp(self, app, y, x, height, width, params, parent = None):
 		#sync active window
-		self.active[self.last_clicked] = self.id
-		self.pointers[self.last_clicked].focus_id = self.id
+		if self.isMouse:
+			self.active[self.last_clicked] = self.id
+			self.pointers[self.last_clicked].focus_id = self.id
 
 		if parent:
 			node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, params, app = app, parent = parent)
@@ -64,6 +66,7 @@ class Wm:
 		self.shutdown_ready = True
 
 
+
 	def __init__(self, display, inpd, desktop):
 
 		#display
@@ -86,25 +89,20 @@ class Wm:
 
 		self.draw_as_maximized = False
 
-				#mouse
-		self.isMouse = inpd.isMouse
+		#mouse
+		self.isMouse = False
 
 
-		if self.isMouse:
-			#prefs
-			self.trailength = 2
+		self.last_clicked = 0
+		self.pointers = []
+		self.active = []
 
-			#cursor
-			self.pointer_count = inpd.mouselen
-			self.pointers = []
-			self.active = []
-			self.last_clicked = 0
+		#prefs
+		self.trailength = 2
 
-			for id in range(self.pointer_count):
-				self.pointers.append(WmMouse(id, inpd, display, self, self.trailength))
-				self.active.append(0)
-		else:
-			self.active = [0]
+		#cursor
+		self.pointer_count = 0
+		inpd.listen_to_mouse(event_func = self.mouseinput, update_func = self.resize_pointers)
 
 		#startup nodes
 		#self.newNode(&Desktop)
@@ -116,8 +114,41 @@ class Wm:
 		Loghandler.Log("WM initialized")
 
 		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
-		#self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
+
+		#init finished
+
+
+	def resize_pointers(self, size):
+		self.isMouse = size > 0
+		self.pointer_count = size - 1
+		if self.isMouse:
+			ln = len(self.active)
+
+			self.control.resize_pointers(size)
+
+			if ln < size:
+				for id in range(ln, size):
+					self.pointers.append(WmMouse(id, self.control, self.display, self, self.trailength))
+					self.active.append(0)
+				if size - ln == 1:
+					Loghandler.Log(f"Cursor with id {size - 1} connected")
+				else:
+					Loghandler.Log(f"Cursors with id [{ln}:{size - 1}] connected")
+			elif ln > size:
+				for id in range(size, ln):
+					self.pointers[id].abort()
+				self.active = self.active[:size]
+				self.pointers = self.pointers[:size]
+				if ln - size == 1:
+					Loghandler.Log(f"Cursor with id {size} disconnected")
+				else:
+					Loghandler.Log(f"Cursors with id [{size}:{ln - 1}] disconnected")
+
+	def mouseinput(self):
+		for pointer in self.pointers:
+			pointer.input()
 
 
 	def decoration(self, node):

@@ -10,6 +10,8 @@
 
 - poorly documented
 
+- dependency-free (there is exceptions, see requirements)
+
 - external apps support; package manager
 
 - all input and windowing job are done for you; just append strings to the window
@@ -32,13 +34,11 @@ This app is currently unfinished and requies testing.
 
 - curses for python
 - alsa
-- evdev (pip)
-- pydoc (pip)
 - python 3.10 or newer
 
   additional: (unneccesary)
 - pympler (pip)
-
+- psutil (pip)
 ## Use
 
 Just execute **main.py**, while in the folder. *You must* have access to /dev/input.
@@ -50,6 +50,7 @@ This could be arranged by adding your user into input group or running python wi
 ```
 sudo usermod -aG input $USER
 ```
+then reboot.
 
 ```
 cd ./CLIsma
@@ -57,13 +58,13 @@ pip install -r ./requirements-extra.txt
 python main.py
 ```
 
-### 
+###
 
 ### CLIsma have shell arguiments:
 
 ```
 Usage: main.py --flag1 {required1} (optional2) --flag2 ...
-Insert flags before others to control order of execution
+Manipulate flag order to control order of execution
 Use -# instead of - for opposite effect: supported commands marked with !
 !   -b  --brief                                      Quick common info
 !   -d, --debug                                      Debug mode

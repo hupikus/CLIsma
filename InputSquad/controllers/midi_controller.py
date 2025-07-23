@@ -1,0 +1,18 @@
+from integration.loghandler import Loghandler
+
+
+class MidiController:
+
+
+    def __init__(self, parentController):
+        self.controller = parentController
+        self.listeners = parentController.midi_listen
+
+    def keyPress(self, note, pressure):
+        #Loghandler.Log(note_name(note))
+        for node in self.listeners:
+            node.midikeyPress(note, pressure)
+
+    def keyRelease(self, note):
+        for node in self.listeners:
+            node.midikeyRelease(note)

@@ -1,14 +1,20 @@
 from type.inpevents import InputEvents
 
+from InputSquad.controllers.midi_controller import MidiController
+
 class Controller:
 
-	def connect_pointer(self):
-		nc = miniMouseController(self.mouselen)
-		self.minicontroller.append(nc)
-		self.mouselen += 1
-		if self.mouselen == 1:
-			self.fn = self.minicontroller[0]
-		return nc
+	def resize_pointers(self, size):
+		if size <= 0: return
+		if size > self.mouselen:
+			for i in range(size - self.mouselen):
+				self.minicontroller.append(miniMouseController(self.mouselen))
+				self.mouselen += 1
+				if self.mouselen == 1:
+					self.fn = self.minicontroller[0]
+		else:
+			self.minicontroller = self.minicontroller[:size]
+			self.mouselen = size
 
 	def __init__(self):
 		#raw
@@ -18,7 +24,6 @@ class Controller:
 		self.fn = self
 
 		#input types binds
-		self.KeyboardEvents = InputEvents.KEYBOARD
 		self.MouseEvents = InputEvents.MOUSE
 		self.MouseWheelEvents = InputEvents.MOUSEWHEEL
 
@@ -29,17 +34,39 @@ class Controller:
 		#temp
 		self.key = -1
 
+
+		#controller modules
+
+		self.midi_listen = []
+		self.midi = MidiController(self)
+		self.MidiKeyboardEvents = InputEvents.MIDI
+
+		self.keyboard_listen = []
+		self.keyboard = None
+		self.KeyboardEvents = InputEvents.KEYBOARD
+
+		#add: self.touchscreen, self.gamepad, self.micro
+
+
+
 	def __getitem__(self, id = None):
-		if id == None or id > self.mouselen or id < 0:
+		if id is None or id > self.mouselen or id < 0:
 			return self
 		return self.minicontroller[id]
 
 	#public
 
+	def listenEvent(self, node, event):
+		match event:
+			case self.KeyboardEvents:
+				self.keyboard_listen.append(node)
+			case self.MidiKeyboardEvents:
+				self.midi_listen.append(node)
+
 	def getPlayerNumber(self):
 		return self.mouselen
 
-	def relMousePos(node):
+	def relMousePos(self, node):
 		return self.mouse_y - node.from_y, self.mouse_x - node.from_x
 
 	def isAtWindow(self, node):

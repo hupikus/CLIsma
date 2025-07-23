@@ -9,12 +9,13 @@ desktop = "default"
 textmode = False
 force = False
 forceColor = False
-version = "1.6"
+version = "1.7"
 text_shutdown = False
 
-if not os.path.exists("apps/.CLIsma_system_apps"):
-	print("Critical: user is not in CLIsma folder or app folder is not mounted")
-	print("cd to CLIsma folder before execution.")
+DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(DIR)
+if not os.path.exists("apps/default"):
+	print("Critical: default apps are deleted. This generation is doomed.")
 	exit()
 
 #argparse

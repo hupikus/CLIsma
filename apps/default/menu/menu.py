@@ -35,7 +35,7 @@ class menu(apphabit):
 		letter = ''
 		self.line = 2
 		for name in sorted(self.apps.keys()):
-			Loghandler.Log((self.apps[name].name))
+			#Loghandler.Log((self.apps[name].name))
 			if name == "desktop": continue
 			if name[0].capitalize() != letter:
 				letter = name[0].capitalize()

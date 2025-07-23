@@ -11,6 +11,18 @@ class apphabit:
     def process(self, delta):
         pass
 
+    #NODE EVENTS
+
+    def onresize(self, height, width):
+        self.height = height
+        self.width = width
+
+    def oncollapse(self):
+        pass
+
+    def abort(self):
+        pass
+
     #INPUT
 
     def click(self, device_id, button, y, x):
@@ -25,14 +37,8 @@ class apphabit:
     def keyboard(self, code):
         pass
 
-    #NODE EVENTS
-
-    def onresize(self, height, width):
-        self.height = height
-        self.width = width
-
-    def oncollapse(self):
+    def midikeyPress(self, note, pressure):
         pass
 
-    def abort(self):
+    def midikeyRelease(self, note):
         pass

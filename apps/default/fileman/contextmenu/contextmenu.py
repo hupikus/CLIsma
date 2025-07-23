@@ -21,8 +21,8 @@ class contextmenu(apphabit):
 
 
         self.wm = self.node.wm
-    
-    def draw(self):
+
+    def draw(self, delta):
         self.node.appendStr(0, 0, "Open".center(self.width, ' '), Colors.FXReverse)
         self.node.appendStr(0, 0, "Rename".center(self.width, ' '), Colors.FXReverse)
         self.node.appendStr(0, 0, "Delete".center(self.width, ' '), Colors.FXReverse)
@@ -30,7 +30,7 @@ class contextmenu(apphabit):
 
 
 
-    def process(self):
+    def process(self, delta):
         if not self.node.isActive():
             self.wm.desktop.ismenu = False
             self.node.abort()

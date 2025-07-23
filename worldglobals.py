@@ -2,7 +2,7 @@ class worldglobals:
     #performance
     processrate = 40
     framerate = 60
-    inputrate = 60
+    inputrate = 240
 
     processdelta = 1 / processrate
     framedelta = 1 / framerate

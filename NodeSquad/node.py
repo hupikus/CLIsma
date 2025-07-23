@@ -110,13 +110,14 @@ class Node:
 
 		#controller
 		controller = self.controller
+		self.sub = {}
 		if hasattr(self.win, "input_subscriptions"):
 			subdata = self.win.input_subscriptions
-			self.sub = {controller.MouseEvents:False, controller.MouseWheelEvents:False, controller.KeyboardEvents:False}
 			for type in subdata:
 				self.sub[type] = True
-		else:
-			self.sub = False
+
+		if controller.MidiKeyboardEvents in self.sub:
+			controller.listenEvent(self, controller.MidiKeyboardEvents)
 
 
 		#cache
@@ -130,6 +131,11 @@ class Node:
 
 	def clear(self):
 		self.tasks = []
+
+
+	def errorMessage(self, eventname, ex):
+		self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} {eventname} event closed with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
+		self.abort()
 
 
 	#i tried to over-optimize
@@ -232,8 +238,7 @@ class Node:
 			try:
 				self.win.process(delta)
 			except Exception as ex:
-				self.abort()
-				self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} process event closed with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
+				self.errorMessage("process", ex)
 			self.process_running = False
 
 	def draw(self, delta):
@@ -242,8 +247,7 @@ class Node:
 			self.win.draw(delta)
 			self.ui.draw()
 		except Exception as ex:
-			self.abort()
-			self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} draw closed with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
+			self.errorMessage("draw", ex)
 
 	def toggle_maximize(self):
 		if self.is_maximized:
@@ -292,43 +296,7 @@ class Node:
 	def closeNode(self, node):
 		self.child_nodes.remove(node)
 		if node != self:
-			node.abort()
-
-#Window Manager Decoration
-
-	def setKindness(self, id):
-		if id == 0:
-			self.windowed = False
-
-
-#input listeners
-
-	def click(self, device_id, button, y, x):
-		if self.sub:
-			if self.ui.click(device_id, button, y - self.from_y, x - self.from_x):
-				if self.sub[self.controller.MouseEvents]:
-					self.win.click(device_id, button,  y - self.from_y, x - self.from_x)
-
-	def drag(self, id, button, stage, y, x):
-		if stage == 0:
-			y -= self.from_y
-			x -= self.from_x
-		if self.sub:
-			try:
-				if self.ui.drag(id, button, stage, y, x):
-					if self.sub[self.controller.MouseEvents]:
-						self.win.drag(id, button, stage, y, x)
-			except:
-				pass
-
-	def scroll(self, id, delta):
-		if self.sub:
-			#if self.ui.scroll(id, delta):
-			if self.controller.MouseWheelEvents in self.sub:
-				try:
-					self.win.scroll(id, delta)
-				except:
-					pass
+			node.abort
 
 	def abort(self):
 		self.isDoomed = True
@@ -345,6 +313,53 @@ class Node:
 			if hasattr(self, "ui"):
 				del self.ui
 		self.ready_to_close = True
+
+#Window Manager Decoration
+
+	def setKindness(self, id):
+		if id == 0:
+			self.windowed = False
+
+#input listeners
+
+	def click(self, device_id, button, y, x):
+		if self.ui.click(device_id, button, y - self.from_y, x - self.from_x):
+			if self.controller.MouseEvents in self.sub:
+				try:
+					self.win.click(device_id, button,  y - self.from_y, x - self.from_x)
+				except Exception as ex:
+					self.errorMessage("click", ex)
+
+	def drag(self, id, button, stage, y, x):
+		if stage == 0:
+			y -= self.from_y
+			x -= self.from_x
+		try:
+			if self.ui.drag(id, button, stage, y, x):
+				if self.controller.MouseEvents in self.sub:
+					self.win.drag(id, button, stage, y, x)
+		except Exception as ex:
+			self.errorMessage("drag", ex)
+
+	def scroll(self, id, delta):
+		#if self.ui.scroll(id, delta):
+		if self.controller.MouseWheelEvents in self.sub:
+			try:
+				self.win.scroll(id, delta)
+			except Exception as ex:
+				self.errorMessage("scroll", ex)
+
+	def midikeyPress(self, note, pressure):
+		try:
+			self.win.midikeyPress(note, pressure)
+		except Exception as ex:
+			self.errorMessage("midi", ex)
+
+	def midikeyRelease(self, note):
+		try:
+			self.win.midikeyRelease(note)
+		except Exception as ex:
+			self.errorMessage("midi", ex)
 
 #Conditions
 

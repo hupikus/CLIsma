@@ -1,6 +1,8 @@
 import threading
 import os
+from shutil import copy
 
+from integration.loghandler import Loghandler
 from type.descriptor import Descriptor
 import FileSquad.clismaconfig as Cfg
 
@@ -28,18 +30,28 @@ class Appconfig:
 				Appconfig.appquery[classname] = []
 
 			configpath = app.config_path + "config"
+			if not os.path.exists(configpath):
+				os.makedirs(app.config_path, mode=0o777, exist_ok = True)
+				#open(configpath, 'a').close()
+				if os.path.exists(app.filepath + "/config"):
+					copy(app.filepath + "config", configpath)
+					os.chmod(configpath, 0o777)
+				else:
+					return Descriptor.DENIED.value | Appconfig.connection
+
+			#Loghandler.Log(configpath)
 			if not os.access(configpath, os.R_OK):
 				descriptor_type = Descriptor.DENIED
+			elif not os.access(configpath, os.W_OK):
+				descriptor_type = Descriptor.READONLY
 			else:
-				descriptor_type = Descriptor.OWNER
 				#list existing query and find another owner
-				if not os.access(configpath, os.W_OK):
-					descriptor_type = Descriptor.READONLY
+				for query in Appconfig.appquery[classname]:
+					if query == Descriptor.OWNER:
+						descriptor_type = Descriptor.READONLY
+						break
 				else:
-					for query in Appconfig.appquery:
-						if query == Descriptor.OWNER:
-							descriptor_type = Descriptor.READONLY
-							break
+					descriptor_type = Descriptor.OWNER
 
 
 			descriptor = descriptor_type.value | Appconfig.connection
@@ -48,23 +60,43 @@ class Appconfig:
 				Appconfig.appquery[classname].append(descriptor_type)
 				Appconfig.connection += 1
 				Appconfig.connections[descriptor] = app
+		
+		#Loghandler.Log(Appconfig.appquery)
 
 		return descriptor
+	
+
+	def CloseConfig(descriptor):
+		if descriptor not in Appconfig.connections:
+			return False
+
+		with threading.Lock():
+			app = Appconfig.connections[descriptor]
+			classname = app.class_name
+			descriptor_type = Descriptor.GetType(descriptor)
+			if descriptor_type in Appconfig.appquery[classname]:
+				Appconfig.appquery[classname].remove(descriptor_type)
+			del Appconfig.connections[descriptor]
+		
+		return True
+
 
 
 	@staticmethod
 	def ReadConfig(descriptor):
+		if descriptor not in Appconfig.connections:
+			return {}
 		app = Appconfig.connections[descriptor]
 		classname = app.class_name
 		configpath = app.config_path + "config"
 		content = {}
 
 		with threading.Lock():
-
 			try:
 				file = open(configpath, 'r')
 				c = file.read()
 				file.close()
+				Loghandler.Log(c)
 				content = Cfg.Parse(c)
 			except:
 				return {}

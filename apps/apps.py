@@ -8,11 +8,11 @@ class App:
 		self.name = name
 		self.valid = True
 
-		self.filepath = "./apps/" + name
+		self.filepath = "./apps/" + name + '/'
 		self.config_path = userglobals.userpath + ".local/share/CLIsma/config/apps/" + name + '/'
 
-		if not os.path.exists("./apps/external"):
-			self.filepath = self.filepath.replace("./apps/external", userglobals.userpath + ".local/share/CLIsma/custom/apps/external")
+		if not os.path.exists("./apps/external/"):
+			self.filepath = self.filepath.replace("./apps/external/", userglobals.userpath + ".local/share/CLIsma/custom/apps/external/")
 		#Loghandler.Log(self.filepath)
 
 		self.path = name.replace('/', '.')
@@ -27,8 +27,8 @@ class App:
 
 		#app info
 		self.data = {}
-		if os.path.isfile(self.filepath + "/.app"):
-			self.data = Parser.Parse(self.filepath + "/.app")
+		if os.path.isfile(self.filepath + ".app"):
+			self.data = Parser.Parse(self.filepath + ".app")
 			if "name" in self.data:
 				self.name = self.data["name"]
 			else:
@@ -41,8 +41,8 @@ class App:
 		if self.valid:
 			#icon
 			self.icon = []
-			if os.path.isfile(self.filepath + "/icon.asc"):
-				icon = open(self.filepath + "/icon.asc")
+			if os.path.isfile(self.filepath + "icon.asc"):
+				icon = open(self.filepath + "icon.asc")
 				self.icon_height, self.icon_width = map(int, icon.readline().split())
 				if self.icon_width != 5 or self.icon_height != 3:
 					self.icon_height = 3

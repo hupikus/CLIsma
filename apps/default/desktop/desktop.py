@@ -11,11 +11,7 @@ from integration.loghandler import Loghandler
 class desktop(apphabit):
 
 	def gen_cache(self):
-		header = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1)
-		if self.wm.isMouse:
-			header += 'x'
-		else:
-			header += ' '
+		header = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1) + 'x'
 		header_window = header[:-5] + "- m x"
 		self.dekstop_str = (header, '─' * self.width, ' ' * self.width, '_' * self.width, header_window)
 

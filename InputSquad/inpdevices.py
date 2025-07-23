@@ -2,14 +2,14 @@ import os
 import sys
 import threading
 import time
-#import asyncio
 
 from worldglobals import worldglobals
+from integration.loghandler import Loghandler
 
 from InputSquad.controller import Controller
 from InputSquad.mouse import Mice
+from InputSquad.midi import Midi
 
-from integration.loghandler import Loghandler
 
 #define
 EV_MSC = 0x04
@@ -22,137 +22,10 @@ REL_Y = 0x01
 
 KEY_Z = 44
 
-SEPARATE_DEBUG_CURSORS = False
+RESCAN_INTERVAL_SEC = 2
+
 
 reverse_hexes = {'0':"0000", '1':"1000", '2':"0100", '3':"1100", '4':"0010", '5':"1010", '6':"0110", '7':"1110", '8':"0001", '9':"1001", 'a':"0101", 'b':"1101", 'c':"0011", 'd':"1011", 'e':"0111", 'f':"1111"}
-
-class DeviceHandler:
-
-	def __init__(self):
-		c = True
-		self.mouses = []
-		self.keyboards = []
-		self._incall = []
-
-		#define avaliable keyboard and mouse and use first two
-		i = 0
-		while True:
-			loc = "/dev/input/event" + str(i)
-			if os.path.exists(loc):
-				is_mouse = False
-				is_keyboard = False
-				type = "Unknown Device"
-				ev = open(f"/sys/class/input/event{i}/device/capabilities/ev", 'r')
-				capb = hex_to_bin(ev.read())
-				ev.close()
-
-				ln = len(capb)
-				if ln >= EV_REL:
-					rel = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
-					relcapb = hex_to_bin(rel.read())
-					rel.close()
-					#type = "Mouse"
-					if len (relcapb) >= REL_Y and relcapb[REL_Y] == '1' and relcapb[REL_X] == '1':
-						type = "Mouse"
-				elif ln >= EV_KEY:
-					key = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
-					keycapb = hex_to_bin(rel.read())
-					key.close()
-					#type = "Keyboard"
-					if len(keycapb) >= KEY_Z and keycapb[KEY_Z] == '1':
-						type = "Keyboard"
-
-
-				if type == "Mouse":
-					self.mouses.append(loc)
-				elif type == "Keyboard":
-					self.keyboards.append(loc)
-			else: break
-			i += 1
-
-		self.mouselen = len(self.mouses)
-		self.cursorlen = 0
-		self.isMouse = self.mouselen > 0
-		self.controller = Controller()
-
-		if self.isMouse:
-			self.mouse_class = Mice(self.mouses)
-
-			self.pointer_events = [0 for i in range(self.mouselen)]
-			self.fake_events = self.pointer_events[:]
-
-			#cache
-			self.mouse_range = range(self.mouselen)
-			self.pointer_range = range(0)
-
-			#thread
-			self.queue_cursor = 0
-			self.input_thread = threading.Thread(target = self._mouse)
-			self.input_thread.start()
-
-
-	def _mouse(self):
-		while self.isMouse:
-			if self.cursorlen > 0 and not self.queue_cursor:
-				self.mouse_class.readevent()
-				first = [True for i in self.pointer_range]
-
-				for dev in self.mouse_range:
-					id = self.pointer_events[dev]
-
-					if first[id]:
-						self.controller[id].mouse_dy = self.mouse_class.y[dev]
-						self.controller[id].mouse_dx = self.mouse_class.x[dev]
-						self.controller[id].mouse_wheel = self.mouse_class.wheel[dev]
-						self.controller[id].raw_mouse_buttons = self.mouse_class.state[dev]
-						#first[id] = False
-					else:
-						self.controller[id].mouse_dy += self.mouse_class.y[dev]
-						self.controller[id].mouse_dx += self.mouse_class.x[dev]
-						self.controller[id].mouse_wheel += self.mouse_class.wheel[dev]
-						for i in range(3):
-							self.controller[id].raw_mouse_buttons[i] = self.controller[id].raw_mouse_buttons[i] or self.mouse_class.state[dev][i]
-
-
-					#Loghandler.Log(f"mouse {id} device {dev}: {self.controller[id].mouse_dy} {self.controller[id].mouse_dx} {self.controller[id].mouse_wheel}")
-					#Loghandler.Log(f"mouse {id} device {dev}: {self.controller[id].raw_mouse_buttons}")
-
-
-				for id in self.pointer_range:
-					self._incall[id]()
-
-			time.sleep(worldglobals.inputdelta)
-
-			if self.queue_cursor:
-				self.pointer_range = range(self.cursorlen)
-				self.pointer_events = self.fake_events[:]
-
-				Loghandler.Log("New pointer rules applied")
-				self.queue_cursor = False
-
-	def abort(self):
-		self.isMouse = False
-		self.mouse_class.abort()
-
-	def listen_to_mouse(self, method, devs):
-		self._incall.append(method)
-		if not self.queue_cursor:
-			self.fake_events = self.pointer_events[:]
-		for i in devs:
-			self.fake_events[i] = self.cursorlen
-
-		Loghandler.Log(f"New pointer allocated, id: {self.cursorlen}")
-		self.cursorlen += 1
-		control = self.controller.connect_pointer()
-
-		self.queue_cursor = True
-		return control
-
-	def connect_mouse(self):
-		self.pointer_events.append(0)
-		self.mouselen += 1
-		self.mouse_range = range(self.mouselen)
-		Loghandler.Log(f"New mouse device connected, binded to main pointer")
 
 def hex_to_bin(str_hex):
 	bin = ''
@@ -167,3 +40,199 @@ def hex_to_bin(str_hex):
 			bin += reverse_hexes[c]
 			i += 1
 	return bin
+
+class DeviceHandler:
+
+	def device_scan(self):
+		c = True
+		self.mouses = []
+		self.keyboards = []
+		self.midi = []
+
+		i = 0
+		with threading.Lock():
+			while True:
+				loc = "/dev/input/event" + str(i)
+				if os.path.exists(loc):
+					is_mouse = False
+					is_keyboard = False
+					type = "Unknown Device"
+					ev = open(f"/sys/class/input/event{i}/device/capabilities/ev", 'r')
+					capb = hex_to_bin(ev.read())
+					ev.close()
+
+					ln = len(capb)
+					if ln >= EV_REL:
+						rel = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
+						relcapb = hex_to_bin(rel.read())
+						rel.close()
+						#type = "Mouse"
+						if len (relcapb) >= REL_Y and relcapb[REL_Y] == '1' and relcapb[REL_X] == '1':
+							type = "Mouse"
+					elif ln >= EV_KEY:
+						key = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
+						keycapb = hex_to_bin(rel.read())
+						key.close()
+						#type = "Keyboard"
+						if len(keycapb) >= KEY_Z and keycapb[KEY_Z] == '1':
+							type = "Keyboard"
+
+
+					if type == "Mouse":
+						self.mouses.append(loc)
+					elif type == "Keyboard":
+						self.keyboards.append(loc)
+				else: break
+				i += 1
+
+			midi = "/dev/snd/"
+			if os.path.exists(midi):
+				for dev in os.listdir(midi):
+					if dev[:4] == "midi":
+						devpath = midi + dev
+						if os.access(devpath, os.R_OK):
+							self.midi.append(devpath)
+
+
+
+	def __init__(self):
+
+		self._event_incall = False
+		self._update_incall = False
+
+
+		self.isMouse = False
+		self.isKeyboard = False
+		self.isMidi = False
+		self.working = False
+		self.not_abort = True
+
+		self.controller = Controller()
+
+		self.mouse_class = False
+		self.keyboard_class = False
+		self.midi_class = False
+
+		self.modules =  [self._mouse,      self._midi,      self._keyboard]
+
+
+		self.scan_exit = threading.Event()
+		self.scan_thread = threading.Thread(target = self.scan)
+		self.scan_thread.start()
+
+
+
+
+	def scan(self):
+		Loghandler.Log(f"Rescan set to every {RESCAN_INTERVAL_SEC} seconds")
+		while self.not_abort:
+			with threading.Lock():
+				self.device_scan()
+
+				self.mouselen = len(self.mouses)
+				isMouse = self.mouselen > 0
+				isKeyboard = len(self.keyboards) > 0
+				isMidi = len(self.midi) > 0
+				working = isMouse or isKeyboard or isMidi
+
+				self.modules =  [self._mouse,      self._midi,      self._keyboard]
+
+				if not self.isMouse and isMouse:
+					self.isMouse = True
+					self.mouse_class = Mice(self.mouses, self.controller)
+					self.mouse_range = range(0)
+					Loghandler.Log("Initialized input modult: mouse")
+
+				if not self.isKeyboard and isKeyboard:
+					self.isKeyboard = True
+					Loghandler.Log("Initialized input module: keyboard")
+
+				if not self.isMidi and isMidi:
+					self.isMidi = True
+					self.midi_class = Midi(self.midi, self.controller)
+					Loghandler.Log("Initialized input module: midi")
+					Loghandler.Log("Midi keyboard connected")
+
+
+
+				if self.mouse_class:
+					self.mouse_class.edit(self.mouses)
+					if self._update_incall:
+						self._update_incall(self.mouselen)
+					#cache
+					self.mouse_range = range(self.mouselen)
+
+				if self.midi_class:
+					self.midi_class.edit(self.midi)
+				if self.keyboard_class:
+					self.keyboard_class.edit(self.keyboards)
+
+
+
+				if not self.working and working:
+					self.working = True
+					self.input_thread = threading.Thread(target = self._input_loop)
+					self.input_thread.start()
+
+			self.scan_exit.wait(RESCAN_INTERVAL_SEC)
+
+
+
+
+
+	def _input_loop(self):
+		while self.working:
+
+			if self.isMouse:
+				self._mouse()
+
+			if self.isKeyboard:
+				self._keyboard()
+
+			if self.isMidi:
+				self._midi()
+
+			time.sleep(worldglobals.inputdelta)
+
+
+
+
+	def _mouse(self):
+		self.mouse_class.readevent()
+
+		id = 0
+		for dev in self.mouse_range:
+			self.controller[id].mouse_dy = self.mouse_class.y[dev]
+			self.controller[id].mouse_dx = self.mouse_class.x[dev]
+			self.controller[id].mouse_wheel = self.mouse_class.wheel[dev]
+			self.controller[id].raw_mouse_buttons = self.mouse_class.state[dev]
+
+
+			#Loghandler.Log(f"mouse {id} device {dev}: {self.controller[id].mouse_dy} {self.controller[id].mouse_dx} {self.controller[id].mouse_wheel}")
+			#Loghandler.Log(f"mouse {id} device {dev}: {self.controller[id].raw_mouse_buttons}")
+
+			id += 1
+
+		if self._event_incall:
+			self._event_incall()
+
+
+	def _midi(self):
+		self.midi_class.readevent()
+
+	def _keyboard(self):
+		pass
+
+	def abort(self):
+		if self.working:
+			self.working = False
+			if self.mouse_class: self.mouse_class.abort()
+			if self.midi_class: self.midi_class.abort()
+			if self.keyboard_class: self.keyboard_class.abort()
+			self.scan_exit.set()
+		self.not_abort = False
+
+	def listen_to_mouse(self, event_func, update_func):
+		self._event_incall = event_func
+		self._update_incall = update_func
+

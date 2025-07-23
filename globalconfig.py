@@ -8,8 +8,7 @@ class Config:
     def __init__(self):
 
         d = userglobals.userpath + ".local/share/CLIsma/"
-        prep = os.path.exists(d)
-        if not prep:
+        if not os.path.exists(d):
              os.makedirs(d, mode = 0o777)
 
         #creating missing folders
@@ -17,10 +16,3 @@ class Config:
             n = d + p
             if not os.path.exists(n):
                 os.makedirs(n, mode = 0o777)
-
-                #custom
-                if p == "custom/apps/external":
-                    os.system(f"ln -s {d}custom/apps ./apps/external")
-
-        if not prep:
-            os.system("chmod 777 " + d + " -R")

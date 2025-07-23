@@ -28,6 +28,12 @@ class default(apphabit):
 
 		self.descriptor = Appconfig.OpenConfig(node.app)
 
+		Loghandler.Log(Descriptor.GetType(self.descriptor))
+
+		self.config = Appconfig.ReadConfig(self.descriptor)
+
+		Loghandler.Log(self.config)
+
 		ui = self.node.ui
 
 		ui.textLine("description", "Default window contains minimal api usage", 2, 0)
@@ -41,3 +47,6 @@ class default(apphabit):
 
 	def click(self, device_id, button, y, x):
 		self.counter += 1
+	
+	def abort(self):
+		Appconfig.CloseConfig(self.descriptor)

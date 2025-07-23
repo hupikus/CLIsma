@@ -6,10 +6,10 @@ from integration.loghandler import Loghandler
 
 class WmMouse:
 
-    def __init__(self, id, inpd, display, wm, trailength, isReversed = False):
+    def __init__(self, id, controller, display, wm, trailength, isReversed = False):
         self.id = id
-        self.inpd = inpd
-        #self.control = inpd.controller[id]
+        self.controller = controller
+        self.control = controller[id]
         self.wm = wm
 
         self.display = display
@@ -22,17 +22,12 @@ class WmMouse:
 
         self.color = 0
 
-        #device
-        self.mouse = inpd.mouse_class
-
         self.cursor_symbol = {"base":" ", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
         self.holdout = wg.hold_time * wg.inputrate
         self.mouse_cursor = "base"
 
         self.buttons = [0, 0, 0]
         self.hasDelta = False
-
-        self.control = inpd.listen_to_mouse(self.input, [id])
 
         #node management
         self.moving_node = False
@@ -212,7 +207,7 @@ class WmMouse:
                     if ctr.mouse_x >= node.from_x and ctr.mouse_y >= node.from_y and ctr.mouse_y <= node.to_y and ctr.mouse_x <= node.to_x:
                         break
                     else:
-                        if ctr.mouse_x > node.from_x and ctr.mouse_y == node.from_y - 1 and ctr.mouse_x < node.to_x:
+                        if ctr.mouse_x > node.from_x and ctr.mouse_y == node.from_y - 1 and ctr.mouse_x < node.to_x - 1:
                             #focus and move
                             if self.focus_id != id:
                                     self.focus_id = id
@@ -293,3 +288,6 @@ class WmMouse:
         else:
             self.range.append(range(3))
         self.range.append(range(length, 0, -1))
+
+    def abort(self):
+        pass

@@ -7,5 +7,5 @@ counter : int : 8 : (0:100),
 temperature : float
 message : string : "hello!",
 responce : enum : "hello!~" : "bye!",
-color_order : int[]
+color_order : int[:5] : (-50:50) : [-1, -1]
 }
