@@ -3,9 +3,11 @@ import os
 import pydoc
 import traceback
 
+from type.colors import Colors
+from type.permissions import Permisions
+
 from NodeSquad.ui import UI
 from apps.apps import App
-from type.colors import Colors
 from integration.loghandler import Loghandler
 
 class Node:
@@ -115,9 +117,7 @@ class Node:
 			subdata = self.win.input_subscriptions
 			for type in subdata:
 				self.sub[type] = True
-
-		if controller.MidiKeyboardEvents in self.sub:
-			controller.listenEvent(self, controller.MidiKeyboardEvents)
+				controller.listenEvent(self, type)
 
 
 		#cache
@@ -127,7 +127,7 @@ class Node:
 		self.ready_to_close = False
 		self.isDoomed = False
 
-
+	#public
 
 	def clear(self):
 		self.tasks = []
@@ -136,6 +136,18 @@ class Node:
 	def errorMessage(self, eventname, ex):
 		self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} {eventname} event closed with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
 		self.abort()
+
+
+	def clear(self, mode = Colors.FXNormal, char = ' '):
+		fx = max(0, self.from_x)
+		w = self.display_width
+		if fx > w - 1: return
+		s = char * min(self.to_x - fx, w - fx)
+		y = max(0, self.from_y)
+		my = min(self.to_y + 1,  self.display_height)
+		while y != my:
+			self.root.addstr(y, fx, s, mode)
+			y += 1
 
 
 	#i tried to over-optimize
@@ -189,6 +201,9 @@ class Node:
 		else:
 			self.appendStr(y, x, text, mode)
 
+
+	def requestPermission(self, permission):
+		return self.wm.requestPermission(permission)
 
 
 	#properties

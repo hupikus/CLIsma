@@ -9,6 +9,7 @@ from integration.loghandler import Loghandler
 from InputSquad.controller import Controller
 from InputSquad.mouse import Mice
 from InputSquad.midi import Midi
+from InputSquad.keyboard import Keyboard
 
 
 #define
@@ -21,8 +22,10 @@ REL_X = 0x00
 REL_Y = 0x01
 
 KEY_Z = 44
+KEY_ENTER = 28
+KEY_SPACE = 57
 
-RESCAN_INTERVAL_SEC = 2
+RESCAN_INTERVAL_SEC = 5
 
 
 reverse_hexes = {'0':"0000", '1':"1000", '2':"0100", '3':"1100", '4':"0010", '5':"1010", '6':"0110", '7':"1110", '8':"0001", '9':"1001", 'a':"0101", 'b':"1101", 'c':"0011", 'd':"1011", 'e':"0111", 'f':"1111"}
@@ -56,26 +59,27 @@ class DeviceHandler:
 				if os.path.exists(loc):
 					is_mouse = False
 					is_keyboard = False
-					type = "Unknown Device"
+					type = ""
 					ev = open(f"/sys/class/input/event{i}/device/capabilities/ev", 'r')
 					capb = hex_to_bin(ev.read())
 					ev.close()
 
 					ln = len(capb)
-					if ln >= EV_REL:
+					if type == '' and ln >= EV_REL:
 						rel = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
 						relcapb = hex_to_bin(rel.read())
 						rel.close()
 						#type = "Mouse"
 						if len (relcapb) >= REL_Y and relcapb[REL_Y] == '1' and relcapb[REL_X] == '1':
 							type = "Mouse"
-					elif ln >= EV_KEY:
-						key = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
-						keycapb = hex_to_bin(rel.read())
+					if type == '' and ln >= EV_KEY:
+						key = open(f"/sys/class/input/event{i}/device/capabilities/key", 'r')
+						keycapb = hex_to_bin(key.read())
 						key.close()
 						#type = "Keyboard"
-						if len(keycapb) >= KEY_Z and keycapb[KEY_Z] == '1':
-							type = "Keyboard"
+						if len(keycapb) >= KEY_SPACE and keycapb[KEY_ENTER] == '1':
+							if keycapb[KEY_SPACE] == '1':
+								type = "Keyboard"
 
 
 					if type == "Mouse":
@@ -145,7 +149,9 @@ class DeviceHandler:
 
 				if not self.isKeyboard and isKeyboard:
 					self.isKeyboard = True
+					self.keyboard_class = Keyboard(self.keyboards, self.controller)
 					Loghandler.Log("Initialized input module: keyboard")
+					Loghandler.Log("Keyboard connected")
 
 				if not self.isMidi and isMidi:
 					self.isMidi = True
@@ -221,7 +227,7 @@ class DeviceHandler:
 		self.midi_class.readevent()
 
 	def _keyboard(self):
-		pass
+		self.keyboard_class.readevent()
 
 	def abort(self):
 		if self.working:

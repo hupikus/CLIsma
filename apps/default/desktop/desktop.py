@@ -1,8 +1,10 @@
 import math
 
+from type.colors import Colors
+from type.keys import Keys
+
 from apps.apps import App
 from apps.apphabit import apphabit
-from type.colors import Colors
 from singletons import Singletons
 
 from userglobals import userglobals
@@ -180,6 +182,9 @@ class desktop(apphabit):
 			#self.node.appendStr(self.height - 4 - 5 + y, 0, line)
 
 		return 0
+
+	def keyPress(key):
+		print(key)
 
 	def process(self, delta):
 		self.neotick += 1

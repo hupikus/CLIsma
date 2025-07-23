@@ -9,7 +9,7 @@ desktop = "default"
 textmode = False
 force = False
 forceColor = False
-version = "1.7"
+version = "1.8"
 text_shutdown = False
 
 DIR = os.path.dirname(os.path.abspath(__file__))

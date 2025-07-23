@@ -28,13 +28,19 @@ class apphabit:
     def click(self, device_id, button, y, x):
         pass
 
+    def clickEnd(self, device_id, button, y, x):
+        pass
+
     def drag(self, id, button, stage, y, x):
         pass
 
     def scroll(self, id, delta):
         pass
 
-    def keyboard(self, code):
+    def keyPress(self, key):
+        pass
+
+    def keyRelease(self, key):
         pass
 
     def midikeyPress(self, note, pressure):

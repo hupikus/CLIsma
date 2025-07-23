@@ -4,7 +4,7 @@ class Loghandler:
     history = []
 
     #preferences
-    MaxLen = 25
+    MaxLen = 50
 
     @staticmethod
     def Log(msg):
@@ -13,3 +13,21 @@ class Loghandler:
             Loghandler.loglen += 1
         else:
             Loghandler.history.pop(0)
+
+#incase if developer'll have a typo
+class Lolhandler:
+
+    @staticmethod
+    def Log(msg):
+        raise TypoException('"Lol" expected, got "Log". Did you mean "Lolhandler.Lol()?"')
+
+    @staticmethod
+    def Lol(msg):
+        l = len(str(msg))
+        s = ('LO' * (l // 2))
+        if l & 1:
+            s += 'L'
+        Loghandler.Log(s)
+
+class TypoException(Exception):
+    pass

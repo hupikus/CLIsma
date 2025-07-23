@@ -11,8 +11,5 @@ class worldglobals:
     #input
     hold_time = 0.8
 
-    separate_pointers = False
-    pointers_count = 0
-
     #customization
     isColors = [0]

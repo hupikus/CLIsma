@@ -1,13 +1,15 @@
 import os
 import gc
 
+from type.colors import Colors
+from type.permissions import Permisions
+
 from WMSquad.screen import Screen
 from NodeSquad.node import Node
 from apps.apps import App
 from WMSquad.wmouse import WmMouse
 
 from integration.loghandler import Loghandler
-from type.colors import Colors
 
 from worldglobals import worldglobals as wg
 
@@ -151,6 +153,12 @@ class Wm:
 			pointer.input()
 
 
+	def requestPermission(self, permission):
+		match permission:
+			case Permisions.INPUT_DEVICES:
+				return self.inpd
+
+
 	def decoration(self, node):
 		#top decoration
 		if node and not node.is_fullscreen and node.windowed:
@@ -207,6 +215,7 @@ class Wm:
 		else:
 			for id in self.order:
 				node = self.nodes[id]
+				if node.from_x > self.screen_width - 1: continue
 				if node and not node.hidden:
 					node.draw(delta)
 					#if node.is_maximized or node.is_fullscreen:

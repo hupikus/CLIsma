@@ -1,7 +1,7 @@
 from type.colors import Colors
 from type.descriptor import Descriptor
 
-from integration.loghandler import Loghandler
+from integration.loghandler import Loghandler, Lolhandler
 from integration.appconfig import Appconfig
 
 from utils.music_theory import NoteName
@@ -31,6 +31,7 @@ class midiplayer(apphabit):
 
 
 	def draw(self, delta):
+		self.node.clear()
 		self.node.appendStr(0, 0, self.note)
 
 	#def abort(self):

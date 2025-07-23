@@ -3,9 +3,7 @@ from integration.loghandler import Loghandler
 
 class MidiController:
 
-
     def __init__(self, parentController):
-        self.controller = parentController
         self.listeners = parentController.midi_listen
 
     def keyPress(self, note, pressure):

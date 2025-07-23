@@ -1,6 +1,7 @@
 from type.inpevents import InputEvents
 
 from InputSquad.controllers.midi_controller import MidiController
+from InputSquad.controllers.keyboard_controller import KeyboardController
 
 class Controller:
 
@@ -42,7 +43,7 @@ class Controller:
 		self.MidiKeyboardEvents = InputEvents.MIDI
 
 		self.keyboard_listen = []
-		self.keyboard = None
+		self.keyboard = KeyboardController(self)
 		self.KeyboardEvents = InputEvents.KEYBOARD
 
 		#add: self.touchscreen, self.gamepad, self.micro

@@ -1,4 +1,6 @@
 import os
+import fcntl
+
 
 #reads all the devices from filepaths. Pahts are specified in devices arg.
 class Device():
@@ -36,12 +38,18 @@ class Device():
                 #newpaths.append(path)
         self.devicelist = list(self.devices.values())
 
+    def lock(self, device, value):
+        fcntl.ioctl(device, 0x40044590, int(value))
+
     # in: path; out: open() object
     def open(self, path):
         return os.open(path, os.O_RDONLY | os.O_NONBLOCK)
 
     # in: object
     def close(self, device):
+        try:
+            self.lock(device, 0)
+        except: pass
         os.close(device)
 
     def abort(self):
