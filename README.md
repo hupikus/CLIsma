@@ -5,6 +5,7 @@
 > Stands for 'Command-Line-Interface System Manager Accompanier'
 
 ![](./assets/readme_images/screenshot1.png)
+![](./assets/readme_images/screenshot2.png)
 
 ## Cool Features
 
@@ -12,53 +13,67 @@
 
 - dependency-free (there is exceptions, see requirements)
 
-- external apps support; package manager
+- external apps support - friendly environment for developing new packages; package manager
 
-- all input and windowing job are done for you; just append strings to the window
+- all input and windowing job are done for developer; just append strings to the window
 
 - premade ui elements: sliders, buttons, text fields
 
-- multitasking window system
+- standard-looking window system
 
-- many mouse cursors support
+- fancy features like many mouse cursors support or midi keyboard support
 
 - runs smooth on old pcs
 
-
-
 This app is currently unfinished and requies testing.
-
-
 
 ## Requirements
 
 - curses for python
-- alsa
-- python 3.10 or newer
 
+- alsa
+
+- python 3.10 or newer
+  
   additional: (unneccesary)
+
 - pympler (pip)
+
 - psutil (pip)
+
+## Recommended Hardware Requirements
+
+CLIsma requires:
+
+- 15-30 mb of RAM
+
+- About 5 mb on disk
+
+- CPU: tested on 800 mHz 1 core CPU
+
+- No GPU required
+
+- 8 color support (unneccesary)
+
 ## Use
 
-Just execute **main.py**, while in the folder. *You must* have access to /dev/input.
+Execute **main.py**. *You must* have access to /dev/input.
 This could be arranged by adding your user into input group or running python with sudo or root.
 
 > all input is received from from /dev/input.
 > root privilegies isn't required for CLIsma shell.
 
-```
+```shell
 sudo usermod -aG input $USER
 ```
+
 then reboot.
 
-```
-cd ./CLIsma
+```shell
+cd CLIsma
 pip install -r ./requirements-extra.txt
 python main.py
 ```
-
-###
 
 ### CLIsma have shell arguiments:
 

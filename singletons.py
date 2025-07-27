@@ -18,13 +18,7 @@ class Singletons:
 
         cls.appp = AppPool()
 
-        siz = tuple(map(int, os.popen('stty size', 'r').read().split()))
-        global screen_height
-        screen_height = siz[0]
-        global screen_width
-        screen_width = siz[1]
-
-        cls.Screenman = Screen(screen_width, screen_height, forceColor)
+        cls.Screenman = Screen(forceColor)
 
         cls.Cfg = Config()
 

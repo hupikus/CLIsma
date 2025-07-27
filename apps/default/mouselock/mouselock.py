@@ -54,4 +54,4 @@ class mouselock(apphabit):
 			self.active = not self.active
 			self.inpd.mouse_class.lock(self.inpd.mouse_class.devicelist[0], self.active)
 			Loghandler.Log(f"Mouse lock set to {self.active}")
-			self.msg = "Activate" if not self.active or "Deactivate"
+			self.msg = "Activate" if not self.active else "Deactivate"

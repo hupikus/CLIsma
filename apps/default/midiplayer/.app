@@ -1,3 +1,3 @@
 name="Midi Player"
-prefHeight=3
+prefHeight=14
 prefWidth=30

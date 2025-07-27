@@ -1,8 +1,8 @@
-
 from type.colors import Colors
 #import sys
 from worldglobals import worldglobals as wg
 from integration.loghandler import Loghandler
+import curses
 
 class WmMouse:
 
@@ -41,6 +41,7 @@ class WmMouse:
 
 
     def draw(self):
+        display = self.display
         for i in self.range[1]:
             self.trail[i] = self.trail[i - 1]
         self.trail[0] = (self.control.mouse_y, self.control.mouse_x)
@@ -50,9 +51,29 @@ class WmMouse:
             if i > 0 and self.trail[i] == self.trail[i - 1]: continue
             mouse_last_y = self.trail[i][0]
             mouse_last_x = self.trail[i][1]
+            if mouse_last_x > self.wm.screen_width - 1: mouse_last_x = self.wm.screen_width - 1
             #sys.stdout.write(f"\033[{mouse_last_y};{mouse_last_x}H{'#'}")
-            self.display.root.addstr(mouse_last_y, mouse_last_x, self.display.root.instr(mouse_last_y, mouse_last_x, 1), Colors.FXReverse | self.color)
-            #self.display.root.addstr(mouse_last_y, mouse_last_x, '#')
+            color = self.color
+            attr = display.root.inch(mouse_last_y, mouse_last_x)
+
+            if self.color == 0:
+                color = attr
+            # else:
+            #     fg, bg = curses.pair_content((attr & curses.A_COLOR) >> 8)
+            #     if bg == self.color:
+            #         if self.color == Colors.FXWhite:
+            #             bg = Colors.FXRed
+            #         else:
+            #             bg = Colors.FXWhite
+            #     color = Colors.getColorPair(foreground = bg, background = self.color)
+
+            color = color | Colors.FXReverse
+
+            display.root.chgat(mouse_last_y, mouse_last_x, 1, color)
+
+            #ch = display.root.instr(mouse_last_y, mouse_last_x, 1)
+            #display.root.addch(mouse_last_y, mouse_last_x, ch, color)
+
         return 0
 
 
@@ -150,12 +171,12 @@ class WmMouse:
                                 break
                             else:
                                 if i == 0: # left button click
-                                    if ctr.mouse_x == node.to_x:
+                                    if ctr.mouse_x == node.to_x - 1:
                                         Loghandler.Log("close " + node.app.name)
                                         node.abort()
-                                    elif ctr.mouse_x == node.to_x - 2:
+                                    elif ctr.mouse_x == node.to_x - 3:
                                         node.toggle_maximize()
-                                    elif ctr.mouse_x == node.to_x - 4:
+                                    elif ctr.mouse_x == node.to_x - 5:
                                         node.hide(True)
                                 elif i == 1: #right button click
                                     pass

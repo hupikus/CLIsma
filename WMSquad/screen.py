@@ -1,14 +1,21 @@
 import sys
 import os
 import curses
+import shutil
 
 from type.colors import Colors
 
 class Screen():
 
-	def __init__(self, width, height, forceColor):
-		self.width = width
-		self.height = height
+	def __init__(self, forceColor):
+
+		siz = shutil.get_terminal_size()
+
+		self.height = siz[1]
+		self.width = siz[0]
+
+		self.resize_wm_signal = False
+
 
 		#preparation
 		self.screen = curses.initscr()
@@ -16,7 +23,6 @@ class Screen():
 
 		#ASCII screen
 		self.root = curses.newwin(self.height + 1, self.width, 0, 0)
-		#self.srend = [[' ' for x in range(self.width)] for y in range(self.height)]
 
 		#set up the env
 		self.root.nodelay(1)
@@ -25,10 +31,9 @@ class Screen():
 		curses.curs_set(0)
 
 		#colors
-		curses.start_color()
-		curses.use_default_colors()
+		Colors.start_color(forceColor)
 		if curses.has_colors():
-			Colors.define_pairs(forceColor)
+			Colors.define_pairs()
 
 		#curses.nonl()
 		#curses.def_shell_mode()
@@ -36,6 +41,12 @@ class Screen():
 	def draw(self):
 		#sys.stdout.write("\033[0m")
 		self.root.refresh()
+		siz = shutil.get_terminal_size()
+		if self.height != siz[1] or self.width != siz[0]:
+			self.height = siz[1]
+			self.width = siz[0]
+			self.root.resize(self.height + 1, self.width)
+			self.resize_wm_signal = True
 		return 0
 
 	def abort(self):
@@ -51,3 +62,11 @@ class Screen():
 
 		self.srend = []
 		os.system("clear")
+
+	def getColorPair(self, y, x):
+		return self.root.inch(y, x) & curses.A_ATTRIBUTES
+
+	def getChar(self, y, x):
+		ch = self.root.inch(y, x) & 0xFF
+		if ch == 0: return ''
+		return bytes([ch])

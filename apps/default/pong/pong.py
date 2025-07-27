@@ -20,7 +20,7 @@ class pong(apphabit):
         self.ball_x = 32
         self.ball_ry = 7.0
         self.ball_rx = 32.0
-        self.ball_dir = 45.0
+        self.ball_dir = 0.0
         self.ball_speed = 0.4
         self.ball_speedboost = 0.0
 
@@ -80,13 +80,13 @@ class pong(apphabit):
         #reset
         if self.ball_rx < -0.5:
             self.p2score += 1
-            self.ball_dir = 45.0
+            self.ball_dir = 180.0
             self.ball_ry = 7.0
             self.ball_rx = 32.0
             self.ball_speedboost = 0.0
         elif self.ball_rx > 64.5:
             self.p1score += 1
-            self.ball_dir = -45.0
+            self.ball_dir = 0.0
             self.ball_ry = 7.0
             self.ball_rx = 32.0
             self.ball_speedboost = 0.0
@@ -110,7 +110,7 @@ class pong(apphabit):
         write(3, 31, f"{self.p1score}:{self.p2score}")
 
     def onresize(self, height, width):
-        self.node.resize(15, 64)
+        self.node.resize(14, 64)
 
     def clear(self):
         write = self.node.appendStr

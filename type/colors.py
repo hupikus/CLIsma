@@ -1,28 +1,63 @@
 import curses
 
+from integration.loghandler import Loghandler
+
 class Colors:
 
     colorMode = {}
 
-
-    FXItalic = curses.A_NORMAL
-
-
     FXNormal = curses.A_NORMAL
-    FXBold = curses.A_BOLD
-    #There is no italic in bodhi linux e.g., ill figure it out
+
+    FXItalic = FXNormal
+    FXPale = FXNormal
+    FXHighlight = FXNormal
+    FXUnderline = FXNormal
+    FXReverse = FXNormal
+    FXReversed = FXNormal
+    FXAlt = FXNormal
+    FXBlink = FXNormal
+    FXInvisible = FXNormal
+
+
+    #Thank you, but actually turns out some of this effects may be missing in specific linux distributions
+    try:
+        FXBold = curses.A_BOLD
+    except:
+        pass
     try:
         FXItalic = curses.A_ITALIC
     except:
-        FXItalic = curses.A_NORMAL
-    FXPale = curses.A_DIM
-    FXHighlight = curses.A_STANDOUT
-    FXUnderline = curses.A_UNDERLINE
-    FXReverse = curses.A_REVERSE
-
-    FXAlt = curses.A_ALTCHARSET
-    FXBlink = curses.A_BLINK
-    FXInvisible = curses.A_INVIS
+        pass
+    try:
+        FXPale = curses.A_DIM
+    except:
+        pass
+    try:
+        FXHighlight = curses.A_STANDOUT
+    except:
+        pass
+    try:
+        FXUnderline = curses.A_UNDERLINE
+    except:
+        pass
+    try:
+        FXReverse = curses.A_REVERSE
+        FXReversed = curses.A_REVERSE
+    except:
+        FXReverse = FXNormal
+        FXReversed = FXNormal
+    try:
+        FXAlt = curses.A_ALTCHARSET
+    except:
+        pass
+    try:
+        FXBlink = curses.A_BLINK
+    except:
+        pass
+    try:
+        FXInvisible = curses.A_INVIS
+    except:
+        pass
 
 
     FXWhite = curses.COLOR_WHITE
@@ -75,35 +110,77 @@ class Colors:
     colorlen = 2
 
     @staticmethod
-    def define_pairs(forceColor):
+    def start_color(forceColor):
+        curses.start_color()
+        curses.use_default_colors()
+
         Colors.colorPosibility = True
         Colors.colorlen = curses.COLORS
         if forceColor:
             Colors.colorlen = 8
-        if Colors.colorlen > 16:
-            try:
-                depth = round((Colors.colorlen - 8) ** 0.333 - 0.5)
-                Colors.colorDepth = depth
-                step = round(Colors.colorlen / depth - 0.5)
-                rng = range(0, depth)
-                i = 9
-                for r in rng:
-                    for g in rng:
-                        for b in rng:
-                            curses.init_color(i, r, 0, b)
-                            i += 1
-            except:
-                print("Color error. try launching CLIsma with -l option or changing the environment.")
-                exit()
-        for i in range(Colors.colorlen):
-            curses.init_pair(i, i, - 1)
+
+        if curses.can_change_color():
+            curses.init_color(0, 121, 121, 121)
+            curses.init_color(1, 823, 239, 145)
+            curses.init_color(2, 345, 722, 165)
+            curses.init_color(3, 769, 678, 219)
+            curses.init_color(4, 192, 392, 952)
+            curses.init_color(5, 514, 282, 659)
+            curses.init_color(6, 388, 812, 859)
+            curses.init_color(7, 900, 900, 900)
+
+    @staticmethod
+    def define_pairs():
+        Colors.pairlen = curses.COLOR_PAIRS
+
+        Loghandler.Log(f"Color amount is {Colors.colorlen}, color pairs amount is {Colors.pairlen}")
+        # if Colors.colorlen > 16:
+        #     try:
+        #         depth = round((Colors.colorlen - 8) ** 0.333 - 0.5)
+        #         Colors.colorDepth = depth
+        #         step = round(Colors.colorlen / depth - 0.5)
+        #         rng = range(depth)
+        #         i = 9
+        #         for r in rng:
+        #             for g in rng:
+        #                 for b in rng:
+        #                     curses.init_color(i, r, g, b)
+        #                     i += 1
+        #     except:
+        #         print("Color error. try launching CLIsma with -l option or changing the environment.")
+        #         exit()
+        #if Colors.colorlen == 8 and curses.COLOR_PAIRS == 64:
+        i = 0
+        for fore in range(8):
+            curses.init_pair(i, fore, -1)
+            i += 1
+        for back in range(1, 8):
+            for fore in range(8):
+                curses.init_pair(i, fore, back)
+                i += 1
+        if curses.COLOR_PAIRS >= 72:
+            for fore in range(8):
+                curses.init_pair(i, fore, 0)
+                i += 1
+        #curses.init_pair(63, 7, 0)
+        # else:
+        #     for i in range(Colors.colorlen):
+        #         curses.init_pair(i, i, - 1)
 
     @staticmethod
     def newPair(forecolor, backcolor):
         curses.init_pair(Colors.colorlen, forecolor, backcolor)
-        Colors.colorlen += 1
-        return Colors.colorlen
 
     @staticmethod
     def colorPair(num):
         return curses.color_pair(num)
+
+    @staticmethod
+    def getColorPair(foreground, background = -1):
+        if foreground == -1: foreground = 0
+        if background == -1: return curses.color_pair(7 + foreground)
+        Loghandler.Log(f"{foreground} {background}")
+        return curses.color_pair(background * 8 + foreground)
+
+    def getPairNumber(attr):
+        return curses.pair_number(attr)

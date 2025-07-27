@@ -5,6 +5,13 @@ class apphabit:
 
     #ABCS
 
+    def __init__(self, id, node, controller, height, width, params):
+        self.height = height
+        self.width = width
+        self.node = node
+        self.controller = controller
+        self.ui = self.node.ui
+
     def draw(self, delta):
         pass
 
@@ -17,7 +24,7 @@ class apphabit:
         self.height = height
         self.width = width
 
-    def oncollapse(self):
+    def oncollapse(self, collapse):
         pass
 
     def abort(self):

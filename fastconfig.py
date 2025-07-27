@@ -1,6 +1,7 @@
 from singletons import Singletons
 class Wmconfig:
     wm = Singletons.Wm
+
     @staticmethod
     def setTrailLength(val):
         wm = Wmconfig.wm
@@ -9,10 +10,11 @@ class Wmconfig:
         for i in range(wm.pointer_count):
             wm.pointers[i].update_trail(val)
 
+    @staticmethod
     def setMouseSensivity(val):
         Wmconfig.wm.control.mouse_speed = val * 0.18
 
-
+    @staticmethod
     def setDesktopRefresh(val):
         Wmconfig.wm.desktop.refresh = val
 

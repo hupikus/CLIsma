@@ -129,24 +129,21 @@ class Node:
 
 	#public
 
-	def clear(self):
-		self.tasks = []
-
 
 	def errorMessage(self, eventname, ex):
 		self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} {eventname} event closed with internal error: <c2> <tbold>' + str(ex) + '<endt> <endc>"')
 		self.abort()
 
 
-	def clear(self, mode = Colors.FXNormal, char = ' '):
+	def clear(self, attr = Colors.FXNormal, char = ' ', margin_top = 0, margin_bottom = 0):
 		fx = max(0, self.from_x)
 		w = self.display_width
 		if fx > w - 1: return
-		s = char * min(self.to_x - fx, w - fx)
-		y = max(0, self.from_y)
-		my = min(self.to_y + 1,  self.display_height)
-		while y != my:
-			self.root.addstr(y, fx, s, mode)
+		s = char * (min(self.to_x - fx, w - fx) + 1)
+		y = max(0, self.from_y + margin_top)
+		my = min(self.to_y + 1 - margin_bottom,  self.display_height)
+		while y < my:
+			self.root.addstr(y, fx, s, attr)
 			y += 1
 
 
@@ -157,8 +154,7 @@ class Node:
 		fromx = self.from_x
 		fx = x + fromx
 
-		#if y >= 0 and y <= self.height and fy >= 0 and fy < self.display_height and x <= self.width and fx < self.display_width - 1:
-		if 0 <= y <= self.height and 0 <= fy < self.display_height and x <= self.width and fx < self.display_width - 1:
+		if 0 <= y < self.height and 0 <= fy < self.display_height and x <= self.width and fx < self.display_width - 1:
 			#if self.id != 0 and not self.isActive() and not self.isChildActive():
 			#	mode = Colors.FXPale
 			x_offcut = 0
@@ -283,6 +279,10 @@ class Node:
 
 	def hide(self, state):
 		self.hidden = state
+		try:
+			self.win.oncollapse(state)
+		except Exception as ex:
+			self.errorMessage("collapse", ex)
 
 #Window Manager
 	def newNode(self, parent_path, class_name, y, x, height, width, params):

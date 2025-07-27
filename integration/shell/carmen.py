@@ -60,13 +60,13 @@ def install_CLI(packagename, file, force):
 def remove_CLI(packagename, force):
     import shutil
 
-    package_path = userglobals.userpath + ".local/share/CLIsma/custom/apps/" + packagename
+    package_path = userglobals.userpath + ".local/share/CLIsma/custom/apps/external/" + packagename
 
     if os.path.exists(package_path):
         print("Package found")
         ans = 'y'
         if not force:
-            ans = input("Proceed? (y/n)")
+            ans = input("Proceed? (y/N)")
         if ans != 'y':
             print("Cancelled.")
             return False
@@ -86,7 +86,7 @@ def remove_CLI(packagename, force):
     if os.path.exists(config_path):
         ans = 'y'
         if not force:
-            ans = input("Remove config? (y/n)")
+            ans = input("Remove config? (y/N)")
         if ans == 'y':
             try:
                 shutil.rmtree(config_path)
@@ -99,8 +99,11 @@ def remove_CLI(packagename, force):
         shutil.rmtree(package_path)
         print(f"Done removing '{packagename}'")
         return True
+    except PermissionError:
+        print("Removal failed. Permission denied.")
+        return False
     except:
-        print("Removal failed. Did you granted root permissions?")
+        print("Removal failed for unknown reason.")
         return False
     return False
 
@@ -222,31 +225,31 @@ def install_system(packagename, file, mode, force):
                     return False
 
                 #package already exists
-                if os.path.exists(userglobals.userpath + ".local/share/CLIsma/custom/apps/" + packagename):
+                if os.path.exists(userglobals.userpath + ".local/share/CLIsma/custom/apps/external/" + packagename):
                     ans = 'y'
                     if not force:
                         if mode == "Local":
-                            ans = input("Package with that name already exist. Proceed? (y/n)")
+                            ans = input("Package with that name already exist. Proceed? (y/N)")
                         else:
                             print("Package found, updating...")
                     if ans != 'y': return False
 
                 #installing
                 try:
-                    p = userglobals.userpath + ".local/share/CLIsma/custom/apps/" + packagename
+                    p = userglobals.userpath + ".local/share/CLIsma/custom/apps/external/" + packagename
                     if not os.path.exists(p):
                         os.makedirs(p, mode = 0o764)
                     print("Unpacking...")
                     archive.extractall(p)
-                    print("Creating config...")
-                    p = userglobals.userpath + ".local/share/CLIsma/config/apps/default" + packagename
-                    if not os.path.exists(p):
-                        os.makedirs(p, mode = 0o777)
-                    config_path = p + '/main.conf'
-                    if os.path.exists(config_path):
-                        if mode == "Local": print("Warning: config file for this app existed before.")
-                    else:
-                        open(config_path, 'w').close()
+                    # print("Creating config...")
+                    # p = userglobals.userpath + ".local/share/CLIsma/config/apps/external/" + packagename
+                    # if not os.path.exists(p):
+                    #     os.makedirs(p, mode = 0o777)
+                    # config_path = p + '/main.conf'
+                    # if os.path.exists(config_path):
+                    #     if mode == "Local": print("Warning: config file for this app existed before.")
+                    # else:
+                    #     open(config_path, 'w').close()
                     if mode == "Remote":
                         print("Cleaning...")
                         try:

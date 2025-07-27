@@ -29,7 +29,7 @@ class log(apphabit):
 			column = min(self.height, Loghandler.loglen)
 			for y in range(column):
 				self.node.writeStr(y, 0, Loghandler.history[-(y + 1)].center(self.width, ' '))
-			for y in range(column, self.height - 1):
+			for y in range(column - 1, self.height - 1):
 				self.node.appendStr(y + 1, 0, ' ' * self.width)
 
 

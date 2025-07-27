@@ -15,7 +15,7 @@ class desktop(apphabit):
 	def gen_cache(self):
 		header = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1) + 'x'
 		header_window = header[:-5] + "- m x"
-		self.dekstop_str = (header, '─' * self.width, ' ' * self.width, '_' * self.width, header_window)
+		self.dekstop_str = (header, '─' * self.width, ' ' * self.width, header_window)
 
 		self.range = tuple([range(3)] + [range(2 + a, self.height - 5, 3) for a in range(3)] + [range(2, self.height - 5)])
 
@@ -134,7 +134,7 @@ class desktop(apphabit):
 
 		if self.state == "regular":
 			if isMax:
-				self.node.appendStr(0, 0, self.dekstop_str[4])
+				self.node.appendStr(0, 0, self.dekstop_str[3] + self.wm.nodes[self.wm.order[-1]].name)
 			else:
 				self.node.appendStr(0, 0, self.dekstop_str[0], Colors.colorPair(2))
 		elif self.state == "shutdown":
@@ -152,15 +152,20 @@ class desktop(apphabit):
 			self.fps_rate = str(self.neofps)
 			self.neofps = 0
 
-		if self.draw_header(self.wm.draw_as_maximized): return
+		refresh = 0
+		if  self.refresh:
+			refresh = 1
+		if self.draw_header(self.wm.draw_as_maximized): #force interlace refresh when maximized or fullscreen window exists
+			refresh = 2
 
 		###################
 		self.node.appendStr(1, 0, self.dekstop_str[1])
 
-		if self.refresh:
+		if refresh > 0:
 			#interlace refresh
-			for y in self.range[self.tick + 1]:
-				self.node.appendStr(y, 0, self.dekstop_str[2])
+			if refresh == 1 or self.neofps % 12 == 1:
+				for y in self.range[self.tick + 1]:
+					self.node.appendStr(y, 0, self.dekstop_str[2])
 		else:
 			for y in self.range[4]:
 				self.node.appendStr(y, 0, self.dekstop_str[2])
@@ -171,7 +176,7 @@ class desktop(apphabit):
 			self.node.appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS")
 
 		#__________________
-		self.node.appendStr(self.height - 5, 0, self.dekstop_str[3], Colors.colorPair(3))
+		self.node.appendStr(self.height - 5, 0, self.dekstop_str[1], Colors.colorPair(3))
 
 		for y in self.range[0]:
 			#line = ''
@@ -208,7 +213,8 @@ class desktop(apphabit):
 		if button == 0:
 			if not self.ismenu:
 				try:
-					self.menunode = self.node.newNode("apps.default", "menu", self.height - 7 - round((self.height - 8) * 0.4), 0, round((self.height - 8) * 0.4), round(self.width / 4), '').node
+					h = round((self.height - 8) * 0.4)
+					self.menunode = self.node.newNode("apps.default", "menu", self.height - 5 - h, 0, h, round(self.width / 4), '').node
 					self.menunode.windowed = False
 				except:
 					pass

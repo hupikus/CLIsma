@@ -476,7 +476,7 @@ class UI:
 				art[0] = content
 
 
-	def setAttribut(self, name, attr, type = ''):
+	def setAttribute(self, name, attr, type = ''):
 		if type == '':
 			type = self.determineType(name, searchBy = ("txts", "textBoxes", "arts"))
 			if type == '': return None

@@ -41,9 +41,7 @@ class fileman(apphabit):
         #colors
         self.colors = Colors.colorlen
         #                    file                   folder              hidden folder       hidden file
-        if self.colors == 256:
-            self.colormode = [Colors.colorPair(88), Colors.colorPair(229), Colors.colorPair(138), Colors.colorPair(40)]
-        elif self.colors >= 8:
+        if self.colors >= 8:
             self.colormode = [Colors.colorPair(6), Colors.colorPair(5), Colors.colorPair(7), Colors.colorPair(3)]
         else:
             self.colormode = [Colors.colorPair(0) for i in range(4)]

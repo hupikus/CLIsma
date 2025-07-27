@@ -35,7 +35,7 @@ class Layouts:
             if path == "performance":
                 #FPS slider
                 ui.slider("FPS", self.FPSlider_update, 0, 0, 30, (5 // worldglobals.framerate) - 1)
-                ui.textLine("FPSTitle", "Set Framerate", 0, 0)
+                ui.textLine("FPSTitle", "Framerate", 0, 0)
 
                 ui.textLine("FPSText", str(worldglobals.framerate), 0, 0)
 
@@ -45,7 +45,7 @@ class Layouts:
                 else:
                     rate = (worldglobals.processrate // 5) + 3
                 ui.slider("TICK", self.TICKlider_update, 0, 0, 44, rate)
-                ui.textLine("TICKTitle", "Set Tickrate", 0, 0)
+                ui.textLine("TICKTitle", "Tickrate", 0, 0)
 
                 ui.textLine("TICKText", str(worldglobals.processrate), 0, 0)
 
@@ -66,7 +66,7 @@ class Layouts:
 
                 #set mouse trail length
                 ui.slider("TRAIL", self.trailider_update, 0, 0, 18, Wmconfig.wm.trailength)
-                ui.textLine("TRAitle", "Set mouse cursor trail length", 0, 0)
+                ui.textLine("TRAitle", "Mouse cursor trail length", 0, 0)
 
                 ui.textLine("TRAILext", str(Wmconfig.wm.trailength), 0, 0)
 
@@ -74,14 +74,15 @@ class Layouts:
                 cursorColor = ()
                 if Colors.colorPosibility:
                     ui.textLine("CursorColorTitle", "Cursor color", 0, 0)
-                    txt = ["   " for i in (0, 0)]
-                    for i in range(7):
-                        ui.clickableArt("color" + str(i), self.set_cursor_color, 0, 0, txt, attr = Colors.colorPair(i) | Colors.FXReverse)
-                    cursorColor = ("CursorColorTitle", newline, newline) + tuple("color" + str(i) for i in range(7))
+                    txt = ("   ", "   ")
+                    ui.clickableArt("color0", self.set_cursor_color, 0, 0, ("   No  ", " Color "), attr = Colors.colorPair(57))
+                    for i in range(1, 8):
+                        ui.clickableArt("color" + str(i), self.set_cursor_color, 0, 0, txt, attr = Colors.colorPair(8 * i + 7))
+                    cursorColor = tuple("color" + str(i) for i in range(1, 8))
 
                 elements = (
                 "TRAitle", newline, "TRAILext", (True, "glue", 1), "TRAIL", newline
-                ) + cursorColor
+                ) + tuple(("CursorColorTitle", newline, newline, (True, "space", 1, 1), "color0")) + cursorColor
 
                 ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
