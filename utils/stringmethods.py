@@ -46,12 +46,12 @@ def getPoem(version, id, sysnum, apps):
         applist = f"{', '.join(apps[:-1])} and {apps[-1]}"
     else:
         applist = "just " + apps[0]
-    
+
     if len(apps) - sysnum > 1:
         capplist = f"{', '.join(apps[:-1 - sysnum])} and {apps[-1 - sysnum]}"
     else:
         capplist = apps[0]
-    
+
     id_description = ""
     if id == 0:
         id_description = "it signifies that administrative access might indeed be within reach, should the user so desire."

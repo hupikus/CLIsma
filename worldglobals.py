@@ -1,6 +1,6 @@
 class worldglobals:
     #performance
-    processrate = 40
+    processrate = 30
     framerate = 60
     inputrate = 240
 
@@ -9,7 +9,4 @@ class worldglobals:
     inputdelta = 1 / inputrate
 
     #input
-    hold_time = 0.8
-
-    #customization
-    isColors = [0]
+    hold_time = 0.8 #timeout in seconds to differentiate between click and hold

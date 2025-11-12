@@ -18,6 +18,9 @@ class apphabit:
     def process(self, delta):
         pass
 
+    def mouse(self, delta, controller):
+        pass
+
     #NODE EVENTS
 
     def onresize(self, height, width):

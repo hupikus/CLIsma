@@ -81,7 +81,7 @@ class desktop(apphabit):
 		self.controller = controller
 		self.wm = params
 		self.width = width
-		self.height = height
+		self.height = height + 1
 
 		self.preferred_height = 80
 		self.preferred_width = 24
@@ -166,6 +166,7 @@ class desktop(apphabit):
 			if refresh == 1 or self.neofps % 12 == 1:
 				for y in self.range[self.tick + 1]:
 					self.node.appendStr(y, 0, self.dekstop_str[2])
+				self.node.appendStr(3, 0, "Lazy refresh enabled")
 		else:
 			for y in self.range[4]:
 				self.node.appendStr(y, 0, self.dekstop_str[2])
@@ -176,7 +177,7 @@ class desktop(apphabit):
 			self.node.appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS")
 
 		#__________________
-		self.node.appendStr(self.height - 5, 0, self.dekstop_str[1], Colors.colorPair(3))
+		self.node.appendStr(self.height - 5, 0, self.dekstop_str[1], Colors.FXNormal)
 
 		for y in self.range[0]:
 			#line = ''

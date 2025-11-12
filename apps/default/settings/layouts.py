@@ -18,13 +18,13 @@ class Layouts:
         ui = self.ui
         newline = (True, "newline", 1)
         if path == "zero":
-            ui.clickableArt("performance", self.sett.submenu, 0, 0, ["_____", "|  /|", "| o |", "I---I", " Performance "], align = 1)
+            ui.clickableArt("performance", self.sett.submenu, 0, 0, ["", "/-/-\\", "/ o->", "\\-/-/", " Performance "], align = 1)
             ui.clickableArt("input", self.sett.submenu, 0, 0, ["  \\  ", "/-/-\\", "| ! |", "\\___/", "    Input    "], align = 1)
             ui.clickableArt("customization", self.sett.submenu, 0, 0, ["  /\\  ", " _||_ ", "| || |", "|-\\/-|", "Customization"], align = 1)
             ui.clickableArt("apps", self.sett.submenu, 0, 0, ["  _|_ ", " |\\|/|", " | V |", " |---|", "Applications"], align = 1)
+            ui.clickableArt("security", self.sett.submenu, 0, 0, ["_____", "| - |", "| o |", "I---I", "  Security  "], align = 1)
 
-
-            ui.list("list", ("input", "performance", "customization", "apps"), 0, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+            ui.list("list", ("input", "performance", "customization", "security", "apps"), 0, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
             ui.remove("back", type = "tapArts")
 
@@ -33,8 +33,10 @@ class Layouts:
                 ui.clickableArt("back", self.sett.up, 0, 0, ["Back"])
 
             if path == "performance":
+                ui.textLine("title0", "Refresh Rate", 0, 0, attr = Colors.FXBold)
+
                 #FPS slider
-                ui.slider("FPS", self.FPSlider_update, 0, 0, 30, (5 // worldglobals.framerate) - 1)
+                ui.slider("FPS", self.FPSlider_update, 0, 0, 30, (worldglobals.framerate // 5) - 1)
                 ui.textLine("FPSTitle", "Framerate", 0, 0)
 
                 ui.textLine("FPSText", str(worldglobals.framerate), 0, 0)
@@ -55,7 +57,7 @@ class Layouts:
 
 
                 elements = (
-                "FPSTitle", (True, "space", 2, 2), newline, "FPSText", (True, "glue", 1), "FPS", newline,
+                "title0", newline, "FPSTitle", (True, "space", 2, 2), newline, "FPSText", (True, "glue", 1), "FPS", newline,
                 "TICKTitle", (True, "space", 2, 2), newline, "TICKText", (True, "glue", 1), "TICK", newline, newline,
                 "title1", newline,  (True, "glue", 3), "StrText", (True, "space", 1, 2), "StrRadio"
                 )
@@ -63,17 +65,18 @@ class Layouts:
                 ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
             elif path == "customization":
+                ui.textLine("title0", "Mouse Cursor", 0, 0, attr = Colors.FXBold)
 
                 #set mouse trail length
                 ui.slider("TRAIL", self.trailider_update, 0, 0, 18, Wmconfig.wm.trailength)
-                ui.textLine("TRAitle", "Mouse cursor trail length", 0, 0)
+                ui.textLine("TRAitle", "Trail length", 0, 0)
 
                 ui.textLine("TRAILext", str(Wmconfig.wm.trailength), 0, 0)
 
                 #cursor color
                 cursorColor = ()
                 if Colors.colorPosibility:
-                    ui.textLine("CursorColorTitle", "Cursor color", 0, 0)
+                    ui.textLine("CursorColorTitle", "Color", 0, 0)
                     txt = ("   ", "   ")
                     ui.clickableArt("color0", self.set_cursor_color, 0, 0, ("   No  ", " Color "), attr = Colors.colorPair(57))
                     for i in range(1, 8):
@@ -81,8 +84,8 @@ class Layouts:
                     cursorColor = tuple("color" + str(i) for i in range(1, 8))
 
                 elements = (
-                "TRAitle", newline, "TRAILext", (True, "glue", 1), "TRAIL", newline
-                ) + tuple(("CursorColorTitle", newline, newline, (True, "space", 1, 1), "color0")) + cursorColor
+                "title0", newline, "TRAitle", newline, "TRAILext", (True, "glue", 1), "TRAIL", newline, newline,
+                "CursorColorTitle", newline, "color0") + cursorColor
 
                 ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
@@ -90,7 +93,7 @@ class Layouts:
 
                 #set mouse trail length
                 ui.slider("SPEED", self.mousepeed_update, 0, 0, 22, 11)
-                ui.textLine("title", "Set mouse sensivity", 0, 0)
+                ui.textLine("title", "Mouse sensivity", 0, 0)
 
                 ui.textLine("Lext", "1.0", 0, 0)
 

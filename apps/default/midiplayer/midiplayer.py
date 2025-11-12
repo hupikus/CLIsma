@@ -81,12 +81,12 @@ class midiplayer(apphabit):
 		n = getOctave(self.start_note)
 		x = 0
 		while x < width:
-			self.node.appendStr(self.height - height - 2, xstart + x, str(n) + ' ' * 13, mode = self.bgcolor)
+			self.node.appendStr(self.height - height - 2, xstart + x, str(n) + ' ' * 13, attr = self.bgcolor)
 			n += 1
 			x += 14
 
 		for y in range(height):
-			self.node.appendStr(self.height - height + y, xstart, self.space, mode = self.whitecolor)
+			self.node.appendStr(self.height - height + y, xstart, self.space, attr = self.whitecolor)
 			fx, fy = self.node.from_x, self.node.from_y
 			if y <= height >> 1:
 				x = 0
@@ -96,7 +96,7 @@ class midiplayer(apphabit):
 						t = '││'
 						if y == height >> 1:
 							t = '└┘'
-						self.node.appendStr(self.height - height + y, x + px + xstart, t, mode = self.blackcolor)
+						self.node.appendStr(self.height - height + y, x + px + xstart, t, attr = self.blackcolor)
 
 					x += 14
 			elif y == height - 1:
@@ -111,8 +111,9 @@ class midiplayer(apphabit):
 				posx = tone - self.start_note + xstart
 				tone_offset = max(0, tone - self.start_note)
 
-				posx += round(max(0, tone_offset - 4) / 12 + 0.5) #every E->F compensation
-				posx += round((tone_offset - 11) / 12 + 0.5) #every B->C compensation
+				posx += 2 * (tone_offset // 12) # every B->C gap compensation
+				if tone_offset % 12 >= 5: # every E->F gap compensation
+					posx += 1
 
 				if posx < 0: continue
 				right_align = note[1]
@@ -122,7 +123,7 @@ class midiplayer(apphabit):
 					dx = 0
 					if right_align and len(char) == 1:
 						dx = 1
-					self.node.appendStr(self.height - height + y, posx + dx, char, mode = self.cursorcolor)
+					self.node.appendStr(self.height - height + y, posx + dx, char, attr = self.cursorcolor)
 
 	def onresize(self, height, width):
 		self.height = height
@@ -137,8 +138,15 @@ class midiplayer(apphabit):
 	#def abort(self):
 		#Appconfig.CloseConfig(self.descriptor)
 
-	def midikeyPress(self, note, presure):
+	def midikeyPress(self, note, pressure):
 		self.note = noteName(note)
+		self.highlight(note)
+		#Loghandler.Log(note)
+
+	def midikeyRelease(self, note):
+		#self.pressed_keys = {}
+		self.unhighlight(note)
+		Loghandler.Log(note)
 
 	def highlight(self, note):
 		height = self.keyboard_height
@@ -148,6 +156,10 @@ class midiplayer(apphabit):
 		if keytype in (4, 11):
 			right_align = True # align to the right
 		self.pressed_keys[note] = (shape, right_align)
+
+	def unhighlight(self, note):
+		if note in self.pressed_keys:
+			del self.pressed_keys[note]
 
 
 

@@ -125,10 +125,10 @@ class Mice(Device):
 		self.devicerange = range(self.devicelen)
 		nir = [0 for i in self.devicerange]
 
-		resize_array(self.y, self.devicelen)
-		resize_array(self.x, self.devicelen)
-		resize_array(self.wheel, self.devicelen)
-		resize_array(self.state, self.devicelen, [0, 0, 0])
+		self.y = resize_array(self.y, self.devicelen)
+		self.x = resize_array(self.x, self.devicelen)
+		self.wheel = resize_array(self.wheel, self.devicelen)
+		self.state = resize_array(self.state, self.devicelen, [0, 0, 0])
 
 
 	def start(self):

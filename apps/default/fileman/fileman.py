@@ -30,7 +30,8 @@ class fileman(apphabit):
         self.childfolder = userglobals.username
 
         self.filelen = 0
-        self.filelist = self.scandir()
+        self.filelist = []
+        self.scandir()
 
         self.scrollpos = 0
         self.cached_scrollposes = {}
@@ -62,6 +63,7 @@ class fileman(apphabit):
         self.menuclass = None
 
     def draw(self, delta):
+        self.node.clear(Colors.FXNormal, ' ', self.oblen + 3)
         self.node.appendStr(self.height - 1, 0, self.space)
         if self.childfolder == '':
             self.node.appendStr(0, 0, '/'.center(self.width, ' '), Colors.FXBold)
@@ -122,7 +124,7 @@ class fileman(apphabit):
                         self.dir = appath + '/'
                         self.childfolder = filename
 
-                        self.filelist = self.scandir()
+                        self.scandir()
                         self.resizelist()
                     else:
 
@@ -151,13 +153,13 @@ class fileman(apphabit):
         if os.access(path, os.R_OK):
             c = os.listdir(path)
             if path != '' and isSet:
+                self.filelist = c
                 self.filelen = len(c)
                 self.errorno = 1
-            return c
         else:
             self.filelen = 0
             self.errorno = 2
-            return []
+            self.filelist = []
 
     def resizelist(self):
         self.oblen = min(self.height - 4, self.filelen)
@@ -176,7 +178,7 @@ class fileman(apphabit):
 
             self.dir = self.dir[:-len(self.childfolder) - 1]
             self.childfolder = self.dir.split('/')[-2]
-            self.filelist = self.scandir()
+            self.scandir()
 
             if self.dir in self.cached_scrollposes:
                 self.scrollpos = self.cached_scrollposes[self.dir]

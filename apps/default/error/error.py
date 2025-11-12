@@ -44,12 +44,14 @@ class error(apphabit):
 
 		self.space = ' ' * self.width
 
+		#self.text = params
+
 		self.node.ui.coloredTextBox("errormessage", self.displaytext, 1, 0, self.height - 1, self.width)
 
 	def draw(self, delta):
+		self.node.clear()
 		self.node.appendStr(0, 0, '-' * self.width)
-		for y in range(self.height - 1):
-			self.node.appendStr(y + 1, 0, self.space)
+		#self.node.writeStr(1, 0, self.text)
 
 	def onresize(self, height, width):
 		self.height = height

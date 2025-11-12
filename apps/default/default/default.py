@@ -22,7 +22,7 @@ class default(apphabit):
 		self.counter = 1
 
 		if Colors.colorlen == 256:
-			self.colorPairs = [Colors.colorPair(13), Colors.colorPair(35), Colors.colorPair(180), Colors.colorPair(220)]
+			self.colorPairs = [Colors.colorPair(13), Colors.colorPair(35), Colors.colorPair(55), Colors.colorPair(41)]
 		else:
 			self.colorPairs = [Colors.colorPair(1), Colors.colorPair(4), Colors.colorPair(7), Colors.colorPair(5)]
 
@@ -47,6 +47,6 @@ class default(apphabit):
 
 	def click(self, device_id, button, y, x):
 		self.counter += 1
-	
+
 	def abort(self):
 		Appconfig.CloseConfig(self.descriptor)

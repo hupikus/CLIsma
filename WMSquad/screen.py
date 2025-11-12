@@ -2,6 +2,8 @@ import sys
 import os
 import curses
 import shutil
+import tty
+import termios
 
 from type.colors import Colors
 
@@ -17,20 +19,25 @@ class Screen():
 		self.resize_wm_signal = False
 
 
-		#preparation
+		# Preparation
 		self.screen = curses.initscr()
 
 
-		#ASCII screen
+		# ASCII screen
 		self.root = curses.newwin(self.height + 1, self.width, 0, 0)
 
-		#set up the env
+        # Save props
+		self.fd = sys.stdin.fileno()
+		self.old_config = termios.tcgetattr(self.fd)
+
+		# Set up the env
+		tty.setraw(self.fd)
 		self.root.nodelay(1)
 		curses.cbreak()
 		curses.noecho()
 		curses.curs_set(0)
 
-		#colors
+		# Colors
 		Colors.start_color(forceColor)
 		if curses.has_colors():
 			Colors.define_pairs()
@@ -51,13 +58,19 @@ class Screen():
 
 	def abort(self):
 		self.root.addstr(0, 0, ' ' * self.width)
-		curses.curs_set(2)
-		curses.echo()
-		curses.nocbreak()
-		self.root.erase() # or clear(), it does not matter as it not work
+		#curses.curs_set(2)
+		#curses.echo()
+		#curses.nocbreak()
+		self.root.erase() # Or clear(), it does not matter as it does not work
+
+		# Restore
+		termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old_config)
+
+
 		self.screen.refresh()
 		self.root.refresh()
 		#curses.reset_shell_mode()
+		curses.flushinp()
 		curses.endwin()
 
 		self.srend = []

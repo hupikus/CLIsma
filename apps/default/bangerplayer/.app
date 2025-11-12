@@ -1,3 +1,4 @@
 name="BangerPlayer"
-prefHeight=15
-prefWidth=45
+type="Application"
+prefHeight=20
+prefWidth=60

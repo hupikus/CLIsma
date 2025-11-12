@@ -10,7 +10,7 @@ textmode = False
 force = False
 forceColor = False
 version = "1.9"
-text_shutdown = False
+skip_desktop = False
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(DIR)
@@ -25,8 +25,9 @@ for i in range(len(sys.argv)):
 		print(f"CLIsma v{version}")
 		print("""-------------
 Usage: main.py --flag1 {required1} (optional2) --flag2 ...
-Insert flags before others to control order of execution
-Use -# instead of - for opposite effect: supported commands marked with !
+Run main.py without parameters to run desktop
+Сontrol order of execution by rearranging flags order
+Use -# instead of - for the opposite effect: supported commands marked with !
 Example: main.py -f       -r testapp -#f              -i /path/to/archive testapp
                  ^force   ^remove    ^disable force   ^install                   : Re-install a package\n
 !   -b  --brief                                      Quick common info
@@ -39,9 +40,9 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 !   -s, --shell                                      Shell mode (CLIsma shell only)
     -l, --low-color                                  Low color mode""")
 
-		text_shutdown = True
+		skip_desktop = True
 	elif arg in ('-i', '--install', '-#r', '--#remove'):
-		text_shutdown = True
+		skip_desktop = True
 
 		packagename = ""
 		file = ""
@@ -54,7 +55,7 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 		carmen.install_CLI(packagename, file, force)
 
 	elif arg in ('-r', '--remove', '-#i', '--#install'):
-		text_shutdown = True
+		skip_desktop = True
 
 		packagename = ""
 		if len(sys.argv) > i + 1:
@@ -91,16 +92,16 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 		sysApps = 12
 		print(f"Apps installed: {len(appool.apps) - sysApps}")
 		print(f"System apps: {sysApps}")
-		text_shutdown = True
+		skip_desktop = True
 	elif arg == "-#b" or arg == "--#brief":
 		from NodeSquad.appool import AppPool
 		appool = AppPool()
 		import utils.stringmethods as strutils
 		sysApps = 12
 		print(strutils.getPoem(version, os.geteuid(), sysApps, appool.apps))
-		text_shutdown = True
+		skip_desktop = True
 	elif arg == "-s" or arg == "--shell":
-		text_shutdown = True
+		skip_desktop = True
 		import integration.shell.shell as shell
 		from globalconfig import Config
 		Cfg = Config()
@@ -110,7 +111,7 @@ Example: main.py -f       -r testapp -#f              -i /path/to/archive testap
 			v = sys.argv[i + 1]
 			desktop = sys.argv[i + 1]
 
-if text_shutdown:
+if skip_desktop:
 	exit()
 
 if not os.access("/dev/input/event0", os.R_OK):
@@ -146,10 +147,6 @@ def draw_loop():
 	timestamp = time.time()
 	deltaTime = 0
 	while work:
-		time.sleep(worldglobals.framedelta)
-		deltaTime = time.time() - timestamp
-		timestamp += deltaTime
-
 		error = 0
 
 		error += wm.draw(deltaTime)
@@ -159,18 +156,23 @@ def draw_loop():
 		if error > 0:
 			abort(f"Display exited with code {error}.")
 
+		deltaTime = time.time() - timestamp
+		timestamp += deltaTime
+
+		t = worldglobals.framedelta
+		if deltaTime > t:
+			t = t * 2 - deltaTime
+			if t < 0:
+				t = 0
+		time.sleep(t)
+
 
 #main loop
 def main_loop():
-	#l = threading.Lock()
-	#l.acquire()
 
 	timestamp = time.time()
 	deltaTime = 0
 	while work:
-		deltaTime = time.time() - timestamp
-		timestamp += deltaTime
-
 		error = 0
 
 		wm.process(deltaTime)
@@ -183,7 +185,16 @@ def main_loop():
 			abort("\nAborted.\n")
 			break
 
-		time.sleep(worldglobals.processdelta)
+		deltaTime = time.time() - timestamp
+		timestamp += deltaTime
+
+
+		t = worldglobals.processdelta
+		if deltaTime > t:
+			t = t * 2 - deltaTime
+			if t < 0:
+				t = 0
+		time.sleep(t)
 
 	wm.shutdown()
 

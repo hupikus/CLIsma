@@ -17,13 +17,14 @@ class WmMouse:
         self.screen_width = display.width
 
         #customization
+        self.speed = 1
         self.isReversed = isReversed
         self.update_trail(trailength)
 
         self.color = 0
 
         self.cursor_symbol = {"base":" ", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
-        self.holdout = wg.hold_time * wg.inputrate
+        self.hold_timeout = wg.hold_time * wg.inputrate
         self.mouse_cursor = "base"
 
         self.buttons = [0, 0, 0]
@@ -55,40 +56,58 @@ class WmMouse:
             #sys.stdout.write(f"\033[{mouse_last_y};{mouse_last_x}H{'#'}")
             color = self.color
             attr = display.root.inch(mouse_last_y, mouse_last_x)
+            attr_reversed = attr & Colors.FXReverse != 0
 
-            if self.color == 0:
+            pair_number = (attr & curses.A_COLOR) >> 8
+            fg, bg = Colors.getPairColors(pair_number)
+            
+
+            reverse = True
+
+            if color == 0:
                 color = attr
-            # else:
-            #     fg, bg = curses.pair_content((attr & curses.A_COLOR) >> 8)
-            #     if bg == self.color:
-            #         if self.color == Colors.FXWhite:
-            #             bg = Colors.FXRed
-            #         else:
-            #             bg = Colors.FXWhite
-            #     color = Colors.getColorPair(foreground = bg, background = self.color)
 
-            color = color | Colors.FXReverse
+                if attr_reversed:
+                    reverse = False
+                    color = Colors.getColorPair(foreground = Colors.FXWhite, background = Colors.FXBlack)
+                elif pair_number == 63:
+                    color = Colors.colorPair(56)
+                elif fg == bg:
+                        color = Colors.getColorPair(foreground = Colors.FXBlack, background = bg)
+                elif pair_number == 37: # Fallback pair
+                        color = Colors.FXNormal
+            else:
+                cursor_pair = (color & curses.A_COLOR) >> 8
+                cursor_fg, cursor_bg = Colors.getPairColors(cursor_pair)
+                if (attr_reversed and cursor_fg == Colors.FXWhite) or (bg == cursor_fg):
+                    reverse = False
+                    color = Colors.getColorPair(foreground = Colors.FXWhite, background = Colors.FXBlack)
+
+            if reverse:
+                color = color | Colors.FXReverse
 
             display.root.chgat(mouse_last_y, mouse_last_x, 1, color)
-
-            #ch = display.root.instr(mouse_last_y, mouse_last_x, 1)
-            #display.root.addch(mouse_last_y, mouse_last_x, ch, color)
 
         return 0
 
 
 
-    def input(self):
+    def input(self, delta):
 
         #aliases
         ctr = self.control
         wm = self.wm
         devid = self.id
 
+        y_edge, x_edge = wm.decoration_preset.edgeThick
+        y_head = wm.decoration_preset.headThick
+
+        speed = delta * 100 # default speed with 100 fps
+
         #mouse relativies
 
-        dy = ctr.mouse_dy * ctr.mouse_speed
-        dx = ctr.mouse_dx * ctr.mouse_speed
+        dy = ctr.mouse_dy * ctr.mouse_speed * speed
+        dx = ctr.mouse_dx * ctr.mouse_speed * speed
 
         ctr.mouse_dy, ctr.mouse_dx = 0, 0
 
@@ -122,9 +141,9 @@ class WmMouse:
                 elif ctr.mouse_buttons[i] == 1:
                     self.buttons[i] = 2
                     ctr.mouse_buttons[i] = 2
-                    self.holdout = wg.hold_time * wg.inputrate
+                    self.hold_timeout = wg.hold_time * wg.inputrate
 
-                elif self.hasDelta or self.buttons[i] > self.holdout:
+                elif self.hasDelta or self.buttons[i] > self.hold_timeout:
 
                     if ctr.mouse_buttons[i] != 5:
 
@@ -160,7 +179,7 @@ class WmMouse:
                 for id in wm.order[::-1]:
                     node = wm.nodes[id]
                     if node:
-                        if ctr.mouse_y >= node.from_y - 1 and ctr.mouse_y <= node.to_y and ctr.mouse_x >= node.from_x and ctr.mouse_x <= node.to_x:
+                        if ctr.mouse_y >= node.from_y - y_head and ctr.mouse_y <= node.to_y + y_edge and ctr.mouse_x >= node.from_x - x_edge and ctr.mouse_x <= node.to_x + x_edge:
                             if self.focus_id != id:
                                 self.focus_id = id
                                 if id != 0:
@@ -228,7 +247,7 @@ class WmMouse:
                     if ctr.mouse_x >= node.from_x and ctr.mouse_y >= node.from_y and ctr.mouse_y <= node.to_y and ctr.mouse_x <= node.to_x:
                         break
                     else:
-                        if ctr.mouse_x > node.from_x and ctr.mouse_y == node.from_y - 1 and ctr.mouse_x < node.to_x - 1:
+                        if ctr.mouse_x >= node.from_x and ctr.mouse_y == node.from_y - 1 and ctr.mouse_x <= node.to_x:
                             #focus and move
                             if self.focus_id != id:
                                     self.focus_id = id

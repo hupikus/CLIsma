@@ -2,7 +2,7 @@ import os
 import gc
 import threading
 
-from WMSquad.decoration import DecorationStyle, Decoration, DecorationPreset
+from WMSquad.decoration import *
 from type.permissions import Permisions
 
 from WMSquad.screen import Screen
@@ -16,7 +16,7 @@ from worldglobals import worldglobals as wg
 
 class Wm:
 
-	def newNode(self, parent_path, class_name, y, x, height, width, params, parent = None):
+	def newNode(self, parent_path, class_name, y, x, height, width, args = '', parent = None):
 		with threading.Lock():
 			#sync active window
 			if self.isMouse:
@@ -25,9 +25,9 @@ class Wm:
 			#node owes a window class
 			parent_path += '.' + class_name + '.' + class_name
 			if parent:
-				node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, params, parent = parent)
+				node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, args, parent = parent)
 			else:
-				node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, params)
+				node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, args)
 			self.nodes.append(node)
 			self.order.append(self.id)
 			#self.focus_id = self.id
@@ -35,7 +35,7 @@ class Wm:
 			self.orderlen += 1
 			return node.win
 
-	def newNodeByApp(self, app, y, x, height, width, params, parent = None):
+	def newNodeByApp(self, app, y, x, height, width, args = '', parent = None):
 		with threading.Lock():
 			#sync active window
 			if self.isMouse:
@@ -43,9 +43,9 @@ class Wm:
 				self.pointers[self.last_clicked].focus_id = self.id
 
 			if parent:
-				node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, params, app = app, parent = parent)
+				node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, args, app = app, parent = parent)
 			else:
-				node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, params, app = app)
+				node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, args, app = app)
 			self.nodes.append(node)
 			self.order.append(self.id)
 			#self.focus_id = self.id
@@ -76,7 +76,7 @@ class Wm:
 
 	def __init__(self, display, inpd, desktop):
 
-		#display
+		# Display
 		self.screen_height = display.height
 		self.screen_width = display.width
 		self.display = display
@@ -84,55 +84,61 @@ class Wm:
 
 		self.shutdown_ready = False
 
-		#auto
+		# Auto
 		self.nodes = []
 		self.id = 0
 		self.error = 0
 		self.control = inpd.controller
 
-		#draw and click order
+		# Draw and click order
 		self.order = []
 		self.orderlen = 0
 
 		self.draw_as_maximized = False
 
-		#mouse
+		# Mouse
 		self.isMouse = False
 
 		self.last_clicked = 0
 		self.pointers = []
 		self.active = []
 
-		#prefs
+		# Prefs
 		self.trailength = 2
 
-		#cursor
+		# Cursor
 		self.pointer_count = 0
-		inpd.listen_to_mouse(event_func = self.mouseinput, update_func = self.resize_pointers)
+		#inpd.listen_to_mouse(event_func = self.mouseinput, update_func = self.resize_pointers)
+		inpd.listen_to_input(event_func = self.input, mouse_update_func = self.resize_pointers)
 		self.hide_mouse_frames = 0
 
-		#startup nodes
-		#self.newNode(&Desktop)
+		# Effects
+		self.transparent_effects = False
+		self.decoration_preset = DecorationPreset()
+
+		self.decoration_preset.SetStyle(DecorationStyle.all_sides)
+		#self.decoration_preset.SetStyle(DecorationStyle.thick)
+
+		self.accent = Colors.FXTextCyan
+
+
+		# Startup nodes
 		if desktop == "default":
 			desktop = "desktop"
 		self.desktop_name = desktop
-		self.desktop = self.newNode("apps.default", desktop, 0, 0, self.screen_height, self.screen_width, self)
+		self.desktop = self.newNode("apps.default", desktop, 0, 0, self.screen_height, self.screen_width, args = self)
 		self.desktop.wm = self
 		self.desktop.node.is_fullscreen = True
 		Loghandler.Log("WM initialized")
 
 		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
-		self.newNode("apps.default", "log", 18, 12, 5, 45, '')
+		self.newNode("apps.default", "log", 18, 12, 8, 45, '')
+		self.newNode("apps.default", "neoui", 4, 2, 25, 125)
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 
-		#effects
-		self.transparent_effects = False
-		self.decoration_preset = DecorationPreset()
 
-		self.decoration_preset.SetStyle(DecorationStyle.all_sides)
 
-		#init finished
-
+		# Init finished
 
 	def resize_pointers(self, size):
 		with threading.Lock():
@@ -161,15 +167,10 @@ class Wm:
 					else:
 						Loghandler.Log(f"Cursors with id [{size}:{ln - 1}] disconnected")
 
-	def mouseinput(self):
-		for pointer in self.pointers:
-			pointer.input()
-
 
 	def requestPermission(self, permission):
-		match permission:
-			case Permisions.INPUT_DEVICES:
-				return self.inpd
+		if permission == Permisions.INPUT_DEVICES:
+			return self.inpd
 
 
 	def resize_screen(self):
@@ -248,3 +249,23 @@ class Wm:
 					node.process(delta)
 
 		return self.error
+
+	def input(self, delta):
+		pointers = self.pointers
+		nodes = self.nodes
+		controllers = self.control
+
+		i = 0
+		while i < self.pointer_count:
+			# pointer update
+			pointers[i].input(delta)
+
+			# node update
+			controller = controllers[i]
+			for id in self.order[::-1]:
+				node = nodes[id]
+				if node:
+					if node.input(delta, controller):
+						break
+			i += 1
+		return 0

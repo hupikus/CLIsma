@@ -58,11 +58,10 @@ class Controller:
 	#public
 
 	def listenEvent(self, node, event):
-		match event:
-			case self.KeyboardEvents:
-				self.keyboard_listen.append(node)
-			case self.MidiKeyboardEvents:
-				self.midi_listen.append(node)
+		if event == self.KeyboardEvents:
+			self.keyboard_listen.append(node)
+		elif event == self.MidiKeyboardEvents:
+			self.midi_listen.append(node)
 
 	def getPlayerNumber(self):
 		return self.mouselen
@@ -175,6 +174,7 @@ class miniMouseController:
 		self.mouse_rdy, self.mouse_rdx = (0, 0)
 		self.mouse_y, self.mouse_x = (0, 0)
 		self.mouse_last_y, self.mouse_last_x = (0, 0)
+		#0 ("none"), 1 ("clicked"), 2 ("held"), 3 ("released"), 4 ("dragstarted"), 5 ("drag"), 6 ("dragended"), -1 ("post-release")
 		self.mouse_buttons = [0, 0, 0]
 		self.mouse_speed = 0.35
 

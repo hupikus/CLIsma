@@ -187,7 +187,12 @@ class DeviceHandler:
 
 
 	def _input_loop(self):
+		timestamp = time.time()
+		deltaTime = 0
 		while self.working:
+
+			deltaTime = time.time() - timestamp
+			timestamp += deltaTime
 
 			if self.isMouse:
 				self._mouse()
@@ -200,27 +205,31 @@ class DeviceHandler:
 
 			time.sleep(worldglobals.inputdelta)
 
+			if self._event_incall:
+				self._event_incall(deltaTime)
+
 
 
 
 	def _mouse(self):
 		self.mouse_class.readevent()
 
+		mouselen = self.controller.mouselen
+		# Loghandler.Log(mouselen)
 		id = 0
-		for dev in self.mouse_range:
-			self.controller[id].mouse_dy = self.mouse_class.y[dev]
-			self.controller[id].mouse_dx = self.mouse_class.x[dev]
-			self.controller[id].mouse_wheel = self.mouse_class.wheel[dev]
-			self.controller[id].raw_mouse_buttons = self.mouse_class.state[dev]
+		while id < mouselen:
+			controller = self.controller[id]
+
+			controller.mouse_dy = self.mouse_class.y[id]
+			controller.mouse_dx = self.mouse_class.x[id]
+			controller.mouse_wheel = self.mouse_class.wheel[id]
+			controller.raw_mouse_buttons = self.mouse_class.state[id]
 
 
 			#Loghandler.Log(f"mouse {id} device {dev}: {self.controller[id].mouse_dy} {self.controller[id].mouse_dx} {self.controller[id].mouse_wheel}")
 			#Loghandler.Log(f"mouse {id} device {dev}: {self.controller[id].raw_mouse_buttons}")
 
 			id += 1
-
-		if self._event_incall:
-			self._event_incall()
 
 
 	def _midi(self):
@@ -238,7 +247,7 @@ class DeviceHandler:
 			self.scan_exit.set()
 		self.not_abort = False
 
-	def listen_to_mouse(self, event_func, update_func):
+	def listen_to_input(self, event_func, mouse_update_func):
 		self._event_incall = event_func
-		self._update_incall = update_func
+		self._update_incall = mouse_update_func
 

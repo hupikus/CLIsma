@@ -42,12 +42,12 @@ class mouselock(apphabit):
 
 		for y in range(self.height):
 			if y == 0 or y == self.height - 1:
-				self.node.appendStr(y, 0, top, mode = bordermode)
+				self.node.appendStr(y, 0, top, attr = bordermode)
 			else:
-				self.node.appendStr(y, 0, center, mode = bordermode)
+				self.node.appendStr(y, 0, center, attr = bordermode)
 
 			if y == self.height >> 1:
-				self.node.appendStr(y, 1, text, mode = textmode)
+				self.node.appendStr(y, 1, text, attr = textmode)
 
 	def click(self, button, device_id, y, x):
 		if button == 0 and self.button:

@@ -69,8 +69,18 @@ class Colors:
     FXMagenta = curses.COLOR_MAGENTA
     FXCyan = curses.COLOR_CYAN
 
+    FXTextBlack = FXNormal
+    FXTextRed = FXNormal
+    FXTextGreen = FXNormal
+    FXTextYellow = FXNormal
+    FXTextBlue = FXNormal
+    FXTextMagenta = FXNormal
+    FXTextCyan = FXNormal
+    FXTextWhite = FXNormal
+
     FXHash = {
         "normal":curses.A_NORMAL,
+        "norma":curses.A_NORMAL, # Please don't kill me this is temporary here
         "blink":curses.A_BLINK,
         "bold":curses.A_BOLD,
         "pale":curses.A_DIM,
@@ -116,7 +126,7 @@ class Colors:
 
         Colors.colorPosibility = True
         Colors.colorlen = curses.COLORS
-        if forceColor:
+        if forceColor and Colors.colorlen >= 2:
             Colors.colorlen = 8
 
         if curses.can_change_color():
@@ -128,6 +138,17 @@ class Colors:
             curses.init_color(5, 514, 282, 659)
             curses.init_color(6, 388, 812, 859)
             curses.init_color(7, 900, 900, 900)
+
+
+        if Colors.colorlen >= 8:
+            Colors.FXTextBlack = curses.color_pair(0)
+            Colors.FXTextRed = curses.color_pair(1)
+            Colors.FXTextGreen = curses.color_pair(2)
+            Colors.FXTextYellow = curses.color_pair(3)
+            Colors.FXTextBlue = curses.color_pair(4)
+            Colors.FXTextMagenta = curses.color_pair(5)
+            Colors.FXTextCyan = curses.color_pair(6)
+            Colors.FXTextWhite = curses.color_pair(7)
 
     @staticmethod
     def define_pairs():
@@ -179,8 +200,14 @@ class Colors:
     def getColorPair(foreground, background = -1):
         if foreground == -1: foreground = 0
         if background == -1: return curses.color_pair(7 + foreground)
-        Loghandler.Log(f"{foreground} {background}")
         return curses.color_pair(background * 8 + foreground)
 
+    @staticmethod
+    def getPairColors(num):
+        fg = num % 8
+        bg = num // 8
+        return fg, bg
+
+    @staticmethod
     def getPairNumber(attr):
         return curses.pair_number(attr)

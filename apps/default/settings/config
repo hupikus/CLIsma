@@ -2,14 +2,17 @@ info : {
   version : 1,
   public : false,
   autoupdate : true,
-  remove_oldkeys : true
+  removeOld : true
 },
 config : {
   input : {},
   performance : {
-    fpsrate : int : (5:) : 60,
-    tickrate : int : (1:) : 40,
-    refresh : bool : false
+    fpsRate : int : (1:) : 60,
+    tickRate : int : (1:) : 40,
+    lazyRefresh : bool : false
   },
-  customization : {}
+  customization : {},
+  security : {
+    execution : enum : silent : log : show : ask
+  }
 }

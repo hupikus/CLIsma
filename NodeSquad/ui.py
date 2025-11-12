@@ -1,5 +1,7 @@
 from type.colors import Colors
 from integration.loghandler import Loghandler
+
+
 class UI:
 
 	def __init__(self, node):

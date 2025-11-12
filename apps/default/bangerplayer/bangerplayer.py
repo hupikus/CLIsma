@@ -1,6 +1,19 @@
 import os
 import sys
-import gi
+
+import threading
+
+extra = True
+
+try:
+    import soundfile as sf
+    import sounddevice as sd
+    import numpy as np
+    from apps.default.bangerplayer.audio import audio
+except Exception as ex:
+    extra = False
+
+
 
 from type.colors import Colors
 from integration.loghandler import Loghandler
@@ -16,33 +29,174 @@ class bangerplayer(apphabit):
         self.height = height
         self.width = width
 
+        # Abort targets
+        self.opened = []
+        self.thread = None
+
+        self.songs = {}
+        self.song_id = 0
+        self.current = 0
+        self.current_instance = None
+
+        self.playing = True
+        self.sample_pos = 0
+        self.prev_pos = 0
+        self.stream = None
+
         #input
         self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
 
+        if not extra: return
 
-        self.player = Gst.ElementFactory.make("playbin", "player")
-        if player:
-            path = params
-            if path[] != "file://":
-                path = "file://" + path
-
-            player.set_property("uri", path)
-            player.set_state(Gst.State.PLAYING)
+        if params:
+            song = self.open(params)
+            if song >= 0:
+                self.play(song)
 
 
-def pause(self, pause):
-    if pause:
-        self.player.set_state(Gst.State.PAUSED)
-    else:
-        self.player.set_state(Gst.State.PLAYING)
+
+    def pause(self, pause):
+        pass
 
 
-def draw(self, delta):
-    self.node.addstr()
+    def open(self, file):
+        song = len(self.songs)
 
-def process(self, delta):
-    state = bus.timed_pop_filtered(Gst.CLOCK_TIME_NONE, Gst.MessageType.EOS | Gst.MessageType.ERROR)
+        try:
+            file = sf.SoundFile(file, "r")
+            self.opened.append(file)
+
+            audiofile = audio()
+            audiofile.len = file.frames
+            audiofile.samplerate = file.samplerate
+            audiofile.channels = file.channels
+            audiofile.init_data()
+            self.songs[self.song_id] = audiofile
+            self.song_id += 1
+
+            if self.thread:
+                self.thread.join()
+            self.thread = threading.Thread(target = self.load, args = (file, audiofile))
+            self.thread.start()
+
+        except Exception as ex:
+            Loghandler.Log(f"Bangerplayer: loading error: {ex}")
+            return -1
+        return song
 
 
-def abort(self):
-    self.player.set_state(Gst.State.NULL)
+    def load(self, soundfile, audiofile):
+        block_size = audiofile.samplerate
+
+        alen = audiofile.len
+        ac = audiofile.channels
+        data = audiofile.data
+
+        ind = 0
+        for chunk in soundfile.blocks(blocksize = block_size):
+            if ac == 1:
+                chunk = chunk.reshape(-1, 1)
+            data[ind: ind + block_size] = chunk
+
+            ind += block_size
+            audiofile.len_read += block_size
+
+
+        if soundfile in self.opened:
+            self.opened.remove(soundfile)
+        soundfile.close()
+
+
+    def play(self, song):
+        if song < 0: return
+        self.current = song
+
+        audiofile = self.songs.get(song, None)
+        if not audiofile: return
+        self.current_instance = audiofile
+
+        self.sample_pos = 0
+
+        if self.stream is None:
+            self.stream = sd.OutputStream(
+                samplerate = audiofile.samplerate,
+                channels = audiofile.channels,
+                dtype='float32',
+                callback = self.stream_callback,
+                blocksize = 1024
+            )
+        else:
+            self.stream.stop()
+        self.stream.start()
+
+
+    def stream_callback(self, outdata, frames, time, status):
+        if not self.playing: return
+
+        audiofile = self.current_instance
+        pos = self.sample_pos
+        prev = self.prev_pos
+
+        if pos + frames >= audiofile.len_read: return
+
+        if abs(pos - prev) >= frames:
+
+            ln = min(frames, audiofile.len - pos)
+            if ln < frames:
+                if ln > 0:
+                    outdata[:ln] = audiofile.data[pos:pos + ln]
+                outdata[ln:] = 0.0
+            else:
+                np.copyto(outdata, audiofile.data[pos:pos + frames])
+
+        self.prev_pos = self.sample_pos
+        self.sample_pos += frames
+
+
+
+    def draw(self, delta):
+        self.node.clear()
+        if not extra:
+            self.node.appendStr(0, 0, "Attention:".center(self.width, ' '), Colors.FXTextRed | Colors.FXBold)
+            self.node.appendStr(1, 0, "You probably do not have CLIsma extras installed.")
+            self.node.appendStr(2, 0, "BANGERPLAYER is the part of that.")
+            self.node.appendStr(3, 0, "Just execute")
+            self.node.appendStr(3, 14, "pip install -r requirements-extra.txt", Colors.FXTextBlue | Colors.FXReverse | Colors.FXBold)
+            self.node.appendStr(4, 0, "in your CLIsma directory.".center(self.width, ' '))
+            return
+        
+        current = None
+        if self.current >= 0:
+            current = self.current_instance
+
+        if current and current.len_read < current.len and self.current == 0:
+            self.node.appendStr(0, 0, f"{current.name} - {100 * current.len_read / current.len}%")
+            return
+
+        
+        if current:
+            self.node.appendStr(0, 0, current.name.center(self.width, ' '), Colors.FXBold)
+        else:
+            self.node.appendStr(0, 0, "No song playing".center(self.width, ' '))
+
+
+
+    def abort(self):
+        # Exact order. Stream first. Load second. File last, if not closed.
+
+        if self.stream:
+            try:
+                self.stream.stop()
+                self.stream.close()
+            except:
+                pass
+
+        if self.thread:
+            self.thread.join()
+
+        for file in self.opened:
+            try:
+                file.close()
+            except:
+                pass
+
