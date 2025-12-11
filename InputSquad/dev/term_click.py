@@ -23,13 +23,13 @@ class TermClick(Device):
             m_id, self.x, self.y, z, state = curses.getmouse()
             btn = 0
             val = 0
-            if state & curses.BUTTON1_PRESSED || state & curses.BUTTON1_RELEASED:
+            if state & curses.BUTTON1_PRESSED or state & curses.BUTTON1_RELEASED:
                 btn = 1
                 val = state & curses.BUTTON1_PRESSED
-            if state & curses.BUTTON2_PRESSED || state & curses.BUTTON2_RELEASED:
+            if state & curses.BUTTON2_PRESSED or state & curses.BUTTON2_RELEASED:
                 btn = 2
                 val = state & curses.BUTTON2_PRESSED
-            if state & curses.BUTTON3_PRESSED || state & curses.BUTTON3_RELEASED:
+            if state & curses.BUTTON3_PRESSED or state & curses.BUTTON3_RELEASED:
                 btn = 3
                 val = state & curses.BUTTON3_PRESSED
             self.state[btn] = val
