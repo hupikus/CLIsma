@@ -59,7 +59,7 @@ class DeviceHandler:
 		self.misc = []
 
 		self.evdev_scan()
-		self.
+		self.click_scan()
 
 	
 	def evdev_scan(self):
@@ -109,11 +109,11 @@ class DeviceHandler:
 							self.midi.append(devpath)
 	
 
-	# Not neccesarily termux, any terminal emulator that supports touch to click
-	def termux_scan(self):
+	# For any terminal emulator that supports touch to click (if you don't have the permissions)
+	def click_scan(self):
 		if len(self.mouses) == 0:
-			if os.getenv("ANDROID_DATA", "") == "/data":
-				self.mouses.append("term-click")
+			#if os.getenv("ANDROID_DATA", "") == "/data":
+			self.mouses.append("term-click")
 
 
 
