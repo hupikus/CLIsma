@@ -47,8 +47,7 @@ class Mice(Device):
 				self.x[id] = 0
 				self.wheel[id] = 0
 				events = os.read(self.devicelist[id], EV_SIZE * EV_COUNT)
-				if not events:
-					continue
+				if not events: continue
 
 				EV_ACTUAL_SIZE = len(events)
 
@@ -75,18 +74,18 @@ class Mice(Device):
 				self.y[id] = 0
 				self.x[id] = 0
 				self.wheel[id] = 0
-				if events:
-					for event in events:
-						if event.type == EV_REL:
-							if event.code == REL_Y:
-								self.y[id] = event.value * 0.67
-							elif event.code == REL_X:
-								self.x[id] = event.value
-							elif event.code == REL_WHEEL:
-								self.wheel[id] -= event.value
-						elif event.type == EV_KEY:
-							if event.code >= BTN_LEFT and event.code <= BTN_MIDDLE:
-								self.state[id][event.code - BTN_LEFT] = event.value
+				if not events: continue
+				for event in events:
+					if event.type == EV_REL:
+						if event.code == REL_Y:
+							self.y[id] = event.value * 0.67
+						elif event.code == REL_X:
+							self.x[id] = event.value
+						elif event.code == REL_WHEEL:
+							self.wheel[id] -= event.value
+					elif event.type == EV_KEY:
+						if event.code >= BTN_LEFT and event.code <= BTN_MIDDLE:
+							self.state[id][event.code - BTN_LEFT] = event.value
 			except:
 				continue
 
