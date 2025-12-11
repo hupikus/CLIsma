@@ -132,7 +132,6 @@ class Mice(Device):
 
 
 	def start(self):
-
 		if USE_EVDEV:
 			import evdev
 			self.readevent = self.readevent_evdev

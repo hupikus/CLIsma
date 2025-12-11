@@ -7,20 +7,26 @@ from worldglobals import worldglobals
 from integration.loghandler import Loghandler
 
 from InputSquad.controller import Controller
+# Base
 from InputSquad.dev.mouse import Mice
 from InputSquad.dev.midi import Midi
 from InputSquad.dev.keyboard import Keyboard
 
+# Misc
+from InputSquad.dev.term_click import TermClick
 
-#define
+
+# Evdev
 EV_MSC = 0x04
 EV_KEY = 0x01
 EV_REL = 0x02
 
+# What we expect from mouse
 BTN_MOUSE = 0x100
 REL_X = 0x00
 REL_Y = 0x01
 
+# What we might expect from keyboard
 KEY_Z = 44
 KEY_ENTER = 28
 KEY_SPACE = 57
@@ -50,12 +56,20 @@ class DeviceHandler:
 		self.mouses = []
 		self.keyboards = []
 		self.midi = []
+		self.misc = []
+
+		self.evdev_scan()
+		self.
+
+	
+	def evdev_scan(self):
 
 		i = 0
 		with threading.Lock():
 			while True:
 				loc = "/dev/input/event" + str(i)
 				if os.path.exists(loc):
+					if not os.access(loc, os.R_OK): continue
 					is_mouse = False
 					is_keyboard = False
 					type = ""
@@ -68,17 +82,15 @@ class DeviceHandler:
 						rel = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
 						relcapb = hex_to_bin(rel.read())
 						rel.close()
-						#type = "Mouse"
 						if len (relcapb) >= REL_Y and relcapb[REL_Y] == '1' and relcapb[REL_X] == '1':
 							type = "Mouse"
 					if type == '' and ln >= EV_KEY:
 						key = open(f"/sys/class/input/event{i}/device/capabilities/key", 'r')
 						keycapb = hex_to_bin(key.read())
 						key.close()
-						#type = "Keyboard"
-						if len(keycapb) >= KEY_SPACE and keycapb[KEY_ENTER] == '1':
-							if keycapb[KEY_SPACE] == '1':
-								type = "Keyboard"
+						if len(keycapb) >= KEY_SPACE and keycapb[KEY_SPACE] == '1':
+							#if keycapb[KEY_SPACE] == '1':
+							type = "Keyboard"
 
 
 					if type == "Mouse":
@@ -95,6 +107,13 @@ class DeviceHandler:
 						devpath = midi + dev
 						if os.access(devpath, os.R_OK):
 							self.midi.append(devpath)
+	
+
+	# Not neccesarily termux, any terminal emulator that supports touch to click
+	def termux_scan(self):
+		if len(self.mouses) == 0:
+			if os.getenv("ANDROID_DATA", "") == "/data":
+				self.mouses.append("term-click")
 
 
 
@@ -116,7 +135,7 @@ class DeviceHandler:
 		self.keyboard_class = False
 		self.midi_class = False
 
-		self.modules =  [self._mouse,      self._midi,      self._keyboard]
+		self.modules = [self._mouse, self._midi, self._keyboard]
 
 
 		self.scan_exit = threading.Event()
@@ -138,12 +157,16 @@ class DeviceHandler:
 				isMidi = len(self.midi) > 0
 				working = isMouse or isKeyboard or isMidi
 
-				self.modules =  [self._mouse,      self._midi,      self._keyboard]
+				self.modules = [self._mouse, self._midi, self._keyboard]
 
 				if not self.isMouse and isMouse:
 					self.isMouse = True
-					self.mouse_class = Mice(self.mouses, self.controller)
-					self.mouse_range = range(0)
+					if len(self.mouses) > 0 and self.mouses[0] == "term-click":
+						self.mouse_class = TermClick(self.mouses, self.controller)
+						self.mouse_range = range(1)
+					else:
+						self.mouse_class = Mice(self.mouses, self.controller)
+						self.mouse_range = range(0)
 					Loghandler.Log("Initialized input modult: mouse")
 
 				if not self.isKeyboard and isKeyboard:
