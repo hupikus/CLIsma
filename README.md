@@ -33,7 +33,7 @@ This app is currently unfinished and requies testing.
 
 - alsa
 
-- python 3.10 or newer
+- python 3.10 or newer (possible to launch on python 3.7 with minimal effort (patch FileSquad/clismaconfig.py))
   
   additional: (unneccesary)
 
@@ -75,7 +75,7 @@ pip install -r ./requirements-extra.txt
 python main.py
 ```
 
-### CLIsma have shell arguiments:
+### CLIsma has shell arguiments:
 
 ```
 Usage: main.py --flag1 {required1} (optional2) --flag2 ...

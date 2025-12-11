@@ -2,7 +2,7 @@ from integration.loghandler import Loghandler
 from worldglobals import worldglobals
 from type.colors import Colors
 
-from fastconfig import Wmconfig
+from fastconfig import Wmconfig, Compatconfig
 
 from singletons import Singletons
 class Layouts:
@@ -14,17 +14,19 @@ class Layouts:
 
         self.wm = Singletons.Wm
 
+
     def loadState(self, path):
         ui = self.ui
         newline = (True, "newline", 1)
         if path == "zero":
-            ui.clickableArt("performance", self.sett.submenu, 0, 0, ["", "/-/-\\", "/ o->", "\\-/-/", " Performance "], align = 1)
-            ui.clickableArt("input", self.sett.submenu, 0, 0, ["  \\  ", "/-/-\\", "| ! |", "\\___/", "    Input    "], align = 1)
-            ui.clickableArt("customization", self.sett.submenu, 0, 0, ["  /\\  ", " _||_ ", "| || |", "|-\\/-|", "Customization"], align = 1)
-            ui.clickableArt("apps", self.sett.submenu, 0, 0, ["  _|_ ", " |\\|/|", " | V |", " |---|", "Applications"], align = 1)
-            ui.clickableArt("security", self.sett.submenu, 0, 0, ["_____", "| - |", "| o |", "I---I", "  Security  "], align = 1)
+            ui.clickableArt("performance", self.sett.submenu, 0, 0, ["", "/-/-\\", "/ o->", "\\-/-/", "  Performance  "], align = 1)
+            ui.clickableArt("input", self.sett.submenu, 0, 0, ["  \\  ", "/-/-\\", "| ! |", "\\___/", "     Input     "], align = 1)
+            ui.clickableArt("customization", self.sett.submenu, 0, 0, ["  /\\  ", " _||_ ", "| || |", "|-\\/-|", " Customization "], align = 1)
+            ui.clickableArt("apps", self.sett.submenu, 0, 0, ["  _|_ ", " |\\|/|", " | V |", " |---|", " Applications "], align = 1)
+            ui.clickableArt("security", self.sett.submenu, 0, 0, ["_____", "| - |", "| o |", "I---I", "   Security   "], align = 1)
+            ui.clickableArt("compatibility", self.sett.submenu, 0, 0, ["  .  ", " /-\\ ", "/\\_/\\", "  |  ", " Compatibility"], align = 1)
 
-            ui.list("list", ("input", "performance", "customization", "security", "apps"), 0, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+            ui.list("list", ("input", "performance", "customization", "security", "apps", "compatibility"), 0, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
             ui.remove("back", type = "tapArts")
 
@@ -103,6 +105,21 @@ class Layouts:
 
                 ui.list("list", elements, 3, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
 
+            elif path == "compatibility":
+                ui.textLine("title0", "Framebuffer background mode", 0, 0, attr = Colors.FXBold)
+                ui.art("desc", [
+                    "This mode is suggested when using",
+                    "a framebuffer program acting as a",
+                    "dynamic background for bare tty.",
+                    "May reduce flickering."
+                    ], 0, 0, attr = Colors.FXPale)
+                ui.textLine("flav1", "Enable FB background mode", 0, 0)
+                ui.radioButton("radio1", self.fbmode, 0, 0, False)
+
+                elements = ("title0", newline, "desc", (True, "newline", 4), (True, "glue", 2), "flav1", "radio1")
+
+                ui.list("list", elements, 2, 0, self.sett.height, self.sett.width, 1, 2, fitAll = True, vertical = False)
+
         self.path = path
 
 
@@ -151,3 +168,8 @@ class Layouts:
 
     def strUpdate(self, name, val, button, device_id):
         Wmconfig.setDesktopRefresh(val)
+
+
+
+    def fbmode(self, name, val, button, device_id):
+        Compatconfig.BFMode(val)

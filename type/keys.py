@@ -1,4 +1,4 @@
-#all keys", actuially. see: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
+#"all keys", actuially. see: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
 class Keys:
     KEY_RESERVED                           = 0
     KEY_ESC                                = 1

@@ -16,6 +16,10 @@ class WmMouse:
         self.screen_height = display.height
         self.screen_width = display.width
 
+        self.last_draw_y = 0
+        self.last_draw_x = 0
+        self.last_draw_attr = 0
+
         #customization
         self.speed = 1
         self.isReversed = isReversed
@@ -64,27 +68,35 @@ class WmMouse:
 
             reverse = True
 
-            if color == 0:
-                color = attr
-
-                if attr_reversed:
-                    reverse = False
-                    color = Colors.getColorPair(foreground = Colors.FXWhite, background = Colors.FXBlack)
-                elif pair_number == 63:
-                    color = Colors.colorPair(56)
-                elif fg == bg:
-                        color = Colors.getColorPair(foreground = Colors.FXBlack, background = bg)
-                elif pair_number == 37: # Fallback pair
-                        color = Colors.FXNormal
+            if self.last_draw_y == mouse_last_y and self.last_draw_x == mouse_last_x:
+                color = self.last_draw_attr
             else:
-                cursor_pair = (color & curses.A_COLOR) >> 8
-                cursor_fg, cursor_bg = Colors.getPairColors(cursor_pair)
-                if (attr_reversed and cursor_fg == Colors.FXWhite) or (bg == cursor_fg):
-                    reverse = False
-                    color = Colors.getColorPair(foreground = Colors.FXWhite, background = Colors.FXBlack)
+                self.last_draw_y = mouse_last_y
+                self.last_draw_x = mouse_last_x
 
-            if reverse:
-                color = color | Colors.FXReverse
+                if color == 0:
+                    color = attr
+
+                    if attr_reversed:
+                        reverse = False
+                        color = Colors.getColorPair(foreground = Colors.FXWhite, background = Colors.FXBlack)
+                    elif pair_number == 63:
+                        color = Colors.colorPair(56)
+                    elif fg == bg:
+                            color = Colors.getColorPair(foreground = Colors.FXBlack, background = bg)
+                    elif pair_number == 37: # Fallback pair
+                            color = Colors.FXNormal
+                else:
+                    cursor_pair = (color & curses.A_COLOR) >> 8
+                    cursor_fg, cursor_bg = Colors.getPairColors(cursor_pair)
+                    if (attr_reversed and cursor_fg == Colors.FXWhite) or (bg == cursor_fg):
+                        reverse = False
+                        color = Colors.getColorPair(foreground = Colors.FXWhite, background = Colors.FXBlack)
+
+                if reverse:
+                    color = color | Colors.FXReverse
+
+                self.last_draw_attr = color
 
             display.root.chgat(mouse_last_y, mouse_last_x, 1, color)
 

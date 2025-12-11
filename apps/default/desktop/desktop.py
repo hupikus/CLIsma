@@ -17,7 +17,7 @@ class desktop(apphabit):
 		header_window = header[:-5] + "- m x"
 		self.dekstop_str = (header, '─' * self.width, ' ' * self.width, header_window)
 
-		self.range = tuple([range(3)] + [range(2 + a, self.height - 5, 3) for a in range(3)] + [range(2, self.height - 5)])
+		self.range = tuple([range(3)] + [range(2 + a, self.height - 4, 3) for a in range(3)] + [range(2, self.height - 4)])
 
 
 	def setmaxstep(self, step):
@@ -49,9 +49,9 @@ class desktop(apphabit):
 	def start(self):
 		self.tick = 0
 		self.refresh = False
-		self.node.ui.clickArea("menu", self.menu, self.height - 4, 0, 3, 5)
+		self.node.ui.clickArea("menu", self.menu, self.height - 3, 0, 3, 5)
 		for i in range(self.applen):
-			self.node.ui.clickArea("app" + str(i), self.dockapp_clicked, self.height - 4, self.space * (i + 1), 3, 5)
+			self.node.ui.clickArea("app" + str(i), self.dockapp_clicked, self.height - 3, self.space * (i + 1), 3, 5)
 
 		#window spawn
 		self.spawny = round(self.height * 0.3)
@@ -81,7 +81,7 @@ class desktop(apphabit):
 		self.controller = controller
 		self.wm = params
 		self.width = width
-		self.height = height + 1
+		self.height = height
 
 		self.preferred_height = 80
 		self.preferred_width = 24
@@ -94,7 +94,6 @@ class desktop(apphabit):
 		self.fps_rate = "0"
 		self.process_timer = 0.0
 		self.draw_timer = 0.0
-
 
 		if self.height < 14 or self.width < 27:
 			self.state = "minimal"
@@ -125,12 +124,12 @@ class desktop(apphabit):
 		self.start()
 
 	#def updateb(self, y):
-		#self.node.appendStr(min(max(2, y), self.height - 6), 0, ' ' * self.width)
+		#self.node.appendStr(min(max(2, y), self.height - 5), 0, ' ' * self.width)
 
 
 	def draw_header(self, isMax):
 		self.tick = (self.tick + 1) % 3
-		#self.tick = (self.tick + 1) % (self.height - 8)
+		#self.tick = (self.tick + 1) % (self.height - 7)
 
 		if self.state == "regular":
 			if isMax:
@@ -143,6 +142,8 @@ class desktop(apphabit):
 
 
 	def draw(self, delta):
+
+		appendStr = self.node.appendStr
 
 		self.neofps += 1
 		self.draw_timer += delta
@@ -159,35 +160,38 @@ class desktop(apphabit):
 			refresh = 2
 
 		###################
-		self.node.appendStr(1, 0, self.dekstop_str[1])
+		appendStr(1, 0, self.dekstop_str[1])
 
 		if refresh > 0:
 			#interlace refresh
 			if refresh == 1 or self.neofps % 12 == 1:
 				for y in self.range[self.tick + 1]:
-					self.node.appendStr(y, 0, self.dekstop_str[2])
-				self.node.appendStr(3, 0, "Lazy refresh enabled")
+					appendStr(y, 0, self.dekstop_str[2])
+				appendStr(3, 0, "Lazy refresh enabled")
 		else:
 			for y in self.range[4]:
-				self.node.appendStr(y, 0, self.dekstop_str[2])
+				appendStr(y, 0, self.dekstop_str[2])
 
-		self.node.appendStr(self.height - 1, 0, self.dekstop_str[2])
+		#appendStr(self.height, 0, self.dekstop_str[2])
 
 		if self.state == "regular":
-			self.node.appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS")
+			appendStr(6, 0, f"{self.fps_rate} FPS, {self.tick_rate} TPS")
 
 		#__________________
-		self.node.appendStr(self.height - 5, 0, self.dekstop_str[1], Colors.FXNormal)
+		appendStr(self.height - 4, 0, self.dekstop_str[1], Colors.FXNormal)
 
 		for y in self.range[0]:
 			#line = ''
-			self.node.appendStr(self.height - 4 + y, 0, self.menuapp.icon[y], Colors.colorPair(6) | Colors.FXBold)
+			appendStr(self.height - 3 + y, 0, self.menuapp.icon[y], Colors.colorPair(6) | Colors.FXBold)
 			for i in range(self.applen):
-				self.node.appendStr(self.height - 4 + y, self.space * (i + 1), self.apps[i].icon[y], Colors.colorPair(6))
+				appendStr(self.height - 3 + y, self.space * (i + 1), self.apps[i].icon[y], Colors.colorPair(6))
 				#line = line + (' ' * self.space) + str(self.apps[i].icon[y])
-			#self.node.appendStr(self.height - 4 - 5 + y, 0, line)
+			#self.node.appendStr(self.height - 3 - 5 + y, 0, line)
 
-		return 0
+	def onresize(self, height, width):
+		self.height = height
+		self.width = width
+		self.gen_cache()
 
 	def keyPress(key):
 		print(key)
@@ -214,8 +218,8 @@ class desktop(apphabit):
 		if button == 0:
 			if not self.ismenu:
 				try:
-					h = round((self.height - 8) * 0.4)
-					self.menunode = self.node.newNode("apps.default", "menu", self.height - 5 - h, 0, h, round(self.width / 4), '').node
+					h = round((self.height - 7) * 0.4)
+					self.menunode = self.node.newNode("apps.default", "menu", self.height - 4 - h, 0, h, round(self.width / 4), '').node
 					self.menunode.windowed = False
 				except:
 					pass

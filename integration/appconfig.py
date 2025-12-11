@@ -65,7 +65,7 @@ class Appconfig:
 
 		return descriptor
 	
-
+	@staticmethod
 	def CloseConfig(descriptor):
 		if descriptor not in Appconfig.connections:
 			return False
@@ -96,7 +96,7 @@ class Appconfig:
 				file = open(configpath, 'r')
 				c = file.read()
 				file.close()
-				Loghandler.Log(c)
+				#Loghandler.Log(c)
 				content = Cfg.Parse(c)
 			except:
 				return {}

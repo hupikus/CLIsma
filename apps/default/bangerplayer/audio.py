@@ -11,5 +11,7 @@ class audio:
         self.len_read = 0
         self.data = None
 
+        self.loaded = False
+
     def init_data(self):
         self.data = np.empty((self.len, self.channels), dtype = np.float32)

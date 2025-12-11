@@ -9,7 +9,7 @@ try:
     import soundfile as sf
     import sounddevice as sd
     import numpy as np
-    from apps.default.bangerplayer.audio import audio
+    from .audio import audio
 except Exception as ex:
     extra = False
 
@@ -18,21 +18,24 @@ except Exception as ex:
 from type.colors import Colors
 from integration.loghandler import Loghandler
 
+from .layout import *
+
 from apps.apphabit import apphabit
 class bangerplayer(apphabit):
 
     def __init__(self, id, node, controller, height, width, params):
-        #base
+        # Base
         self.id = id
         self.node = node
         self.controller = controller
         self.height = height
         self.width = width
 
-        # Abort targets
+        # Important-To-Abort targets
         self.opened = []
         self.thread = None
 
+        # Player
         self.songs = {}
         self.song_id = 0
         self.current = 0
@@ -43,7 +46,7 @@ class bangerplayer(apphabit):
         self.prev_pos = 0
         self.stream = None
 
-        #input
+        # Input
         self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
 
         if not extra: return
@@ -52,6 +55,15 @@ class bangerplayer(apphabit):
             song = self.open(params)
             if song >= 0:
                 self.play(song)
+
+
+        # UI
+        self.ui = node.neoui
+        ui = self.ui
+
+        self.file_list = ui.CreateCanvas(0, 0, self.height, 0)
+        self.main_canvas = ui.CreateCanvas(0, 0, self.height, self.width)
+        self.toggle_files = False
 
 
 
@@ -71,6 +83,11 @@ class bangerplayer(apphabit):
             audiofile.samplerate = file.samplerate
             audiofile.channels = file.channels
             audiofile.init_data()
+
+            name = os.path.basename(file.name)
+            if name:
+                audiofile.name = name
+
             self.songs[self.song_id] = audiofile
             self.song_id += 1
 
@@ -105,6 +122,7 @@ class bangerplayer(apphabit):
         if soundfile in self.opened:
             self.opened.remove(soundfile)
         soundfile.close()
+        audiofile.loaded = True
 
 
     def play(self, song):
@@ -117,16 +135,28 @@ class bangerplayer(apphabit):
 
         self.sample_pos = 0
 
-        if self.stream is None:
-            self.stream = sd.OutputStream(
-                samplerate = audiofile.samplerate,
-                channels = audiofile.channels,
-                dtype='float32',
-                callback = self.stream_callback,
-                blocksize = 1024
+        first_stream = self.stream is None
+        same_specs = False
+
+        if not first_stream:
+            same_specs = (
+                self.stream.samplerate == audiofile.samplerate and
+                self.stream.channels == audiofile.channels
             )
-        else:
+
+            if same_specs: return # Do nothing
+
             self.stream.stop()
+            self.stream.close()
+
+        self.stream = sd.OutputStream(
+            samplerate = audiofile.samplerate,
+            channels = audiofile.channels,
+            dtype='float32',
+            callback = self.stream_callback,
+            blocksize = 1024
+        )
+
         self.stream.start()
 
 
@@ -137,7 +167,7 @@ class bangerplayer(apphabit):
         pos = self.sample_pos
         prev = self.prev_pos
 
-        if pos + frames >= audiofile.len_read: return
+        if pos + frames + audiofile.samplerate >= audiofile.len_read: return
 
         if abs(pos - prev) >= frames:
 
@@ -179,6 +209,11 @@ class bangerplayer(apphabit):
         else:
             self.node.appendStr(0, 0, "No song playing".center(self.width, ' '))
 
+
+    def resize(self, height, width):
+        self.height = height
+        self.width = width
+        self.arrange_layout(self.toggle_files, height, width)
 
 
     def abort(self):

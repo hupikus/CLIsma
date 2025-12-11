@@ -1,8 +1,11 @@
 import curses
+import os
 
 from integration.loghandler import Loghandler
-
+Loghandler.Log("Color init")
 class Colors:
+
+    colorTerm = "None"
 
     colorMode = {}
 
@@ -118,16 +121,24 @@ class Colors:
 
     colorPosibility = False
     colorlen = 2
+    pairlen = 1
 
     @staticmethod
     def start_color(forceColor):
         curses.start_color()
-        curses.use_default_colors()
-
         Colors.colorPosibility = True
+        try:
+            curses.use_default_colors()
+        except:
+            Colors.colorPosibility = False
+
         Colors.colorlen = curses.COLORS
         if forceColor and Colors.colorlen >= 2:
             Colors.colorlen = 8
+
+        Colors.Colorterm = os.environ.get("COLORTERM")
+        if Colors.Colorterm == "kmscon":
+            Loghandler.Log("kmscon detected")
 
         if curses.can_change_color():
             curses.init_color(0, 121, 121, 121)
@@ -138,7 +149,6 @@ class Colors:
             curses.init_color(5, 514, 282, 659)
             curses.init_color(6, 388, 812, 859)
             curses.init_color(7, 900, 900, 900)
-
 
         if Colors.colorlen >= 8:
             Colors.FXTextBlack = curses.color_pair(0)
@@ -172,14 +182,17 @@ class Colors:
         #         exit()
         #if Colors.colorlen == 8 and curses.COLOR_PAIRS == 64:
         i = 0
-        for fore in range(8):
-            curses.init_pair(i, fore, -1)
-            i += 1
-        for back in range(1, 8):
+        if Colors.pairlen >= 8:
             for fore in range(8):
-                curses.init_pair(i, fore, back)
+                curses.init_pair(i, fore, -1)
                 i += 1
-        if curses.COLOR_PAIRS >= 72:
+
+        if Colors.pairlen >= 64:
+            for back in range(1, 8):
+                for fore in range(8):
+                    curses.init_pair(i, fore, back)
+                    i += 1
+        if Colors.pairlen >= 72:
             for fore in range(8):
                 curses.init_pair(i, fore, 0)
                 i += 1

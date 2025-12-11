@@ -1,4 +1,5 @@
 from singletons import Singletons
+
 class Wmconfig:
     wm = Singletons.Wm
 
@@ -28,3 +29,22 @@ class DesktopConfig:
         ind = DesktopConfig.patterns.find(name)
         if ind >= 0:
             desktop.setmaxstep(ind)
+
+
+class Compatconfig:
+    wm = Singletons.Wm
+
+    @staticmethod
+    def BFMode(val):
+        wm = Compatconfig.wm
+        desktop = wm.desktop.node
+        wm.fbmode = val
+        if val:
+            desktop.width = wm.screen_width - 2
+            desktop.from_x = 1
+            desktop.to_x = wm.screen_width - 2
+        else:
+            desktop.width = wm.screen_width
+            desktop.from_x = 0
+            desktop.to_x = wm.screen_width
+        desktop.win.onresize(wm.screen_height, desktop.width)

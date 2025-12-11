@@ -109,7 +109,7 @@ class Node:
 
 		self.min_height = 1
 		self.max_height = 999
-		self.min_width = 8
+		self.min_width = 9
 		self.max_width = 999
 		# TODO: size constrains should be in .app file
 
@@ -164,7 +164,6 @@ class Node:
 			y += 1
 
 
-	#TODO: optimize
 	# assembly code will only make positive difference by referencing "var = self.var" 4 and more uses
 
 	def appendStr_old(self, y, x, text, attr = Colors.FXNormal):
@@ -191,7 +190,7 @@ class Node:
 			else:
 				self.root.addnstr(fy, fx, text, oblen, attr)
 
-	# This is generally 1.5-2 times faster but partially broken
+	# This refactor is generally 1.5-2 times faster but may contain bugs
 
 	def appendStr(self, y, x, text, attr = Colors.FXNormal):
 		if y < 0 or y >= self.height: return

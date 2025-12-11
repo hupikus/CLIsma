@@ -13,7 +13,7 @@ class apphabit:
         self.ui = self.node.ui
 
     def draw(self, delta):
-        pass
+        self.node.clear()
 
     def process(self, delta):
         pass

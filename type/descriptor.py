@@ -1,7 +1,7 @@
 from enum import Enum
 
 #32766 max config connections per boot is enough i guess??? Maybe, in future, I will un-hardcode it.
-#Or I'll just force config reset after limit exceedition.
+#Or I'll just force config reset after limit exceedes.
 higherbits = 65536 | 131072
 class Descriptor(Enum):
 	NULL = -1

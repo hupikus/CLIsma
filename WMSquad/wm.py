@@ -108,7 +108,6 @@ class Wm:
 
 		# Cursor
 		self.pointer_count = 0
-		#inpd.listen_to_mouse(event_func = self.mouseinput, update_func = self.resize_pointers)
 		inpd.listen_to_input(event_func = self.input, mouse_update_func = self.resize_pointers)
 		self.hide_mouse_frames = 0
 
@@ -121,6 +120,9 @@ class Wm:
 
 		self.accent = Colors.FXTextCyan
 
+		# Compatibility
+		self.fbmode = False
+
 
 		# Startup nodes
 		if desktop == "default":
@@ -131,9 +133,9 @@ class Wm:
 		self.desktop.node.is_fullscreen = True
 		Loghandler.Log("WM initialized")
 
-		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
 		self.newNode("apps.default", "log", 18, 12, 8, 45, '')
 		self.newNode("apps.default", "neoui", 4, 2, 25, 125)
+		self.newNode("apps.default", "default", 7, 7, 2, 65, '')
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 
 
@@ -205,8 +207,7 @@ class Wm:
 
 
 	def draw(self, delta):
-		#draw all nodes
-		#Loghandler.Log(self.order)
+		# Draw all nodes
 		if self.shutdown_ready: return 0
 		if self.display.resize_wm_signal:
 			self.resize_screen()
@@ -228,9 +229,21 @@ class Wm:
 					#if node.is_maximized or node.is_fullscreen:
 					#	continue
 					self.decoration(node)
-		#draw mouse
+
+
+		# Compat
+		if self.fbmode:
+			y = 0
+			addstr = self.display.root.addstr
+			while y < self.screen_height:
+				addstr(y, 0, '│')
+				addstr(y, self.screen_width - 1, '│')
+				y += 1
+
+
+
+		# Draw mouse
 		if self.isMouse and self.hide_mouse_frames == 0:
-			#self.display.root.addstr(10, 5, str(self.active))
 			try:
 				for pointer in self.pointers:
 					self.error += pointer.draw()

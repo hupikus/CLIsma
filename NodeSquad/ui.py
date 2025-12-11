@@ -839,7 +839,7 @@ class UI:
 			elif type in ("sliders", "fields"):
 				indexx = 3
 				indexy = 1
-			elif type in ("buttons", "tapArts"):
+			elif type in ("buttons", "arts", "tapArts"):
 				indexx = 4
 				indexy = 3
 				n_width = -1

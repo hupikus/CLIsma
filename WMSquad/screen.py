@@ -19,6 +19,13 @@ class Screen():
 		self.resize_wm_signal = False
 
 
+		# Handle special terminals before starting curses, because curses relies solely on the environment variable rather than on the actual capabilities
+
+		colorterm = os.environ.get("COLORTERM")
+
+		if colorterm == "kmscon":
+			os.environ["TERM"] = "xterm"
+
 		# Preparation
 		self.screen = curses.initscr()
 
@@ -26,7 +33,7 @@ class Screen():
 		# ASCII screen
 		self.root = curses.newwin(self.height + 1, self.width, 0, 0)
 
-        # Save props
+		# Save props
 		self.fd = sys.stdin.fileno()
 		self.old_config = termios.tcgetattr(self.fd)
 
@@ -35,11 +42,14 @@ class Screen():
 		self.root.nodelay(1)
 		curses.cbreak()
 		curses.noecho()
-		curses.curs_set(0)
+		try:
+			curses.curs_set(0)
+		except:
+			pass
 
 		# Colors
 		Colors.start_color(forceColor)
-		if curses.has_colors():
+		if Colors.colorPosibility: #curses.has_colors():
 			Colors.define_pairs()
 
 		#curses.nonl()
