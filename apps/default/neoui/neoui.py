@@ -39,7 +39,7 @@ class neoui(apphabit):
 			border = ui.StylePack(normal = Colors.FXTextRed, hover = Colors.FXNormal, interact = Colors.FXTextBlue)
 		)
 
-		btn = ui.Button(self.button, 7, 3, 12, 11, "Hello\nFellow\nHumands\n!!!\nWingind\nMy\nDing\nUntil\nI\nGaster\nThe\nBlaster", align = 1, style = self.button_style, atlas = "┌┐└┘│─ ")
+		btn = ui.Button(self.button, 7, 3, 12, 11, "Hello\n World!", align = 1, style = self.button_style, atlas = "┌┐└┘│─ ")
 		self.canvas.Add(btn)
 
 		txt.align = 0
