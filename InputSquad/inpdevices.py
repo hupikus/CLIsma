@@ -58,7 +58,7 @@ class DeviceHandler:
 		self.midi = []
 		self.misc = []
 
-		self.evdev_scan()
+		#self.evdev_scan()
 		self.click_scan()
 
 	
@@ -161,12 +161,11 @@ class DeviceHandler:
 
 				if not self.isMouse and isMouse:
 					self.isMouse = True
-					if len(self.mouses) > 0 and self.mouses[0] == "term-click":
+					if self.mouses[0] == "term-click":
 						self.mouse_class = TermClick(self.mouses, self.controller)
-						self.mouse_range = range(1)
 					else:
 						self.mouse_class = Mice(self.mouses, self.controller)
-						self.mouse_range = range(0)
+					self.mouse_range = range(0)
 					Loghandler.Log("Initialized input modult: mouse")
 
 				if not self.isKeyboard and isKeyboard:

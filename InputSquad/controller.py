@@ -1,4 +1,5 @@
 from type.inpevents import InputEvents
+from integration.loghandler import Loghandler 
 
 from InputSquad.controllers.midi_controller import MidiController
 from InputSquad.controllers.keyboard_controller import KeyboardController
