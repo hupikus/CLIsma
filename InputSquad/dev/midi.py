@@ -1,5 +1,5 @@
 from integration.loghandler import Loghandler
-from InputSquad.device import Device
+from InputSquad.dev.device import Device
 
 import os
 

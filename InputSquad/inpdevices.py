@@ -7,9 +7,9 @@ from worldglobals import worldglobals
 from integration.loghandler import Loghandler
 
 from InputSquad.controller import Controller
-from InputSquad.mouse import Mice
-from InputSquad.midi import Midi
-from InputSquad.keyboard import Keyboard
+from InputSquad.dev.mouse import Mice
+from InputSquad.dev.midi import Midi
+from InputSquad.dev.keyboard import Keyboard
 
 
 #define
@@ -47,7 +47,6 @@ def hex_to_bin(str_hex):
 class DeviceHandler:
 
 	def device_scan(self):
-		c = True
 		self.mouses = []
 		self.keyboards = []
 		self.midi = []

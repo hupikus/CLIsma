@@ -1,7 +1,7 @@
 import os
 import struct
 
-from InputSquad.device import Device
+from InputSquad.dev.device import Device
 from integration.loghandler import Loghandler
 
 EV_KEY = 0x01
