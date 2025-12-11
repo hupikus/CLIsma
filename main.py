@@ -15,8 +15,12 @@ skip_desktop = False
 DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(DIR)
 if not os.path.exists("apps/default"):
-	print("Critical: default apps are deleted. This generation is doomed.")
-	exit()
+	if not os.path.exists("empty"):
+		print("Critical: default apps are deleted. Proceed if you want an empty WM or fix the installation.")
+		resp = input("Proceed? (y/n) ").lower()
+		if resp != 'y': exit()
+		with open('empty', 'w') as f:
+			pass
 
 #argparse
 for i in range(len(sys.argv)):
@@ -116,7 +120,8 @@ if skip_desktop:
 
 if not os.access("/dev/input/event0", os.R_OK):
 	print("Critical: don't have access to /dev/input")
-	exit()
+	time.sleep(0.5)
+	
 
 
 from worldglobals import worldglobals
