@@ -66,6 +66,7 @@ class UIElement:
                 ui.children.append(self)
                 self.parent = ui
 
+        # Add children tp self
         def Add(self, ui):
             if isinstance(ui, UIElement):
                 if ui.parent:
@@ -80,6 +81,7 @@ class UIElement:
                 if ui.style is None:
                     ui.update_style(self.style)
 
+        # Detach self from parent (become ready for gc)
         def Remove(self):
             if self.parent:
                 parentlist = self.parent.children

@@ -58,7 +58,7 @@ class DeviceHandler:
 		self.midi = []
 		self.misc = []
 
-		#self.evdev_scan()
+		self.evdev_scan()
 		self.click_scan()
 
 	

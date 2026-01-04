@@ -764,6 +764,8 @@ class UI:
 
 		return newline
 
+
+	# This was created with having calculation errorrs in mind. DO NOT RELY ON THIS UT FILE ANYMORE
 	def tagsoverheadcount(self, string):
 		d = len(string)
 		string = string.replace("<endc>", '').replace("<endt>", '').replace("<n>", '')

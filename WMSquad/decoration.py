@@ -51,6 +51,7 @@ class Decoration():
 			scrheight = wm.screen_height
 
 
+
 			bold_title = True
 
 			if width > 8:
@@ -79,8 +80,9 @@ class Decoration():
 						wm.display.root.chgat(y, x, min(ln, width, scrwidth - x), Colors.FXBold)
 
 			if mode != DecorationStyle.top_only:
+				bottom = (ty + 1 < scrheight)
 				#bottom decoration
-				if ty + 1 < scrheight:
+				if bottom:
 					text = '─' * width
 					x_offcut = fx
 					if x_offcut < 0:
@@ -94,18 +96,17 @@ class Decoration():
 					left = (fx - 1 >= 0)
 					right = (tx + 1 < scrwidth)
 
-					maxy = scrheight if ty + 1 >= scrheight else ty + 1
-
 					if left:
 						wm.display.root.addch(fy - 1, fx - 1, '┌')
-						if maxy == ty + 1:
+						if bottom:
 							wm.display.root.addch(ty + 1, fx - 1, '└')
 					if right:
 						wm.display.root.addch(fy - 1, tx + 1, '┐')
-						if maxy == ty + 1:
+						if bottom:
 							wm.display.root.addch(ty + 1, tx + 1, '┘')
 
 					y = fy
+					maxy = scrheight if ty + 1 > scrheight else ty + 1
 
 					while y < maxy:
 						if left:
