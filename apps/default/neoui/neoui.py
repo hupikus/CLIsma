@@ -4,6 +4,8 @@ from type.keys import Keys
 
 from integration.loghandler import Loghandler
 
+from FileSquad.sprite import SpriteData
+
 from apps.apphabit import apphabit
 class neoui(apphabit):
 
@@ -40,7 +42,7 @@ class neoui(apphabit):
 			border = ui.StylePack(normal = Colors.FXTextRed, hover = Colors.FXNormal, interact = Colors.FXTextBlue)
 		)
 
-		btn = ui.Button(self.button, 7, 3, 12, 11, "Hello\n World!", style = self.button_style)
+		btn = ui.Button(self.button, 7, 3, 12, 11, "Hello\n World!") #, style = self.button_style)
 		self.canvas.Add(btn)
 
 		txt.align = 0
@@ -57,6 +59,8 @@ class neoui(apphabit):
 
 		field = ui.InputField() #style = self.button_style)
 		self.canvas.Add(field)
+
+		spr = SpriteData()
 
 
 	def draw(self, delta):

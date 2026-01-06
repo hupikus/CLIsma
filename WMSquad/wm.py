@@ -16,18 +16,14 @@ from worldglobals import worldglobals as wg
 
 class Wm:
 
-	def newNode(self, parent_path, class_name, y, x, height, width, args = '', parent = None):
+	def newNode(self, path, y, x, height, width, args = '', parent = None):
 		with threading.Lock():
-			#sync active window
+			# Focus to the new window
 			if self.isMouse:
 				self.active[self.last_clicked] = self.id
 				self.pointers[self.last_clicked].focus_id = self.id
-			#node owes a window class
-			parent_path += '.' + class_name + '.' + class_name
-			if parent:
-				node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, args, parent = parent)
-			else:
-				node = Node(self.id, self, self.display, y, x, height, width, parent_path, class_name, args)
+
+			node = Node(self.id, self, self.display, y, x, height, width, path, args, parent)
 			self.nodes.append(node)
 			self.order.append(self.id)
 			#self.focus_id = self.id
@@ -37,15 +33,12 @@ class Wm:
 
 	def newNodeByApp(self, app, y, x, height, width, args = '', parent = None):
 		with threading.Lock():
-			#sync active window
+			# Focus to the new window
 			if self.isMouse:
 				self.active[self.last_clicked] = self.id
 				self.pointers[self.last_clicked].focus_id = self.id
 
-			if parent:
-				node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, args, app = app, parent = parent)
-			else:
-				node = Node(self.id, self, self.display, y, x, height, width, app.parent_path, app.class_name, args, app = app)
+			node = Node(self.id, self, self.display, y, x, height, width, app.path, args, app, parent)
 			self.nodes.append(node)
 			self.order.append(self.id)
 			#self.focus_id = self.id
@@ -128,15 +121,15 @@ class Wm:
 		if desktop == "default":
 			desktop = "desktop"
 		self.desktop_name = desktop
-		self.desktop = self.newNode("apps.default", desktop, 0, 0, self.screen_height, self.screen_width, args = self)
+		self.desktop = self.newNode(f"default/{desktop}", 0, 0, self.screen_height, self.screen_width, args = self)
 		self.desktop.wm = self
 		self.desktop.node.is_fullscreen = True
 		Loghandler.Log("WM initialized")
 
-		self.newNode("apps.default", "log", 18, 12, 8, 45, '')
-		self.newNode("apps.default", "neoui", 4, 65, 25, 125)
-		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
-		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
+		self.newNode("default/log", 18, 12, 8, 45, '')
+		self.newNode("default/neoui", 4, 65, 25, 125)
+		#self.newNode("default/default", 7, 7, 2, 65, '')
+		#self.newNode("default/error", 18, 12, 5, 45, '-t "Stable Error"')
 
 
 
@@ -189,7 +182,7 @@ class Wm:
 
 
 
-			des = Node(0, self, self.display, 0, 0, height, width, "apps.default.desktop.desktop", "desktop", self)
+			des = Node(0, self, self.display, 0, 0, height, width, "default/desktop", self)
 			self.nodes[0] = des
 			#self.delNode(self.desktop)
 			self.desktop = des.win

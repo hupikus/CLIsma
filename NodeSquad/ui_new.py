@@ -575,8 +575,6 @@ class UI:
             self.SetStyle(style)
 
             self.attr = self.style.normal
-            self.background_attr = self.style.background
-            self.border_attr = self.style.border
 
             self.visible = True
             self.interactable = True
@@ -630,9 +628,9 @@ class UI:
             starty = self.y + px
             startx = self.x + px
 
-            normal_attr = self.attr
-            bg_attr = self.background_attr
-            border_attr = self.border_attr
+            normal_attr = self.style.normal
+            bg_attr = self.style.background
+            border_attr = self.style.border
             if self.hover:
                 if self.focused:
                     normal_attr = normal_attr.interact

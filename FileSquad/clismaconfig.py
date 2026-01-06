@@ -65,19 +65,18 @@ def smartParseTable(context, path, parse_array = False, default_type = 'str'):
             p = context[i]
 
             if is_string > 0: # String
-                match p:
-                    case '"': # "
-                        if is_string == 1:
-                            is_string = 0
-                        elif nest_level == 0:
-                            expr += '"'
-                    case "'": # '
-                        if is_string == 2:
-                            is_string = 0
-                        elif nest_level == 0:
-                            expr += "'"
-                    case _:
-                        expr += p
+                if p == '"': # "
+                    if is_string == 1:
+                        is_string = 0
+                    elif nest_level == 0:
+                        expr += '"'
+                elif p == "'": # '
+                    if is_string == 2:
+                        is_string = 0
+                    elif nest_level == 0:
+                        expr += "'"
+                else:
+                    expr += p
             elif nest_level > 0: # Nested table/array
                 match p:
                     case '{':

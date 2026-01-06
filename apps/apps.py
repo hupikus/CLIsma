@@ -2,73 +2,75 @@ import os.path
 from FileSquad.propertyparse import Parser
 from userglobals import userglobals
 from integration.loghandler import Loghandler
-class App:
 
-	def __init__(self, name):
-		self.name = name
+
+
+DEFAULT = 0
+EXTERNAL = 1
+FILEPATH = 2
+
+DEFAULT_PREFIX = "default/"
+EXTERNAL_PREFIX = "external/"
+
+
+EXTERNAL_PATH = userglobals.userpath + ".local/share/CLIsma/custom/apps/external/"
+CONFIG_PATH = userglobals.userpath + ".local/share/CLIsma/config/apps/"
+
+
+
+DEFAULT_ICON = [
+	"/---\\",
+	"| > |",
+	"\\___/"
+]
+
+
+class App:
+	valid = False
+
+	def __init__(self, path):
+
+		self.class_name = path.split('/')[-1]
+		self.name = self.class_name
+
+		if path.startswith(DEFAULT_PREFIX):
+			self.type = DEFAULT
+			self.class_path = "apps/" + path + '/'
+		elif path.startswith(EXTERNAL_PREFIX):
+			self.type = EXTERNAL
+			self.class_path = EXTERNAL_PATH + path + '/'
+		else:
+			self.type = FILEPATH
+			self.class_path = path + '/'
+		
+
 		self.valid = True
 
-		self.filepath = "./apps/" + name + '/'
-		self.config_path = userglobals.userpath + ".local/share/CLIsma/config/apps/" + name + '/'
+		self.file_path = self.class_path + self.class_name + ".py"
+		self.config_path = CONFIG_PATH + self.class_name + '/'
 
-		if not os.path.exists("./apps/external/"):
-			self.filepath = self.filepath.replace("./apps/external/", userglobals.userpath + ".local/share/CLIsma/custom/apps/external/")
-		#Loghandler.Log(self.filepath)
-
-		self.path = name.replace('/', '.')
-		pathdiv = self.path.split(sep = '.')
-		self.parent_path = "apps." + '.'.join(pathdiv) + '.' + pathdiv[-1]
-
-		#self.parent_path = pathdiv[-len(pathdiv[1])]
-		self.class_name = pathdiv[-1]
-
-		#Loghandler.Log(self.parent_path)
-		#Loghandler.Log(self.class_name)
 
 		#app info
 		self.data = {}
-		if os.path.isfile(self.filepath + ".app"):
-			self.data = Parser.Parse(self.filepath + ".app")
+		if os.path.isfile(self.file_path + ".app"):
+			self.data = Parser.Parse(self.file_path + ".app")
 			if "name" in self.data:
 				self.name = self.data["name"]
-			else:
-				self.name = "Unknown"
 		else:
 			self.valid = False
 
 		self.icon = []
-		#self.icon_height, self.icon_width = 0, 0
-		if self.valid:
-			#icon
-			self.icon = []
-			if os.path.isfile(self.filepath + "icon.asc"):
-				icon = open(self.filepath + "icon.asc")
-				self.icon_height, self.icon_width = map(int, icon.readline().split())
-				if self.icon_width != 5 or self.icon_height != 3:
-					self.icon_height = 3
-					self.icon_width = 5
-					icon = open("./apps/default/default/icon.asc")
-					icon.readline()
-			else:
-				self.icon_height = 3
-				self.icon_width = 5
-				icon = open("./apps/default/default/icon.asc")
-				icon.readline()
-
-			for y in range(self.icon_height):
-				self.icon.append(icon.readline())
+		if os.path.isfile(self.file_path + "icon.asc"):
+			icon = open(self.file_path + "icon.asc")
+			self.icon_height, self.icon_width = map(int, icon.readline().split())
+			if self.icon_height == 3 and self.icon_width == 5:
+				for y in range(self.icon_height):
+					self.icon.append(icon.readline())
 
 			icon.close()
-		else: #NOT VALID
 
+		if not self.icon:
 			self.icon_height = 3
 			self.icon_width = 5
-			icon = open("./apps/default/default/icon.asc")
-			icon.readline()
-
-			for y in range(self.icon_height):
-				self.icon.append(icon.readline())
-
-			icon.close()
-
+			self.icon = DEFAULT_ICON
 

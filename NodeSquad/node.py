@@ -1,5 +1,6 @@
 import sys
 import os
+import importlib
 import pydoc
 import traceback
 
@@ -13,10 +14,11 @@ from integration.loghandler import Loghandler
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules") #fixed size fields is faster
-	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params, app = None, parent = None):
+	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules", "path") # Fixed size fields are faster
+	def __init__(self, id, wm, display, from_y, from_x, height, width, app_path, params, app = None, parent = None):
 		self.id = id
 		self.wm = wm
+		self.node = self
 		self.controller = wm.control
 		self.display = display
 		self.hidden = False
@@ -30,33 +32,22 @@ class Node:
 		self.display_height = self.display.height
 		self.display_width = self.display.width
 
-		#avoid dumb crashes when smart developer is trying to call the node of the node
-		self.node = self
 
 		self.child_nodes = []
 
 		self.parent = parent
 
 		#app
-		if app == None:
-			if class_path[:12] == "apps.default":
-				self.app = App("default/" + class_name)
-			elif class_path[:13] == "apps.external":
-				self.app = App("external/" + class_name)
-			else:
-				self.app = App(class_name)
-		else:
+		if app:
 			self.app = app
+		else:
+			self.app = App(app_path)
+			app = self.app
 
 		if self.app.valid:
 			self.name = self.app.name
 		else:
 			self.name = "App " + str(id)
-
-
-		#auto
-		self.to_y = self.from_y + self.height - 1
-		self.to_x = self.from_x + self.width - 1
 
 
 		if height == 0 and width == 0:
@@ -66,10 +57,12 @@ class Node:
 			else:
 				self.preferred_height, self.preferred_width, = 14, 45
 
-			self.to_x = self.preferred_width + from_x - 1
-			self.to_y = self.preferred_height + from_y - 1
 			self.height = self.preferred_height
 			self.width = self.preferred_width
+
+
+		self.to_y = self.from_y + self.height - 1
+		self.to_x = self.from_x + self.width - 1
 
 
 		self.process_running = False
@@ -82,54 +75,12 @@ class Node:
 		self.max_width = 999
 		# TODO: size constrains should be in .app file
 
+		self.windowed = True
+		if "windowed" in self.app.data:
+			self.windowed = (self.app.data["windowed"] == 1)
 
 		# Appearance
 		self.accent = wm.accent
-
-		# Modules. All custom modules should be avaliable before class is created
-		self.modules = []
-		self.ui = UI(self)
-		self.modules.append(self.ui)
-
-		self.neoui = neoUI(self)
-		self.modules.append(self.neoui)
-
-
-		cls = False
-		ex = False
-		try:
-			cls = pydoc.locate(class_path + '.' + class_name)
-		except Exception as exc:
-			ex = exc
-		if cls:
-			try:
-				self.win = cls(id, self, self.controller, self.height, self.width, params)
-			except Exception as ex:
-				_, _, tb = sys.exc_info()
-				cls = pydoc.locate("apps.default" + ".error" * 3)
-				self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} closed at start with internal error: <c2> <tbold>' + str(traceback.format_exc()) + '<endt> <endc> (at line ' + str(tb.tb_lineno) + ')"')
-		else:
-			cls = pydoc.locate("apps.default" + ".error" * 3)
-			self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} is unreachable: <c2> <tbold>' + "Class " + class_path + " does not exist (" + str(traceback.format_exc()) + ')' + '<endt> <endc>"')
-		
-		self.modules.append(self.win)
-
-
-
-
-		self.windowed = True
-		if "windowed" in self.app.data:
-			self.windowed = self.app.data["windowed"] == 1 and True or 0
-
-
-		# Controller
-		controller = self.controller
-		self.sub = {}
-		if hasattr(self.win, "input_subscriptions"):
-			subdata = self.win.input_subscriptions
-			for type in subdata:
-				self.sub[type] = True
-				controller.listenEvent(self, type)
 
 
 		# Cache
@@ -142,18 +93,52 @@ class Node:
 		self.ready_to_close = False
 		self.closing = False
 
-	#public
+		# Modules. All custom modules should be avaliable before class is created
+		self.modules = []
+		self.ui = UI(self)
+		self.modules.append(self.ui)
+
+		self.neoui = neoUI(self)
+		self.modules.append(self.neoui)
+
+
+		try:
+			spec = importlib.util.spec_from_file_location(app.class_name, app.file_path)
+			module = importlib.util.module_from_spec(spec)
+			spec.loader.exec_module(module)
+			cls = getattr(module, app.class_name)
+
+			self.win = cls(id, self, self.controller, self.height, self.width, params)
+			self.modules.append(self.win)
+		except Exception as ex:
+			self.errorMessage("init", ex)
+
+
+		# Controller
+		controller = self.controller
+		self.sub = {}
+		if hasattr(self.win, "input_subscriptions"):
+			subdata = self.win.input_subscriptions
+			for type in subdata:
+				self.sub[type] = True
+				controller.listenEvent(self, type)
+
+
+	# Public
 
 	def errorMessage(self, eventname, ex):
-		write_error = True
+		write_error = False
 		if write_error:
 			try:
 				with open("error.txt", "w") as f:
 					f.write(str(traceback.format_exc()))
 			except:
 				pass
-		self.wm.newNode("apps.default", "error", 18, 12, 5, 45, f'-t "{self.app.name} {eventname} event closed with internal error: <c2> <tbold>' + str(traceback.format_exc()) + '<endt> <endc>"')
-		self.abort()
+		cls = pydoc.locate("apps.default" + ".error" * 3)
+
+		self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} closed at start with internal error: <c2> <tbold>' + str(traceback.format_exc()) + '.')
+		self.neoui = neoUI(self)
+
 
 
 	def clear(self, attr = Colors.FXNormal, char = ' ', margin_top = 0, margin_bottom = 0):
