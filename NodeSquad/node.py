@@ -13,7 +13,7 @@ from integration.loghandler import Loghandler
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent") #fixed size fields is faster
+	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules") #fixed size fields is faster
 	def __init__(self, id, wm, display, from_y, from_x, height, width, class_path, class_name, params, app = None, parent = None):
 		self.id = id
 		self.wm = wm
@@ -76,18 +76,25 @@ class Node:
 		self.is_fullscreen = False
 		self.is_maximized = False
 
+		self.min_height = 1
+		self.max_height = 999
+		self.min_width = 9
+		self.max_width = 999
+		# TODO: size constrains should be in .app file
+
 
 		# Appearance
 		self.accent = wm.accent
 
-		# Modules
+		# Modules. All custom modules should be avaliable before class is created
+		self.modules = []
 		self.ui = UI(self)
+		self.modules.append(self.ui)
+
 		self.neoui = neoUI(self)
+		self.modules.append(self.neoui)
 
 
-		# Window class
-		#cls = getattr(__import__(class_path), class_name)
-		#mod = exec("from " + class_path + " import " + class_name)
 		cls = False
 		ex = False
 		try:
@@ -101,17 +108,14 @@ class Node:
 				_, _, tb = sys.exc_info()
 				cls = pydoc.locate("apps.default" + ".error" * 3)
 				self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} closed at start with internal error: <c2> <tbold>' + str(traceback.format_exc()) + '<endt> <endc> (at line ' + str(tb.tb_lineno) + ')"')
-				Loghandler.Log(str(tb.tb_lineno))
 		else:
 			cls = pydoc.locate("apps.default" + ".error" * 3)
 			self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} is unreachable: <c2> <tbold>' + "Class " + class_path + " does not exist (" + str(traceback.format_exc()) + ')' + '<endt> <endc>"')
+		
+		self.modules.append(self.win)
 
 
-		self.min_height = 1
-		self.max_height = 999
-		self.min_width = 9
-		self.max_width = 999
-		# TODO: size constrains should be in .app file
+
 
 		self.windowed = True
 		if "windowed" in self.app.data:
@@ -399,8 +403,8 @@ class Node:
 			return False
 
 		try:
-			self.win.mouse(delta, controller)
 			self.neoui.input(delta, controller)
+			self.win.mouse(delta, controller)
 		except Exception as ex:
 			self.errorMessage("input", ex)
 		return True

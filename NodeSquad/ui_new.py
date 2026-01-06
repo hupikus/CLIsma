@@ -13,14 +13,6 @@ class UIElement:
 
         def __init__(self, *args, **kwargs):
             self.is_canvas = False
-            #if isinstance(parent, UIElement):
-            #    self.parent = parent
-            #    self.ui = parent.ui
-            #    parent.children.append(self)
-
-            #    self.draw_func = self.ui.draw_func
-            #    self.chgat_func = self.ui.chgat_func
-
             self.parent = None
             self.canvas = None
             self.children = []
@@ -40,6 +32,7 @@ class UIElement:
             self.max_len = 0
 
             self.attr = Colors.FXNormal
+            self.style_set = False
             self.SetStyle()
 
             self.content = []
@@ -82,22 +75,27 @@ class UIElement:
                 ui.ui = self.ui
                 ui.parent = self
                 if self.is_canvas:
-                    ui.canvas = self
+                    ui.SetCanvas(self)
                 else:
-                    ui.canvas = self.canvas
-                ui.draw_func = self.draw_func
-                ui.chgat_func = self.chgat_func
+                    ui.SetCanvas(self.canvas)
 
-                ui.SetStyle(self.style)
+                #ui.SetStyle(self.style)
 
         # Assign self to canvas
-        def SetCanvas(self, canvas):
-            if isinstance(canvas, UI.Canvas):
-                is_detached = bool(self.canvas)
-                self.canvas = canvas
-                if is_detached:
+        def SetCanvas(self, canvas, check = True):
+            if not check or isinstance(canvas, UI.Canvas):
+                changed = (not check or self.canvas != canvas)
+                if changed:
+                    self.canvas = canvas
+
+                    # Canvas-specific behaviour
+                    self.draw_func = canvas.draw_func
+                    self.chgat_func = canvas.chgat_func
+                    if not self.style_set:
+                        self.SetStyle()
+
                     for child in self.children:
-                        child.SetCanvas(canvas)
+                        child.SetCanvas(canvas, check = False)
 
         # Detach self from parent (become ready for gc)
         def Remove(self):
@@ -137,12 +135,17 @@ class UIElement:
 
         def SetStyle(self, style = None):
             if not isinstance(style, UI.UIStyle):
-                if self.parent:
+                self.style_set = True
+                if self.parent and self.parent.style_set:
                     self.style = self.parent.style
+                elif self.canvas:
+                    self.style = self.canvas.ui.DefaultStyle
                 else:
                     self.style = UI.DefaultStyle
+                    self.style_set = False
             else:
                 self.style = style
+                self.style_set = True
 
 
         # Common Operators (like content generation)
@@ -166,16 +169,18 @@ class UIElement:
 
             starty = self.y + px
             startx = self.x + px
-            attr = self.attr
+            attr = 0
 
-            if self.style is not None: # Uses stylesheet
+            if self.style: # Uses stylesheet
                 if self.hover and self.visible:
                     if self.focused:
-                        attr = self.style.normal.interact
+                        attr = self.style.border.interact
                     else:
-                        attr = self.style.normal.hover
+                        attr = self.style.border.hover
                 else:
-                    attr = self.style.normal.normal
+                    attr = self.style.border.normal
+            elif self.attr:
+                attr = self.attr
 
             attr = attr | pattr
 
@@ -354,12 +359,12 @@ class UI:
             canvas.Remove()
         self.canvases.clear()
 
-    def CreateCanvas(self, y = 0, x = 0, height = 0, width = 0):
+    def CreateCanvas(self, y = 0, x = 0, height = 0, width = 0, clip = False):
         if height == 0:
             height = self.node.width
         if width == 0:
             width = self.node.width
-        canvas = self.Canvas(self, y, x, height, width, clip = False)
+        canvas = self.Canvas(self, y, x, height, width, clip)
         self.canvases.append(canvas)
         return canvas
 
@@ -390,7 +395,7 @@ class UI:
     # Basic container for the other elements. Used as root, scene or attribute container.
     class Canvas(UIElement):
 
-        def init(self, ui, y, x, height, width, clip = False):
+        def init(self, ui, y = 0, x = 0, height = 9, width = 15, clip = False):
             self.is_canvas = True
             self.ui = ui
             self.clip = clip
@@ -440,10 +445,10 @@ class UI:
 
         # Hijacks all draw requests and clips them, if set to clip = True
 
-        def draw_clip(y, x, text, attr = Colors.FXNormal):
-            if y < self.fromy: return
-            if y >= self.fromy + self.height: return
-            tox = self.fromx + self.width
+        def draw_clip(self, y, x, text, attr = Colors.FXNormal):
+            if y < self.y: return
+            if y >= self.y + self.height: return
+            tox = self.x + self.width
             if x >= tox: return
 
             ln = len(text)
@@ -451,22 +456,22 @@ class UI:
             l_offcut = 0
             r_offcut = ln
 
-            if x < self.fromx:
-                l_offcut += self.fromx - x
+            if x < self.x:
+                l_offcut = self.x - x
 
-            if x + ln > tox:
-                r_offcut -= xend - tox
+            if x + ln >= tox:
+                r_offcut -= x + ln - tox
 
 
-            if l_offcut != 0 or r_offcut != ln:
+            if l_offcut != 0 or r_offcut < ln:
                 text = text[l_offcut:r_offcut]
                 x += l_offcut
             self.node_draw_func(y, x, text, attr)
 
 
-        def chgat_clip(y, x, num, attr):
-            if y < self.fromy: return
-            if y >= self.fromy + self.height: return
+        def chgat_clip(self, y, x, num, attr):
+            if y < self.y: return
+            if y >= self.y + self.height: return
             fromx = self.x
             tox = fromx + self.width
             if x >= tox: return
@@ -476,7 +481,7 @@ class UI:
                 x = fromx
 
             if x + num > tox:
-                num -= xend - tox
+                num -= x + num - tox
 
             self.node_chgat_func(y, x, num, attr)
 
@@ -556,7 +561,7 @@ class UI:
     # Button. Provides click reaction
     class Button(UIElement):
 
-        def init(self, event = None, y = 0, x = 0, height = 5, width = 12, text = '', align = 0, style = None, atlas = "┌┐└┘│─ "):
+        def init(self, event = None, y = 0, x = 0, height = 5, width = 12, text = '', align = 1, style = None, atlas = "┌┐└┘│─ "):
             self.event = event
             self.y = y
             self.x = x
@@ -569,9 +574,9 @@ class UI:
 
             self.SetStyle(style)
 
-            self.attr = style.normal
-            self.background_attr = style.background
-            self.border_attr = style.border
+            self.attr = self.style.normal
+            self.background_attr = self.style.background
+            self.border_attr = self.style.border
 
             self.visible = True
             self.interactable = True
@@ -996,6 +1001,8 @@ class UI:
             self.height = 3 if border else 1
 
             self.SetStyle(style)
+            self.attr = self.style.border
+
             self.visible = True
             self.post_draw = True
 
@@ -1066,6 +1073,7 @@ class UI:
 
 
             shift = False
+            ctrl = False
             if self.canvas:
                 keys = self.canvas.ui.controller.keys.keys
                 shift = bool(keys[Keys.KEY_LEFTSHIFT] | keys[Keys.KEY_RIGHTSHIFT])

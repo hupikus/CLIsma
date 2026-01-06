@@ -40,7 +40,7 @@ class neoui(apphabit):
 			border = ui.StylePack(normal = Colors.FXTextRed, hover = Colors.FXNormal, interact = Colors.FXTextBlue)
 		)
 
-		btn = ui.Button(self.button, 7, 3, 12, 11, "Hello\n World!", align = 1, style = self.button_style, atlas = "┌┐└┘│─ ")
+		btn = ui.Button(self.button, 7, 3, 12, 11, "Hello\n World!", style = self.button_style)
 		self.canvas.Add(btn)
 
 		txt.align = 0
@@ -55,7 +55,7 @@ class neoui(apphabit):
 		self.canvas.Add(btn)
 
 
-		field = ui.InputField()
+		field = ui.InputField() #style = self.button_style)
 		self.canvas.Add(field)
 
 

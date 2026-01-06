@@ -218,15 +218,7 @@ except KeyboardInterrupt:
 	work = False
 	abort("\nAborted.\n")
 except:
-	error_logging = False
-	if error_logging:
-		#log = open("./error.log", "rw")
-		#error = wm.newNode("apps.default", "error", 7, 15, 15, 65)
-		#error.text = "Unknown Error"
-		#wm.draw()
-		abort("Unknown error.")
-	else:
-		work = False
-		error = True
-		#abort("Unknown error.")
+	work = False
+	error = True
+	abort("Unknown error.")
 

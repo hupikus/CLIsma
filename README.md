@@ -29,17 +29,17 @@ This app is currently unfinished and requies testing.
 
 ## Requirements
 
-- curses for python
-
-- alsa
+- curses for python (preinstalled for linux)
 
 - python 3.10 or newer (possible to launch on python 3.7 with minimal effort (patch FileSquad/clismaconfig.py))
   
   additional: (unneccesary)
 
-- pympler (pip)
+- pympler (for python)
 
-- psutil (pip)
+- psutil (for python)
+
+- alsa
 
 ## Recommended Hardware Requirements
 

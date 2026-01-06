@@ -1,4 +1,4 @@
-#"all keys", actuially. see: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
+# All evdev keys, values and their conversion methods. see: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
 class Keys:
     KEY_RESERVED                           = 0
     KEY_ESC                                = 1
@@ -619,7 +619,7 @@ class Keys:
         return ''
 
 
-    CAPITALS = {'[': '{', ']': '}', ';': ':', '\'': '"', '\\': '|', ',': '<', '.': '>', '/': '?', '-': '_', '=': '+'}
+    CAPITALS = {'[': '{', ']': '}', ';': ':', '\'': '"', '\\': '|', ',': '<', '.': '>', '/': '?', '-': '_', '=': '+', '`': '~'}
 
     def GetInput(key, shift, allow_escape = True):
         if key in Keys.KEY_SYMBOLS:
