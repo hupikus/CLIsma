@@ -53,6 +53,9 @@ class apphabit:
     def keyRelease(self, key):
         pass
 
+    def keyType(self, key):
+        pass
+
     def midikeyPress(self, note, pressure):
         pass
 

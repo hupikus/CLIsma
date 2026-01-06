@@ -493,12 +493,12 @@ class Node:
 
 	def click(self, device_id, button, y, x):
 		if self.closing: return 0
-		if self.ui.click(device_id, button, y - self.from_y, x - self.from_x):
-			if self.controller.MouseEvents in self.sub:
-				try:
+		try:
+			if self.ui.click(device_id, button, y - self.from_y, x - self.from_x):
+				if self.controller.MouseEvents in self.sub:
 					self.win.click(device_id, button,  y - self.from_y, x - self.from_x)
-				except Exception as ex:
-					self.errorMessage("click", ex)
+		except Exception as ex:
+			self.errorMessage("click", ex)
 
 	def drag(self, id, button, stage, y, x):
 		if self.closing: return 0
@@ -520,6 +520,33 @@ class Node:
 				self.win.scroll(id, delta)
 			except Exception as ex:
 				self.errorMessage("scroll", ex)
+
+	def keyPress(self, key):
+		if self.closing: return 0
+		try:
+			if self.neoui.keyPress(key):
+				if self.controller.KeyboardEvents in self.sub:
+					self.win.keyPress(key)
+		except Exception as ex:
+			self.errorMessage("keyPress", ex)
+
+	def keyRelease(self, key):
+		if self.closing: return 0
+		try:
+			if self.neoui.keyRelease(key):
+				if self.controller.KeyboardEvents in self.sub:
+					self.win.keyRelease(key)
+		except Exception as ex:
+			self.errorMessage("keyRelease", ex)
+
+	def keyType(self, key):
+		if self.closing: return 0
+		try:
+			if self.neoui.keyType(key):
+				if self.controller.KeyboardEvents in self.sub:
+					self.win.keyType(key)
+		except Exception as ex:
+			self.errorMessage("keyType", ex)
 
 	def midikeyPress(self, note, pressure):
 		if self.closing: return 0

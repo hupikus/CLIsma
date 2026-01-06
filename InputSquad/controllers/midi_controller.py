@@ -1,7 +1,8 @@
 from integration.loghandler import Loghandler
 
 
-class MidiController:
+from .typecontroller import TypeController
+class MidiController(TypeController):
 
     def __init__(self, parentController):
         self.listeners = parentController.midi_listen

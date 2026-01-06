@@ -67,6 +67,7 @@ class Mice(Device):
 			except:
 				continue
 
+	# Exists if my implementation breaks
 	def readevent_evdev(self):
 		for id in self.devicerange:
 			try:

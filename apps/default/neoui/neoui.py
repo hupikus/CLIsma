@@ -1,5 +1,6 @@
 from type.colors import Colors
 from type.descriptor import Descriptor
+from type.keys import Keys
 
 from integration.loghandler import Loghandler
 
@@ -52,6 +53,10 @@ class neoui(apphabit):
 
 		btn = ui.RadioButton(None, y = 4, x = 10)
 		self.canvas.Add(btn)
+
+
+		field = ui.InputField()
+		self.canvas.Add(field)
 
 
 	def draw(self, delta):

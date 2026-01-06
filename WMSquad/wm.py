@@ -134,7 +134,7 @@ class Wm:
 		Loghandler.Log("WM initialized")
 
 		self.newNode("apps.default", "log", 18, 12, 8, 45, '')
-		#self.newNode("apps.default", "neoui", 4, 2, 25, 125)
+		self.newNode("apps.default", "neoui", 4, 65, 25, 125)
 		#self.newNode("apps.default", "default", 7, 7, 2, 65, '')
 		#self.newNode("apps.default", "error", 18, 12, 5, 45, '-t "Stable Error"')
 
@@ -275,7 +275,7 @@ class Wm:
 
 			# node update
 			controller = controllers[i]
-			for id in self.order[::-1]:
+			for id in reversed(self.order):
 				node = nodes[id]
 				if node:
 					if node.input(delta, controller):

@@ -193,8 +193,8 @@ class desktop(apphabit):
 		self.width = width
 		self.gen_cache()
 
-	def keyPress(key):
-		print(key)
+	def keyPress(self, key):
+		pass
 
 	def process(self, delta):
 		self.neotick += 1

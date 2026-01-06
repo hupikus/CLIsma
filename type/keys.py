@@ -533,3 +533,124 @@ class Keys:
 
         "KEY_MICMUTE",
         ]
+
+    KEY_SYMBOLS = {
+        KEY_1:              '1' ,
+        KEY_2:              '2' ,
+        KEY_3:              '3' ,
+        KEY_4:              '4' ,
+        KEY_5:              '5' ,
+        KEY_6:              '6' ,
+        KEY_7:              '7' ,
+        KEY_8:              '8' ,
+        KEY_9:              '9' ,
+        KEY_0:              '0' ,
+        KEY_MINUS:          '-' ,
+        KEY_EQUAL:          '=' ,
+        KEY_BACKSPACE:      '+' ,
+        KEY_TAB:            '\t',
+        KEY_Q:              'q' ,
+        KEY_W:              'w' ,
+        KEY_E:              'e' ,
+        KEY_R:              'r' ,
+        KEY_T:              't' ,
+        KEY_Y:              'y' ,
+        KEY_U:              'u' ,
+        KEY_I:              'i' ,
+        KEY_O:              'o' ,
+        KEY_P:              'p' ,
+        KEY_LEFTBRACE:      '[' ,
+        KEY_RIGHTBRACE:     ']' ,
+        KEY_ENTER:          '\n',
+        KEY_A:              'a' ,
+        KEY_S:              's' ,
+        KEY_D:              'd' ,
+        KEY_F:              'f' ,
+        KEY_G:              'g' ,
+        KEY_H:              'h' ,
+        KEY_J:              'j' ,
+        KEY_K:              'k' ,
+        KEY_L:              'l' ,
+        KEY_SEMICOLON:      ';' ,
+        KEY_APOSTROPHE:     '\'',
+        KEY_GRAVE:          '`' ,
+        KEY_BACKSLASH:      '\\',
+        KEY_Z:              'z' ,
+        KEY_X:              'x' ,
+        KEY_C:              'c' ,
+        KEY_V:              'v' ,
+        KEY_B:              'b' ,
+        KEY_N:              'n' ,
+        KEY_M:              'm' ,
+        KEY_COMMA:          ',' ,
+        KEY_DOT:            '.' ,
+        KEY_SLASH:          '/' ,
+        KEY_SPACE:          ' ' ,
+    }
+
+    def KeyName(key):
+        if key < 0 or key > 248: return "KEY_UNKNOWN"
+        return Keys.KEY_NAMES[key]
+
+    def isLetter(key):
+        return (
+            (key >= Keys.KEY_Q and key <= Keys.KEY_P) or
+            (key >= Keys.KEY_A and key <= Keys.KEY_L) or
+            (key >= Keys.KEY_Z and key <= Keys.KEY_M)
+        )
+
+    def isDigit(key):
+        return (key >= Keys.KEY_1 and key <= Keys.KEY_0)
+
+    def isSymbol(key):
+        return ( 
+            (key >= Keys.KEY_SEMICOLON and key <= Keys.KEY_BACKSLASH) or
+            (key >= Keys.KEY_COMMA and key <= Keys.KEY_SLASH) or
+            (key == Keys.KEY_MINUS or key == Keys.KEY_EQUAL) or
+            (key == Keys.KEY_LEFTBRACE or key == Keys.KEY_RIGHTBRACE) or
+            key == Keys.KEY_SPACE or
+            Keys.isLetter(key) or
+            Keys.isDigit(key)
+        )
+
+    def GetSymbol(key):
+        if key in Keys.KEY_SYMBOLS:
+            return Keys.KEY_SYMBOLS[key]
+        return ''
+
+
+    CAPITALS = {'[': '{', ']': '}', ';': ':', '\'': '"', '\\': '|', ',': '<', '.': '>', '/': '?', '-': '_', '=': '+'}
+
+    def GetInput(key, shift, allow_escape = True):
+        if key in Keys.KEY_SYMBOLS:
+            char = Keys.KEY_SYMBOLS[key]
+            if shift:
+
+                if Keys.isDigit(key):
+                    return "!@#$%^&*()"[key - Keys.KEY_1]
+                elif Keys.isLetter(key):
+                    return chr(ord(char) - 32)
+                elif allow_escape == False and (key == Keys.KEY_ENTER or key == Keys.KEY_TAB):
+                    return ''
+                elif char in Keys.CAPITALS:
+                    return Keys.CAPITALS[char]
+                else:
+                    return char
+
+            else:
+                return char
+        return ''
+
+
+class KeyState:
+    keys = [False for i in range(248)]
+
+    def KeyPress(self, key):
+        self.keys[key] = True
+
+    def KeyRelease(self, key):
+        self.keys[key] = False
+
+    def GetKey(self, key):
+        if key < 0 or key > 248: return False
+        return self.keys[key]

@@ -4,6 +4,8 @@ from integration.loghandler import Loghandler
 from InputSquad.controllers.midi_controller import MidiController
 from InputSquad.controllers.keyboard_controller import KeyboardController
 
+from type.keys import KeyState
+
 class Controller:
 
 	def resize_pointers(self, size):
@@ -24,6 +26,7 @@ class Controller:
 		self.minicontroller = []
 
 		self.fn = self
+		self.keys = KeyState()
 
 		#input types binds
 		self.MouseEvents = InputEvents.MOUSE
