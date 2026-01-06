@@ -208,12 +208,12 @@ class DeviceHandler:
 
 
 	def _input_loop(self):
-		timestamp = time.time()
-		deltaTime = 0
+		start = 0.0
+		sleepstart = 0.0
+		delta = 0.02
+		sleep = 0.0
 		while self.working:
-
-			deltaTime = time.time() - timestamp
-			timestamp += deltaTime
+			start = time.time()
 
 			if self.isMouse:
 				self._mouse()
@@ -224,10 +224,16 @@ class DeviceHandler:
 			if self.isMidi:
 				self._midi()
 
-			time.sleep(worldglobals.inputdelta)
+
+			sleepstart = time.time()
+			delta = sleepstart - start
+			sleep = worldglobals.inputdelta - delta
+			if sleep > 0.0:
+				time.sleep(sleep)
+				delta += time.time() - sleepstart
 
 			if self._event_incall:
-				self._event_incall(deltaTime)
+				self._event_incall(delta)
 
 
 

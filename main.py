@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from integration.loghandler import Loghandler
 import os
 import sys
 import threading
@@ -144,75 +145,55 @@ def abort(msg):
 	exit()
 
 wm = Singletons.Wm
-
 display = Singletons.Screenman
 
-
+# Draw loop
 def draw_loop():
-	timestamp = time.time()
-	deltaTime = 0
+	start = 0.0
+	sleepstart = 0.0
+	delta = 0.02
+	sleep = 0.0
 	while work:
-		error = 0
+		start = time.time()
 
-		error += wm.draw(deltaTime)
+		wm.draw(delta)
+		display.draw()
 
-		error += display.draw()
-
-		if error > 0:
-			abort(f"Display exited with code {error}.")
-
-		deltaTime = time.time() - timestamp
-		timestamp += deltaTime
-
-		t = worldglobals.framedelta
-		if deltaTime > t:
-			t = t * 2 - deltaTime
-			if t < 0:
-				t = 0
-		time.sleep(t)
+		sleepstart = time.time()
+		delta = sleepstart - start
+		sleep = worldglobals.framedelta - delta
+		if sleep > 0.0:
+			time.sleep(sleep)
+			#Loghandler.Log(f"{(delta / (delta + time.time() - sleepstart) * 100.0):.10g}%")
+			delta += time.time() - sleepstart
 
 
-#main loop
+# Process loop
 def main_loop():
-
-	timestamp = time.time()
-	deltaTime = 0
+	start = 0.0
+	sleepstart = 0.0
+	delta = 0.04
+	sleep = 0.0
 	while work:
-		error = 0
+		start = time.time()
 
-		wm.process(deltaTime)
-
-		if error > 0:
-			abort(f"Window Manager exited with code {error}.")
-			break
-
+		wm.process(delta)
 		if wm.shutdown_ready:
 			abort("\nAborted.\n")
 			break
 
-		deltaTime = time.time() - timestamp
-		timestamp += deltaTime
-
-
-		t = worldglobals.processdelta
-		if deltaTime > t:
-			t = t * 2 - deltaTime
-			if t < 0:
-				t = 0
-		time.sleep(t)
-
+		sleepstart = time.time()
+		delta = sleepstart - start
+		sleep = worldglobals.processdelta - delta
+		if sleep > 0.0:
+			time.sleep(sleep)
+			delta += time.time() - sleepstart
 	wm.shutdown()
 
 
-
-# draw_thread = threading.Thread(target=draw_loop)
-# draw_thread.start()
-# main_loop()
 try:
-	#draw
 	draw_thread = threading.Thread(target=draw_loop)
 	draw_thread.start()
-	#process
 	main_loop()
 except KeyboardInterrupt:
 	work = False
@@ -220,5 +201,5 @@ except KeyboardInterrupt:
 except:
 	work = False
 	error = True
-	abort("Unknown error.")
+	#raise
 

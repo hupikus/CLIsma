@@ -140,9 +140,7 @@ class desktop(apphabit):
 			self.node.appendStr(0, 0, "shutdown" + '.' * (self.width - 8), Colors.colorPair(2))
 		return isMax
 
-
 	def draw(self, delta):
-
 		appendStr = self.node.appendStr
 
 		self.neofps += 1
