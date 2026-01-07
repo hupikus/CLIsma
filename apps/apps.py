@@ -52,16 +52,16 @@ class App:
 
 		#app info
 		self.data = {}
-		if os.path.isfile(self.file_path + ".app"):
-			self.data = Parser.Parse(self.file_path + ".app")
+		if os.path.isfile(self.class_path + ".app"):
+			self.data = Parser.Parse(self.class_path + ".app")
 			if "name" in self.data:
 				self.name = self.data["name"]
 		else:
 			self.valid = False
 
 		self.icon = []
-		if os.path.isfile(self.file_path + "icon.asc"):
-			icon = open(self.file_path + "icon.asc")
+		if os.path.isfile(self.class_path + "icon.asc"):
+			icon = open(self.class_path + "icon.asc")
 			self.icon_height, self.icon_width = map(int, icon.readline().split())
 			if self.icon_height == 3 and self.icon_width == 5:
 				for y in range(self.icon_height):

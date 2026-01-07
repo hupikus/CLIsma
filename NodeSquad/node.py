@@ -44,10 +44,7 @@ class Node:
 			self.app = App(app_path)
 			app = self.app
 
-		if self.app.valid:
-			self.name = self.app.name
-		else:
-			self.name = "App " + str(id)
+		self.name = self.app.name
 
 
 		if height == 0 and width == 0:
@@ -109,6 +106,7 @@ class Node:
 			cls = getattr(module, app.class_name)
 
 			self.win = cls(id, self, self.controller, self.height, self.width, params)
+			self.win.node = self
 			self.modules.append(self.win)
 		except Exception as ex:
 			self.errorMessage("init", ex)

@@ -7,8 +7,6 @@ from integration.loghandler import Loghandler
 class SpriteData:
 
     def __init__(self):
-        module = sys.modules[cls.__module__]
-        Loghandler.Log(Path(module.__file__).resolve().parents[0])
 
     def FromAssets(self, path):
         appAsset = False
