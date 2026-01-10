@@ -19,6 +19,9 @@ class DecorationPreset():
 
 	borderAttr = Colors.FXNormal
 
+	topCornerRadius = 1
+	bottomCornerRadius = 2
+
 	def SetStyle(self, style): # set standard style
 		if style in funcs:
 			#styleclass = style.__class__
@@ -51,33 +54,37 @@ class Decoration():
 			scrheight = wm.screen_height
 
 
+			top = (fy - 1 >= 0)
 
 			bold_title = True
 
-			if width > 8:
-				text = node.name.center(width, '─')[:-7] + " - m x "
-			else:
-				bold_title = False
-				if width > 4:
-					text = ('─' * (width - 5)) + " m x "
-				else:
-					text = "x "
-
 			x_offcut = fx
 			mxln = min(scrwidth - x_offcut, width)
-			if x_offcut < 0:
-				x_offcut *= -1
-				wm.display.root.addstr(max(fy - 1, 0), 0, text[x_offcut:mxln], attr)
-			else:
-				y = max(fy - 1, 0)
-				wm.display.root.addnstr(y, x_offcut, text, mxln, attr)
-				if preset.boldTitle and bold_title:
-					ln = len(node.name)
-					x = x_offcut + (abs(width - ln) >> 1)
-					if not ln & 1:
-						x += (width & 1)
-					if x < scrwidth: #Name attr
-						wm.display.root.chgat(y, x, min(ln, width, scrwidth - x), Colors.FXBold)
+			if top:
+
+
+				if width > 8:
+					text = node.name.center(width, '─')[:-7] + " - m x "
+				else:
+					bold_title = False
+					if width > 4:
+						text = ('─' * (width - 5)) + " m x "
+					else:
+						text = "x "
+
+				if x_offcut < 0:
+					x_offcut *= -1
+					wm.display.root.addstr(max(fy - 1, 0), 0, text[x_offcut:mxln], attr)
+				else:
+					y = max(fy - 1, 0)
+					wm.display.root.addnstr(y, x_offcut, text, mxln, attr)
+					if preset.boldTitle and bold_title:
+						ln = len(node.name)
+						x = x_offcut + (abs(width - ln) >> 1)
+						if not ln & 1:
+							x += (width & 1)
+						if x < scrwidth: #Name attr
+							wm.display.root.chgat(y, x, min(ln, width, scrwidth - x), Colors.FXBold)
 
 			if mode != DecorationStyle.top_only:
 				bottom = (ty + 1 < scrheight)
@@ -97,15 +104,17 @@ class Decoration():
 					right = (tx + 1 < scrwidth)
 
 					if left:
-						wm.display.root.addch(fy - 1, fx - 1, '┌')
+						if top:
+							wm.display.root.addch(fy - 1, fx - 1, '┌')
 						if bottom:
 							wm.display.root.addch(ty + 1, fx - 1, '└')
 					if right:
-						wm.display.root.addch(fy - 1, tx + 1, '┐')
+						if top:
+							wm.display.root.addch(fy - 1, tx + 1, '┐')
 						if bottom:
 							wm.display.root.addch(ty + 1, tx + 1, '┘')
 
-					y = fy
+					y = fy if fy >= 0 else 0
 					maxy = scrheight if ty + 1 > scrheight else ty + 1
 
 					while y < maxy:

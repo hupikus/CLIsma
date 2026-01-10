@@ -4,7 +4,7 @@ from type.keys import Keys
 
 from integration.loghandler import Loghandler
 
-from FileSquad.sprite import SpriteData
+#from FileSquad.sprite import SpriteData
 
 from apps.apphabit import apphabit
 class neoui(apphabit):
@@ -18,7 +18,11 @@ class neoui(apphabit):
 		self.width = width
 
 		#input
-		self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
+		self.input_subscriptions = [
+			controller.MouseEvents,
+			controller.KeyboardEvents,
+			controller.MouseWheelEvents
+		]
 
 		self.neoui = node.neoui
 
@@ -26,11 +30,11 @@ class neoui(apphabit):
 
 		self.canvas = ui.CreateCanvas()
 
-		txt = ui.TextLine(5, 0, "Hello World!", attr = Colors.FXTextGreen)
+		self.txt = ui.Text(5, 34, "Hello World!", attr = Colors.FXTextGreen)
 
-		txt.align = 1
+		self.txt.align = 1
 
-		self.canvas.Add(txt)
+		self.canvas.Add(self.txt)
 
 		#txt1 = ui.TextLine(self.canvas, 6, 3, "Hello 2orld!", attr = Colors.FXNormal)
 
@@ -45,8 +49,6 @@ class neoui(apphabit):
 		btn = ui.Button(self.button, 7, 3, 12, 11, "Hello\n World!") #, style = self.button_style)
 		self.canvas.Add(btn)
 
-		txt.align = 0
-
 		slider = ui.Slider(None, y = 2, x = 8)
 		self.canvas.Add(slider)
 
@@ -57,16 +59,20 @@ class neoui(apphabit):
 		self.canvas.Add(btn)
 
 
-		field = ui.InputField() #style = self.button_style)
-		self.canvas.Add(field)
+		#field = ui.InputField() #style = self.button_style)
+		#self.canvas.Add(field)
 
-		spr = SpriteData()
+		#spr = SpriteData()
 
-
-	def draw(self, delta):
-		self.node.clear()
-		self.node.appendStr(0, 0, "TEST" + ' ' * self.width)
-
+	def drag(self, device_id, button, stage, y, x):
+		self.txt.Move(y, x)
+		Loghandler.Log("I BEGEG")
 
 	def button(self, widget, action, button, device):
 		widget.Remove()
+	
+	def scroll(self, id, delta):
+		Loghandler.Log(f"scroll {delta}")
+
+	#def keyPress(self, key):
+	#	Loghandler.Log(Keys.KeyName(key))

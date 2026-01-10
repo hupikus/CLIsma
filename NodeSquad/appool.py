@@ -3,7 +3,7 @@ import sys
 
 from userglobals import userglobals
 from integration.loghandler import Loghandler
-from apps.apps import App
+from apps.app import App
 
 class AppPool:
     apps = {}

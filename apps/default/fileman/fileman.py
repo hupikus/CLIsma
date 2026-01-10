@@ -1,6 +1,6 @@
 import os
 from type.colors import Colors
-from apps.apps import App
+from apps.app import App
 
 from apps.apphabit import apphabit
 

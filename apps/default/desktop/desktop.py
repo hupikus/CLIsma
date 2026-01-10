@@ -3,7 +3,7 @@ import math
 from type.colors import Colors
 from type.keys import Keys
 
-from apps.apps import App
+from apps.app import App
 from apps.apphabit import apphabit
 from singletons import Singletons
 
@@ -110,7 +110,7 @@ class desktop(apphabit):
 			self.greetmsg = "Minimal mode"
 			self.apps = [App("default/settings"), App("default/fileman")]
 		else:
-			self.greetmsg = "Welcome to CLI System Management Accompanier! (" + userglobals.username + " session)"
+			self.greetmsg = "Welcome to CLI Shell Multitasking Access! (" + userglobals.username + " session)"
 			self.apps = [App("default/settings"), App("default/fileman"), App("default/log")]
 
 		self.pinned = len(self.apps)

@@ -7,7 +7,7 @@ from type.permissions import Permisions
 
 from WMSquad.screen import Screen
 from NodeSquad.node import Node
-from apps.apps import App
+from apps.app import App
 from WMSquad.wmouse import WmMouse
 
 from integration.loghandler import Loghandler
@@ -17,54 +17,40 @@ from worldglobals import worldglobals as wg
 class Wm:
 
 	def newNode(self, path, y, x, height, width, args = '', parent = None):
-		with threading.Lock():
-			# Focus to the new window
-			if self.isMouse:
-				self.active[self.last_clicked] = self.id
-				self.pointers[self.last_clicked].focus_id = self.id
+		# Focus to the new window
+		if self.isMouse:
+			self.active[self.last_clicked] = self.id
+			self.pointers[self.last_clicked].focus_id = self.id
 
-			node = Node(self.id, self, self.display, y, x, height, width, path, args, parent)
-			self.nodes.append(node)
-			self.order.append(self.id)
-			#self.focus_id = self.id
+		node = Node(self.id, self, self.display, y, x, height, width, path, args, parent)
+		with self.lock:
+			self.order.append(node)
 			self.id += 1
-			self.orderlen += 1
-			return node.win
+		return node
 
 	def newNodeByApp(self, app, y, x, height, width, args = '', parent = None):
-		with threading.Lock():
-			# Focus to the new window
-			if self.isMouse:
-				self.active[self.last_clicked] = self.id
-				self.pointers[self.last_clicked].focus_id = self.id
+		# Focus to the new window
+		if self.isMouse:
+			self.active[self.last_clicked] = self.id
+			self.pointers[self.last_clicked].focus_id = self.id
 
-			node = Node(self.id, self, self.display, y, x, height, width, app.path, args, app, parent)
-			self.nodes.append(node)
-			self.order.append(self.id)
-			#self.focus_id = self.id
+		node = Node(self.id, self, self.display, y, x, height, width, app.path, args, app, parent)
+		with self.lock:
+			self.order.append(node)
 			self.id += 1
-			self.orderlen += 1
-			return node.win
+		return node
 
 	def closeNode(self, node):
+		if not node: return
 		if not node.ready_to_close:
 			node.win.abort()
-
-	def delNode(self, node):
-		with threading.Lock():
-			self.nodes[node.id] = False
-			if node.id in self.order:
-				self.order.remove(node.id)
-			self.orderlen -= 1
-			del node
-			gc.collect()
+		if node not in self.order: return
 
 	def shutdown(self):
-		for node in self.nodes:
+		for node in self.order:
 			if node:
 				node.abort()
 		self.shutdown_ready = True
-
 
 
 	def __init__(self, display, inpd, desktop):
@@ -77,15 +63,15 @@ class Wm:
 
 		self.shutdown_ready = False
 
-		# Auto
-		self.nodes = []
 		self.id = 0
-		self.error = 0
 		self.control = inpd.controller
 
 		# Draw and click order
 		self.order = []
-		self.orderlen = 0
+
+		# Thread safety
+		self.lock = threading.Lock()
+		self.close_queue = []
 
 		self.draw_as_maximized = False
 
@@ -119,11 +105,15 @@ class Wm:
 
 		# Startup nodes
 		if desktop == "default":
-			desktop = "desktop"
+			desktop = "default/desktop"
 		self.desktop_name = desktop
-		self.desktop = self.newNode(f"default/{desktop}", 0, 0, self.screen_height, self.screen_width, args = self)
+		self.desktop = self.newNode(desktop, 0, 0, self.screen_height, self.screen_width, args = self)
 		self.desktop.wm = self
 		self.desktop.node.is_fullscreen = True
+
+
+
+
 		Loghandler.Log("WM initialized")
 
 		self.newNode("default/log", 18, 12, 8, 45, '')
@@ -131,12 +121,15 @@ class Wm:
 		#self.newNode("default/default", 7, 7, 2, 65, '')
 		#self.newNode("default/error", 18, 12, 5, 45, '-t "Stable Error"')
 
-
-
 		# Init finished
 
+
+
+	def getLock(self):
+		return self.lock
+
 	def resize_pointers(self, size):
-		with threading.Lock():
+		with self.lock:
 			self.isMouse = size > 0
 			self.pointer_count = size
 			if self.isMouse:
@@ -169,27 +162,25 @@ class Wm:
 
 
 	def resize_screen(self):
-		with threading.Lock():
-			height = self.display.height
-			width = self.display.width
-			self.draw_mouse = False
-			self.screen_height = height
-			self.screen_width = width
+		height = self.display.height
+		width = self.display.width
+		self.draw_mouse = False
+		self.screen_height = height
+		self.screen_width = width
 
-			for pointer in self.pointers:
-				pointer.screen_height = height
-				pointer.screen_width = width
-
+		for pointer in self.pointers:
+			pointer.screen_height = height
+			pointer.screen_width = width
 
 
-			des = Node(0, self, self.display, 0, 0, height, width, "default/desktop", self)
-			self.nodes[0] = des
-			#self.delNode(self.desktop)
-			self.desktop = des.win
-			self.desktop.wm = self
-			self.desktop.node.is_fullscreen = True
 
-			#self.order[-1], self.order[0] = self.order[0], self.order[-1]
+		des = Node(0, self, self.display, 0, 0, height, width, "default/desktop", self)
+		with self.lock:
+			self.order[0] = des
+		#self.delNode(self.desktop)
+		self.desktop = des.win
+		self.desktop.wm = self
+		self.desktop.node.is_fullscreen = True
 
 
 	def decoration(self, node):
@@ -209,20 +200,18 @@ class Wm:
 		elif self.hide_mouse_frames > 0:
 			self.hide_mouse_frames -= 1
 
-		self.draw_as_maximized = self.nodes[self.order[-1]].is_maximized
+		self.draw_as_maximized = self.order[-1].is_maximized
 		if self.draw_as_maximized:
 			self.desktop.draw(delta)
-			self.nodes[self.order[-1]].draw(delta)
+			self.order[-1].draw(delta)
 		else:
-			for id in self.order:
-				node = self.nodes[id]
+			for node in self.order:
 				if node.from_x > self.screen_width - 1: continue
 				if node and not node.hidden:
 					node.draw(delta)
 					#if node.is_maximized or node.is_fullscreen:
 					#	continue
 					self.decoration(node)
-
 
 		# Compat
 		if self.fbmode:
@@ -234,44 +223,22 @@ class Wm:
 				y += 1
 
 
-
 		# Draw mouse
 		if self.isMouse and self.hide_mouse_frames == 0:
 			try:
 				for pointer in self.pointers:
-					self.error += pointer.draw()
+					pointer.draw()
 			except Exception as ex:
 				Loghandler.Log(ex)
 
-		return self.error
-
 	def process(self, delta):
-		for id in self.order:
-			node = self.nodes[id]
+		for node in self.order:
 			if node:
 				if node.ready_to_close:
-					self.delNode(node)
+					pass
 				else:
 					node.process(delta)
 
-		return self.error
-
 	def input(self, delta):
-		pointers = self.pointers
-		nodes = self.nodes
-		controllers = self.control
-
-		i = 0
-		while i < self.pointer_count:
-			# pointer update
-			pointers[i].input(delta)
-
-			# node update
-			controller = controllers[i]
-			for id in reversed(self.order):
-				node = nodes[id]
-				if node:
-					if node.input(delta, controller):
-						break
-			i += 1
-		return 0
+		for pointer in self.pointers:
+			pointer.input(delta)

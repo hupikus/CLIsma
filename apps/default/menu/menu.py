@@ -21,9 +21,9 @@ class menu(apphabit):
 
 
 
-		self.node.setKindness(0)
+		self.node.setDecoration(False)
 
-		self.desktop = Singletons.Wm.desktop
+		self.desktop = self.node.parent
 
 		#input
 		self.input_subscriptions = [controller.MouseEvents, controller.MouseWheelEvents]

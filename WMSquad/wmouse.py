@@ -26,6 +26,7 @@ class WmMouse:
         self.update_trail(trailength)
 
         self.color = 0
+        self.visible = False
 
         self.cursor_symbol = {"base":" ", "select":"^", "text":"I", "resize_hor":"<>", "resize_ver":"|"}
         self.hold_timeout = wg.hold_time * wg.inputrate
@@ -37,21 +38,24 @@ class WmMouse:
         #node management
         self.moving_node = False
         self.move_type = -1
-        self.drag_on_node = -1
+        self.drag_on_node = None
 
         #focus and focused input
-        self.focus_id = 0
+        self.focus = None
 
 
 
 
     def draw(self):
+        if not self.visible: return
         display = self.display
+
         for i in self.range[1]:
             self.trail[i] = self.trail[i - 1]
         self.trail[0] = (self.control.mouse_y, self.control.mouse_x)
         r = self.trailength
         if self.trail[0] == self.trail[r]: r = 0
+
         for i in range(r + 1):
             if i > 0 and self.trail[i] == self.trail[i - 1]: continue
             mouse_last_y = self.trail[i][0]
@@ -63,8 +67,7 @@ class WmMouse:
             attr_reversed = attr & Colors.FXReverse != 0
 
             pair_number = (attr & curses.A_COLOR) >> 8
-            fg, bg = Colors.getPairColors(pair_number)
-            
+            fg, bg = Colors.getPairColors(pair_number)            
 
             reverse = True
 
@@ -100,8 +103,6 @@ class WmMouse:
 
             display.root.chgat(mouse_last_y, mouse_last_x, 1, color)
 
-        return 0
-
 
 
     def input(self, delta):
@@ -109,14 +110,17 @@ class WmMouse:
         #aliases
         ctr = self.control
         wm = self.wm
-        devid = self.id
+        dev_id = self.id
 
         y_edge, x_edge = wm.decoration_preset.edgeThick
         y_head = wm.decoration_preset.headThick
 
-        speed = delta * 100 # default speed with 100 fps
+        top_corner_size = wm.decoration_preset.topCornerRadius
+        bottom_corner_size = wm.decoration_preset.bottomCornerRadius
 
-        #mouse relativies
+        # Apply movement
+
+        speed = delta * 100
 
         dy = ctr.mouse_dy * ctr.mouse_speed * speed
         dx = ctr.mouse_dx * ctr.mouse_speed * speed
@@ -134,22 +138,35 @@ class WmMouse:
         ctr.mouse_last_y = ctr.mouse_y
         ctr.mouse_last_x = ctr.mouse_x
 
+        self.hasDelta = ctr.mouse_rdy != 0 or ctr.mouse_rdx != 0
+        if not self.visible and self.hasDelta:
+            self.visible = True
+        
+        #Loghandler.Log(self.hasDelta)
 
-        self.hasDelta = abs(ctr.mouse_rdy) + abs(ctr.mouse_rdx) != 0
-
-        #mouse buttons
+        # Mouse buttons
         handler = [0, 0, 0]
 
 
-        #0 ("none"), 1 ("clicked"), 2 ("held"), 3 ("released"), 4 ("dragstarted"), 5 ("drag"), 6 ("dragended"), -1 ("post-release")
-        #only 1, 3, 4 and 6 are handler events
-        for i in self.range[0]:
+        # 0:  "none"
+        # 1:  "pressed"
+        # 2:  "held"
+        # 3:  "released" (sends "clicked")
+
+        # 4:  "drag started" | "long hold started"
+        # 5:  "drag"
+        # 6:  "drag finished" | "long hold finished"
+
+        # -1  (post-release)
+
+        # 1, 3 and 4-6 provoke node events
+        
+        for i in range(3):
             if ctr.raw_mouse_buttons[i] == 1:
 
                 if ctr.mouse_buttons[i] == 0:
                     self.buttons[i] = 1
                     ctr.mouse_buttons[i] = 1
-                    handler[i] = 1
                 elif ctr.mouse_buttons[i] == 1:
                     self.buttons[i] = 2
                     ctr.mouse_buttons[i] = 2
@@ -161,157 +178,199 @@ class WmMouse:
 
                         if ctr.mouse_buttons[i] == 2:
                             ctr.mouse_buttons[i] = 4
-                            handler[i] = 4
                         elif ctr.mouse_buttons[i] == 4:
                             ctr.mouse_buttons[i] = 5
                 else:
                     self.buttons[i] += 1
 
+                handler[i] = ctr.mouse_buttons[i]
             elif self.buttons[i] > 0:
 
                 self.buttons[i] = 0
                 if ctr.mouse_buttons[i] == 5:
-                    handler[i] = 6
                     ctr.mouse_buttons[i] = 6
                 else:
-                    handler[i] = 3
                     ctr.mouse_buttons[i] = 3
-                    wm.last_clicked = devid
+                    wm.last_clicked = dev_id
+                handler[i] = ctr.mouse_buttons[i]
             elif ctr.mouse_buttons[i] == 3 or ctr.mouse_buttons[i] == 6:
                 self.buttons[i] = 0
                 ctr.mouse_buttons[i] = 0
                 handler[i] = -1
-        #end of buttons behaviour
-        #Loghandler.Log(str(ctr.mouse_buttons))
+
+
+
+        my = ctr.mouse_y
+        mx = ctr.mouse_x
+        order = wm.order
+
+
+        node = None
+        node_id = -1
+
+        if self.moving_node:
+            node = self.moving_node
+            node_id = order
+        elif self.drag_on_node:
+            node = self.drag_on_node
+        else:
+            # Loop through nodes in reverse draw order
+            ig = 0
+            with wm.lock:
+                for node in reversed(order):
+                    if not node or not node.interactable: continue
+                    break_cycle = False
+
+                    node_hover = (
+                        my >= node.from_y - y_head and
+                        my <= node.to_y + y_edge and
+
+                        mx >= node.from_x - x_edge and
+                        mx <= node.to_x + x_edge
+                    )
+                    #Loghandler.Log(f"ID {ig}: {node_hover}")
+                    ig += 1
+                    if node_hover:
+                        break
+
+            #Loghandler.Log(f"END: {node_id}")
+
 
         focus_changed = False
-        for i in self.range[0]:
-            if handler[i] == 3:
-                #mouse click
-                for id in wm.order[::-1]:
-                    node = wm.nodes[id]
-                    if node:
-                        if ctr.mouse_y >= node.from_y - y_head and ctr.mouse_y <= node.to_y + y_edge and ctr.mouse_x >= node.from_x - x_edge and ctr.mouse_x <= node.to_x + x_edge:
-                            if self.focus_id != id:
-                                self.focus_id = id
-                                if id != 0:
-                                    focus_changed = True
-                            if ctr.mouse_y >= node.from_y:
-                                #click
-                                node.click(devid, i, ctr.mouse_y, ctr.mouse_x)
-                                break
-                            else:
-                                if i == 0: # left button click
-                                    if ctr.mouse_x == node.to_x - 1:
-                                        Loghandler.Log("close " + node.app.name)
-                                        node.abort()
-                                    elif ctr.mouse_x == node.to_x - 3:
-                                        node.toggle_maximize()
-                                    elif ctr.mouse_x == node.to_x - 5:
-                                        node.hide(True)
-                                elif i == 1: #right button click
-                                    pass
-                                else: # middle button click
-                                    node.abort()
-                                    Loghandler.Log("close " + node.app.name)
-                            break
+        for btn in range(3): # (1, 0, 2)
+            mouse_event = handler[btn]
+            #if mouse_event == 0 or mouse_event == -1: continue
 
-            elif handler[i] == 4:
-                if self.moving_node:
-                    #custom behaviour (like custom size) for startdrag event
-                    if self.moving_node.is_maximized:
-                            self.moving_node.toggle_maximize()
-                            self.moving_node.moveTo(-1, ctr.mouse_x - (self.moving_node.width >> 1))
-                    #end
-                for id in wm.order[::-1]:
-                    node = wm.nodes[id]
-                    if ctr.mouse_y >= node.from_y and ctr.mouse_y <= node.to_y and ctr.mouse_x >= node.from_x and ctr.mouse_x <= node.to_x:
-                        node.drag(id, i, ctr.startDragEvent, ctr.mouse_y, ctr.mouse_x)
-                        #node.drag(id, i, ctr.dragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
-                        self.drag_on_node = node.id
-                        #Loghandler.Log("node drag on " + str(node.id))
-                        break
+            if node:
+                win_hover = (
+                    my >= node.from_y and
+                    my <= node.to_y and
 
-            elif self.drag_on_node >= 0:
-                node = wm.nodes[self.drag_on_node]
-                if node:
-                    if ctr.mouse_buttons[i] == 5 and self.hasDelta:
-                        node.drag(self.drag_on_node, i, ctr.dragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
-                    elif handler[i] == 6:
-                        node.drag(self.drag_on_node, i, ctr.endDragEvent, ctr.mouse_rdy, ctr.mouse_rdx)
-                        self.drag_on_node = -1
-                    #if handler[i] == 6:
+                    mx >= node.from_x and
+                    mx <= node.to_x
+                )
 
-        if ctr.mouse_wheel != 0:
-            for id in wm.order[::-1]:
-                node = wm.nodes[id]
-                if ctr.mouse_y >= node.from_y and ctr.mouse_y <= node.to_y and ctr.mouse_x >= node.from_x and ctr.mouse_x <= node.to_x + 1:
-                    node.scroll(id, ctr.mouse_wheel)
-                    break
+                border_hover = not win_hover
+
+                corner_hover = border_hover and (
+                    (
+                        my <= node.from_y - y_head + top_corner_size - 1 and
+                        (
+                            mx <= node.from_x - x_edge + top_corner_size - 1 or
+                            mx >= node.to_x + x_edge - top_corner_size + 1
+                        )
+                    ) or (
+                        my >= node.to_y + y_edge - bottom_corner_size + 1 and
+                        (
+                            mx <= node.from_x - x_edge + bottom_corner_size - 1 or
+                            mx >= node.to_x + x_edge - bottom_corner_size + 1
+                        )
+                    )
+                )
+                side_hover = border_hover and not corner_hover
 
 
-        if handler[0] == 1:
-            #start of drag
-            for id in wm.order[::-1]:
-                node = wm.nodes[id]
-                breaky = False
-                if node and not node.is_fullscreen and node.windowed:
-                    if ctr.mouse_x >= node.from_x and ctr.mouse_y >= node.from_y and ctr.mouse_y <= node.to_y and ctr.mouse_x <= node.to_x:
-                        break
-                    else:
-                        if ctr.mouse_x >= node.from_x and ctr.mouse_y == node.from_y - 1 and ctr.mouse_x <= node.to_x:
-                            #focus and move
-                            if self.focus_id != id:
-                                    self.focus_id = id
-                                    if id != 0:
-                                        focus_changed = True
+                head_hover = side_hover and (my < node.from_y)
+
+                # Bring focus
+                if mouse_event == 1 or mouse_event == 4:
+                    if self.focus != node:
+                        self.focus = node
+                        focus_changed = True
+
+                # On press: Prepare for drag, send event
+                if mouse_event == 1:
+                    if border_hover and btn == 0:
+                        # Resize | Move
+                        if not node.is_fullscreen and node.windowed:
+                            right_hover = mx > node.from_x
+                            horizontal_hover = (right_hover or mx < node.to_x)
+                            bottom_hover = (my > node.from_y)
+                            top_hover = (my < node.to_y)
+
+                            # Focus and move
                             self.moving_node = node
-                            self.move_type = 0
-                            break
-                        elif ctr.mouse_y >= node.from_y - 1 and ctr.mouse_y <= node.to_y + 1 and (ctr.mouse_x == node.to_x + 1 or ctr.mouse_x == node.from_x - 1):
-                            #focus and move right or left side
-                            if ctr.mouse_x == node.to_x + 1:
-                                self.move_type = 1
-                            else:
-                                self.move_type = 3
-
-                            if self.focus_id != id:
-                                    self.focus_id = id
-                                    if id != 0:
-                                        focus_changed = True
-                            self.moving_node = node
-                            breaky = True
-                        if ctr.mouse_x >= node.from_x - 1 and ctr.mouse_x <= node.to_x + 1 and ctr.mouse_y == node.to_y + 1:
-                            #focus and move bottom side
-                            if self.focus_id != id:
-                                    self.focus_id = id
-                                    if id != 0:
-                                        focus_changed = True
-                            if self.move_type == -1 or self.moving_node != node:
+                            if top_hover:
+                                self.move_type = 0
+                            elif bottom_hover:
                                 self.move_type = 2
-                            elif self.move_type == 1:
-                                self.move_type = 21
-                            elif self.move_type == 3:
-                                self.move_type = 23
-                            else:
-                                self.move_type = 2
-                            self.moving_node = node
-                            break
-                if breaky:
-                    break
+
+                            if horizontal_hover:
+                                if side_hover:
+                                    if right_hover:
+                                        self.move_type = 1
+                                    else:
+                                        self.move_type = 3
+                                else:
+                                    # Change first digit
+                                    # 00 -> 10/30; 02 -> 12/32
+                                    if right_hover:
+                                        self.move_type += 10
+                                    else:
+                                        self.move_type += 30
+                    elif win_hover:
+                        node.press(dev_id, btn, my, mx)
+
+                # On click: Bring focus, send event
+                elif mouse_event == 3:
+                    if win_hover:
+                        node.click(dev_id, btn, my, mx)
+                    elif head_hover:
+                        # Send click event to the decorator
+                        if btn == 0: # Left button click
+                            if ctr.mouse_x == node.to_x - 1:
+                                Loghandler.Log("close " + node.app.name)
+                                node.abort()
+                            elif ctr.mouse_x == node.to_x - 3:
+                                node.toggle_maximize()
+                            elif ctr.mouse_x == node.to_x - 5:
+                                node.hide(True)
+                        elif btn == 2: # Middle button click
+                            node.abort()
+                            Loghandler.Log("close " + node.app.name)
+
+                # On drag start: Bring focus, (send event | resize | drag)
+                if mouse_event == 4:
+                    if self.moving_node and btn == 0:
+                        # Unmaximize
+                        if self.moving_node.is_maximized:
+                                self.moving_node.toggle_maximize()
+                                self.moving_node.moveTo(-1, ctr.mouse_x - self.moving_node.width // 2)
+                    elif win_hover:
+                        node.drag(dev_id, btn, ctr.startDragEvent, my, mx)
+                        self.drag_on_node = node
+
+                elif mouse_event == 5:
+                    if self.hasDelta or True:
+                        if self.moving_node:
+                            if btn == 0:
+                                if self.move_type == 0:
+                                    # Drag
+                                    self.moving_node.move(ctr.mouse_rdy, ctr.mouse_rdx)
+                                elif self.move_type == 2:
+                                    self.moving_node.reborder(self.move_type, ctr.mouse_rdy)
+                                elif self.move_type <= 3:
+                                    self.moving_node.reborder(self.move_type, ctr.mouse_rdx)
+                                else:
+                                    self.moving_node.reborder(self.move_type // 10, ctr.mouse_rdx)
+                                    self.moving_node.reborder(self.move_type % 10, ctr.mouse_rdy)
+                        elif self.drag_on_node:
+                            node.drag(dev_id, btn, ctr.dragEvent, my, mx)
+                elif mouse_event == 6:
+                    if self.drag_on_node:
+                        node.drag(dev_id, btn, ctr.endDragEvent, my, mx)
+                        self.drag_on_node = None
+                    elif btn == 0 and self.moving_node:
+                        self.moving_node = None
+
+    
+                # Scroll
+                if ctr.mouse_wheel != 0:
+                    if win_hover:
+                        node.scroll(id, ctr.mouse_wheel)
 
 
-        if self.moving_node and ctr.mouse_buttons[0] == 5 and self.hasDelta:
-            if self.move_type == 0:
-                #drag
-                self.moving_node.move(ctr.mouse_rdy, ctr.mouse_rdx)
-            elif self.move_type == 2:
-                self.moving_node.reborder(2, ctr.mouse_rdy)
-            else:
-                self.moving_node.reborder(self.move_type % 10, ctr.mouse_rdx)
-                if self.move_type > 20:
-                    self.moving_node.reborder(2, ctr.mouse_rdy)
-        elif handler[0] == -1:
+        if handler[0] == -1:
             if self.moving_node and self.move_type == 0 and ctr.mouse_y == 0 and ctr.mouse_x < self.screen_width - 5:
                 if not self.moving_node.is_maximized:
                     self.moving_node.toggle_maximize()
@@ -320,12 +379,17 @@ class WmMouse:
 
 
         if focus_changed:
-            id_ind = wm.order.index(self.focus_id)
-            wm.order[-1], wm.order[id_ind] = wm.order[id_ind], wm.order[-1]
+            node_id = wm.order.index(self.focus)
+            if node_id != 0:
+                wm.order[-1], wm.order[node_id] = wm.order[node_id], wm.order[-1]
 
-        wm.active[devid] = self.focus_id
+        wm.active[dev_id] = self.focus
 
-        return 0
+        if node:
+            node.input(delta, ctr)
+
+
+
 
 
     #settings

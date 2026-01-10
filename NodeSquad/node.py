@@ -4,18 +4,19 @@ import importlib
 import pydoc
 import traceback
 
+from apps.apphabit import apphabit
 from type.colors import Colors
 from type.permissions import Permisions
 
 from NodeSquad.ui import UI
 from NodeSquad.ui_new import UI as neoUI
-from apps.apps import App
+from apps.app import App
 from integration.loghandler import Loghandler
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules", "path") # Fixed size fields are faster
-	def __init__(self, id, wm, display, from_y, from_x, height, width, app_path, params, app = None, parent = None):
+	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules", "path", "interactable") # Fixed size fields are faster
+	def __init__(self, id, wm, display, from_y = 0, from_x = 0, height = 0, width = 0, app_path = "", params = None, app = None, parent = None):
 		self.id = id
 		self.wm = wm
 		self.node = self
@@ -40,17 +41,22 @@ class Node:
 		#app
 		if app:
 			self.app = app
-		else:
+		elif app_path:
 			self.app = App(app_path)
 			app = self.app
+		else:
+			self.app = App("empty/node")
+			app = self.app
+
+		self.interactable = (not app.empty)
 
 		self.name = self.app.name
 
 
 		if height == 0 and width == 0:
-			if "prefHeight" in self.app.data and "prefWidth" in self.app.data:
-				self.preferred_height = self.app.data["prefHeight"]
-				self.preferred_width = self.app.data["prefWidth"]
+			if "prefHeight" in app.data and "prefWidth" in app.data:
+				self.preferred_height = app.data["prefHeight"]
+				self.preferred_width = app.data["prefWidth"]
 			else:
 				self.preferred_height, self.preferred_width, = 14, 45
 
@@ -73,8 +79,8 @@ class Node:
 		# TODO: size constrains should be in .app file
 
 		self.windowed = True
-		if "windowed" in self.app.data:
-			self.windowed = (self.app.data["windowed"] == 1)
+		if "windowed" in app.data:
+			self.windowed = (app.data["windowed"] == 1)
 
 		# Appearance
 		self.accent = wm.accent
@@ -99,11 +105,17 @@ class Node:
 		self.modules.append(self.neoui)
 
 
+		self.sub = {}
+
 		try:
-			spec = importlib.util.spec_from_file_location(app.class_name, app.file_path)
-			module = importlib.util.module_from_spec(spec)
-			spec.loader.exec_module(module)
-			cls = getattr(module, app.class_name)
+			cls = None
+			if app.empty:
+				cls = apphabit
+			else:
+				spec = importlib.util.spec_from_file_location(app.class_name, app.file_path)
+				module = importlib.util.module_from_spec(spec)
+				spec.loader.exec_module(module)
+				cls = getattr(module, app.class_name)
 
 			self.win = cls(id, self, self.controller, self.height, self.width, params)
 			self.win.node = self
@@ -114,7 +126,6 @@ class Node:
 
 		# Controller
 		controller = self.controller
-		self.sub = {}
 		if hasattr(self.win, "input_subscriptions"):
 			subdata = self.win.input_subscriptions
 			for type in subdata:
@@ -315,7 +326,7 @@ class Node:
 		fi = self.wm.active
 		for node in self.child_nodes:
 			if node:
-				ret = ret or node.id in fi
+				ret = ret or (node.id in fi)
 		return ret
 
 
@@ -338,7 +349,11 @@ class Node:
 
 	def reborder(self, side, delta):
 		if self.closing: return 0
-		if side == 1:
+		elif side == 0:
+			dd = max(min(self.height - delta, self.max_height), self.min_height)
+			self.from_y -= dd - self.height
+			self.height = dd
+		elif side == 1:
 			dd = max(min(self.width + delta, self.max_width), self.min_width)
 			self.to_x += dd - self.width
 			self.width = dd
@@ -470,13 +485,20 @@ class Node:
 				del self.neoui
 		self.ready_to_close = True
 
-#Window Manager Decoration
+# Decoration
 
-	def setKindness(self, id):
-		if id == 0:
-			self.windowed = False
+	def setDecoration(self, val):
+		self.windowed = val
 
-#input listeners
+# Input listeners
+
+	def press(self, device_id, button, y, x):
+		if self.closing: return 0
+		try:
+			if self.controller.MouseEvents in self.sub:
+				self.win.press(device_id, button,  y - self.from_y, x - self.from_x)
+		except Exception as ex:
+			self.errorMessage("press", ex)
 
 	def click(self, device_id, button, y, x):
 		if self.closing: return 0
@@ -487,24 +509,24 @@ class Node:
 		except Exception as ex:
 			self.errorMessage("click", ex)
 
-	def drag(self, id, button, stage, y, x):
+	def drag(self, device_id, button, stage, y, x):
 		if self.closing: return 0
 		if stage == 0:
 			y -= self.from_y
 			x -= self.from_x
 		try:
-			if self.ui.drag(id, button, stage, y, x):
+			if self.ui.drag(device_id, button, stage, y, x):
 				if self.controller.MouseEvents in self.sub:
-					self.win.drag(id, button, stage, y, x)
+					self.win.drag(device_id, button, stage, y, x)
 		except Exception as ex:
 			self.errorMessage("drag", ex)
 
-	def scroll(self, id, delta):
+	def scroll(self, device_id, delta):
 		if self.closing: return 0
 		#if self.ui.scroll(id, delta):
 		if self.controller.MouseWheelEvents in self.sub:
 			try:
-				self.win.scroll(id, delta)
+				self.win.scroll(device_id, delta)
 			except Exception as ex:
 				self.errorMessage("scroll", ex)
 

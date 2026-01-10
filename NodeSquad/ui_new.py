@@ -9,8 +9,11 @@ from integration.loghandler import Loghandler
 class UIElement:
         ui = None
 
-        # Public
-
+        # Correct function to override.
+        def init(self, *args, **kwargs):
+            pass
+        
+        # Not this.
         def __init__(self, *args, **kwargs):
             self.is_canvas = False
             self.parent = None
@@ -53,22 +56,19 @@ class UIElement:
 
             self.init.__func__(self, *args, **kwargs)
 
-
-        def init(self, *args, **kwargs):
-            pass
-
-        # Hierarchy
-
-        def ChangeParent(self, ui):
-            if isinstance(ui, UIElement):
-                self.parent.remove(self)
-                ui.children.append(self)
-                self.parent = ui
+        # Public
+        
+        # This function makes UI element return its main value,
+        # e.g. text in input field, press state in button, or position in slider.
+        # Could be set as a reference to the function with more explicit name like GetText(), GetPosition();
+        # This method should always work and never return garbage.
+        def Get(self):
+            return self.text
 
         # Add children to self
         def Add(self, ui):
             if isinstance(ui, UIElement):
-                if ui.parent:
+                if ui.parent and ui in ui.parent.children:
                     ui.parent.children.remove(ui)
                 self.children.append(ui)
 
@@ -79,7 +79,11 @@ class UIElement:
                 else:
                     ui.SetCanvas(self.canvas)
 
-                #ui.SetStyle(self.style)
+
+        # Change parent on self
+        def SetParent(self, ui):
+            if isinstance(ui, UIElement):
+                ui.Add(self)
 
         # Assign self to canvas
         def SetCanvas(self, canvas, check = True):
@@ -148,6 +152,7 @@ class UIElement:
                 self.style_set = True
 
 
+
         # Common Operators (like content generation)
 
         def Refresh(self):
@@ -203,6 +208,14 @@ class UIElement:
                 if child.visible:
                     child.draw(starty, startx, attr)
 
+        # Simplified draw.
+        def draw_children(self, py, px, pattr):
+            starty = self.y + px
+            startx = self.x + px
+            for child in self.children:
+                if child.visible:
+                    child.draw(starty, startx, pattr)
+
         def postdraw(self, starty, startx, attr):
             pass
 
@@ -236,6 +249,18 @@ class UIElement:
             self.input_handle(py, px, controller, mouse_y, mouse_x)
 
             return self.hover
+
+        # Simplified input.
+        def input_children(self, py, px, controller, mouse_y, mouse_x):
+            starty = self.y + px
+            startx = self.x + px
+
+            ray = False
+            for child in reversed(self.children):
+                if child.input(starty, startx, controller, mouse_y, mouse_x):
+                    ray = True
+            
+            return ray
 
 
         # Custom code for each element
@@ -384,18 +409,20 @@ class UI:
         self.keyboardFocus.keyType(key)
 
     # UI elements
-    # Implemented:
-    # Canvas; Layer; Button; TextLine; Slider; RadioButton; ClickArea;
+    # Implemented - sorted chronologically:
+    # Canvas; Button; Text; Slider; RadioButton; ClickArea; InputField
 
     # Yet to be implemented:
-    # Sprite; WrappedText; InputBox;
-    # ListView; GridView; ScrollView; SequenceView.
+    # Sprite; WrappedText; InputBox; ListView; GridView; ScrollView; SequenceView.
 
-    
-    # Basic container for the other elements. Used as root, scene or attribute container.
+
+    # Basic container for the other elements. Used as root, scene, layer or attribute container.
     class Canvas(UIElement):
 
-        def init(self, ui, y = 0, x = 0, height = 9, width = 15, clip = False):
+        def Get(self):
+            return len(self.children)
+
+        def init(self, ui, y = 0, x = 0, height = 0, width = 0, clip = False):
             self.is_canvas = True
             self.ui = ui
             self.clip = clip
@@ -443,8 +470,7 @@ class UI:
             return False
 
 
-        # Hijacks all draw requests and clips them, if set to clip = True
-
+        # If self.clip set to true, draws with clipping
         def draw_clip(self, y, x, text, attr = Colors.FXNormal):
             if y < self.y: return
             if y >= self.y + self.height: return
@@ -468,7 +494,7 @@ class UI:
                 x += l_offcut
             self.node_draw_func(y, x, text, attr)
 
-
+        # Changes attribute with clipping
         def chgat_clip(self, y, x, num, attr):
             if y < self.y: return
             if y >= self.y + self.height: return
@@ -492,37 +518,14 @@ class UI:
             if self.ui.keyboardFocus == element:
                 self.ui.keyboardFocus = None
 
-    # Similar to canvas, but can have a widget parent and cannot clip (does not need a width)
-    class Layer(Canvas):
 
-        def init(self, y = 0, x = 0):
-            self.parent = parent
-            self.y = y
-            self.x = x
-            self.children = []
-            self.attr = Colors.FXNormal
-
-
-        def draw(self):
-            attr = self.attr
-            y = self.y
-            x = self.x
-            for child in self.children:
-                if child.vesible:
-                    child.draw(y, x, attr)
-
-        def input(self, py, px, controller, mouse_y, mouse_x):
-            starty = self.y
-            startx = self.x
-            for child in self.children:
-                child.input(starty, startx, controller, mouse_y, mouse_x)
-            return False
-
-
-    # ClickArea. invisible. provides basic events for clicks within a rectangular area.
+    # Click Area. Invisible. provides basic events for clicks within a rectangular area.
     class ClickArea(UIElement):
 
-        def init(self, event = None, y = 0, x = 0, height = 3, width = 6):
+        def Get(self):
+            return self.clicked
+
+        def init(self, event = None, y = 0, x = 0, height = 3, width = 6, match_parent = False):
             self.event = event
             self.y = y
             self.x = x
@@ -530,36 +533,29 @@ class UI:
             self.width = width
 
             self.visible = False
-            self.sprite = None
             self.draw = self.draw_children
 
-        # TODO sprite draw function
-        def SetSprite(self, sprite):
-            if self.sprite:
-                self.sprite.visible = True
-                self.sprite = None
-            if sprite:
-                if isinstance(sprite, UIElement):
-                    self.sprite = sprite
+            self.match_parent = match_parent
+            if match_parent:
+                self._super = super()
+                self.input = self.input_match
 
-            self.visible = bool(self.sprite)
-            if self.visible:
-                sprite.visible = False
-                self.draw = UIElement.draw
-            else:
-                self.draw = self.draw_children
 
-        def draw_children(self, py, px, pattr):
-            starty = self.y + px
-            startx = self.x + px
-            for child in self.children:
-                if child.visible:
-                    child.draw(starty, startx, pattr)
+        def input_match(self, *args, **kwargs):
+            # Pre input
+            self.height = self.parent.height
+            self.width = self.parent.width
+
+            # Parent input
+            self._super.input(args, kwargs)
 
 
 
     # Button. Provides click reaction
     class Button(UIElement):
+
+        def Get(self):
+            return self.clicked
 
         def init(self, event = None, y = 0, x = 0, height = 5, width = 12, text = '', align = 1, style = None, atlas = "┌┐└┘│─ "):
             self.event = event
@@ -696,31 +692,43 @@ class UI:
                 if child.visible:
                     child.draw(starty, startx, attr)
 
-    # Text line. Simplest UI.
-    class TextLine(UIElement):
+
+
+    # Simplest UI.
+    class Text(UIElement):
 
         def init(self, y = 0, x = 0, text = '', attr = Colors.FXNormal):
-            text = text.replace('\n', '')
-
             self.y = y
             self.x = x
-            self.height = 1
-            self.width = len(text)
-            self.Refresh()
             self.resizable = False
-
-
+            self.SetText(text)
+            self.Refresh()
+            self.content = [text]
             self.attr = attr
-            #Loghandler.Log(self.parent)
+            self.visible = True
+
+            self.input = self.input_children
 
             def Refresh(self):
-                self.content = [self.text]
+                self.content = []
+                height = 0
+                width = 0
+                for line in self.text.split('/n'):
+                    height += 1
+                    ln = len(line)
+                    if ln > width: width = ln
+                    self.content.append(line)
+                self.height = height
+                self.width = width
 
 
     # Vertical or horizontal slider of given length.
     class Slider(UIElement):
 
-        def init(self, event = None, y = 0, x = 0, vertical = False, length = 10, default = 4, style = None, handle = '*', line = ''):
+        def Get(self):
+            return self.pos
+
+        def init(self, event = None, y = 0, x = 0, vertical = False, length = 10, default = 4, handle_length = 1, style = None, handle = '*', line = ''):
             if callable(event):
                 self.event = event
             self.y = y
@@ -743,36 +751,39 @@ class UI:
                 else:
                     self.line = '─'
             else:
-                self.line = line[0]
-            self.handle = handle[0]
+                self.line = str(line)[0]
+            self.handle = str(handle)[0]
 
-            self.Resize(length, 1)
+            self.SetLength(length)
+            self.SetHandleLength(handle_length)
 
             self.visible = True
             self.interactable = True
 
 
         def Resize(self, height, width):
-            dl = 0
             if self.vertical:
-                dl = self.height - height
-                self.height = height
+                self.SetLength(height)
             else:
-                dl = self.width - width
-                self.width = width
-            if dl != 0:
-                self.Refresh()
+                self.SetLength(width)
 
         def SetLength(self, length):
+            if length <= 0: return
             dl = 0
             if self.vertical:
-                dl = self.height - height
+                dl = self.height - length
                 self.height = length
             else:
-                dl = self.width - width
+                dl = self.width - length
                 self.width = length
+            self.length = length
             if dl != 0:
                 self.Refresh()
+        
+        def SetHandleLength(self, length):
+            if length > self.length:
+                length = self.length
+            self.handle_length = length
 
         def Refresh(self):
             line = self.line
@@ -892,8 +903,12 @@ class UI:
             if event and self.event:
                 self.event(widget = self, action = action, value = self.pos)
 
+
     # Generic RadioButton
     class RadioButton(UIElement):
+
+        def Get(self):
+            return self.value
 
         def init(self, event = None, x = 0, y = 0, enabled = False, off = "[ ]", on = "[*]"):
             if callable(event):
@@ -915,7 +930,7 @@ class UI:
             else:
                 self.content.append(off)
 
-            self.value = enabled
+            self.value = bool(enabled)
 
 
             self.difference = []
@@ -940,7 +955,7 @@ class UI:
                 self.user_event(self, action, value)
 
 
-        def draw(self, py, px, pattr):
+        def _draw(self, py, px, pattr):
 
             draw_func = self.draw_func
             chgat_func = self.chgat_func
@@ -986,12 +1001,15 @@ class UI:
                 self.user_event = None
 
             self.text = ""
+            self.text_len = 0
+            self.GetText = self.Get
+
             self.cursor = 0
             self.selection = -1
+            self.view = 0
 
             self.border = border
             self.border_visible = border
-
 
             self.y = y
             self.x = x
@@ -1008,6 +1026,9 @@ class UI:
             self.event = self.click
 
 
+        def SetBorder(self, border):
+            self.border = border
+
         def Resize(self, height, width):
             self.border_visible = (self.border and (height >= 3 and width >= 2))
             self.height = 1 if height < 3 else 3
@@ -1018,6 +1039,7 @@ class UI:
             self.Refresh()
 
         def Refresh(self):
+            self.text_len = len(self.text)
             if not self.border_visible:
                 if self.border:
                     self.content = [""]
@@ -1029,34 +1051,46 @@ class UI:
             self.content[1] = '│' + (' ' * (self.width - 2)) + '│'
             self.content[2] = '└' +           line           + '┘'
 
-        def GetText(self):
-            return self.text
-            
-
         def postdraw(self, starty, startx, attr):
             y = starty
             x = startx
+
+            maxlen = self.width
+
             if self.border_visible:
                 y += 1
                 x += 1
-            maxlen = self.width
-            text = self.text
+                maxlen -= 2
 
             attr = Colors.FXNormal
             if not self.border_visible:
                 attr = attr | Colors.FXUnderline
+            
+            text = self.text
 
-            self.draw_func(y, x, text, attr)
+            xview = self.view
+
+            if self.cursor - xview < 0 and xview > 0:
+                self.view -= 1
+            elif self.cursor - xview >= maxlen:
+                self.view += 1
+            xview = self.view
+
+            mx = self.text_len
+            if mx - xview >= self.width - 2:
+                mx -= (mx - xview) - (self.width - 2)
+
+            self.draw_func(y, x, text[xview:mx], attr)
 
             if self.canvas:
                 if self.canvas.ui.keyboardFocus != self:
                     return
 
             if self.selection == -1:
-                self.chgat_func(y, x + self.cursor, 1, Colors.FXReverse)
+                self.chgat_func(y, x + self.cursor - xview, 1, Colors.FXReverse)
             else:
-                p1 = self.cursor
-                p2 = self.selection
+                p1 = self.cursor - xview
+                p2 = self.selection - xview
                 if self.selection < self.cursor:
                     p1, p2 = p2, p1
                 self.chgat_func(y, x + p1, p2 - p1 + 1, Colors.FXReverse)
@@ -1068,7 +1102,6 @@ class UI:
 
         def keyType(self, key):
             text_event = False
-
 
             shift = False
             ctrl = False
@@ -1082,16 +1115,24 @@ class UI:
                 if t:
                     self.text = self.text[:self.cursor] + t + self.text[self.cursor:]
                     self.cursor += 1
+                    self.text_len += 1
                 text_event = True
             elif key == Keys.KEY_BACKSPACE:
-                if self.cursor > 0 and len(self.text) > 0:
+                if self.cursor > 0 and self.text_len > 0:
                     self.text = self.text[:self.cursor - 1] + self.text[self.cursor:]
                     self.cursor -= 1
+                    self.text_len -= 1
+                    if self.view > 0:
+                        self.view -= 1
                 text_event = True
+            elif key == Keys.KEY_DELETE:
+                if self.cursor < self.text_len and self.text_len > 0:
+                    self.text = self.text[:self.cursor] + self.text[self.cursor + 1:]
+                    self.text_len -= 1
             elif key == Keys.KEY_UP:
                 self.cursor = 0
             elif key == Keys.KEY_DOWN:
-                self.cursor = len(self.text)
+                self.cursor = self.text_len
             elif key == Keys.KEY_ENTER:
                 self.canvas.releaseKeyboardFocus(self)
             
@@ -1105,9 +1146,8 @@ class UI:
 
                 if key == Keys.KEY_RIGHT:
                     self.cursor += 1
-                    ln = len(self.text)
-                    if self.cursor > ln:
-                        self.cursor = ln
+                    if self.cursor > self.text_len:
+                        self.cursor = self.text_len
                 else:
                     self.cursor -= 1
                     if self.cursor < 0:
