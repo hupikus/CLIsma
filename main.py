@@ -133,8 +133,6 @@ Singletons.start(forceColor, desktop)
 work = True
 
 
-import apps.apphabit
-
 def abort(msg):
 	global work
 	work = False

@@ -1,19 +1,18 @@
 from type.colors import Colors
-from apps.apphabit import apphabit
 from integration.loghandler import Loghandler
 
 import math
 import random
 
+from NodeSquad.modules.window import Window
 class pong(apphabit):
-    def __init__(self, id, node, controller, height, width, params):
-        self.id = id
+    def __init__(self, node):
         self.node = node
-        self.controller = controller
-        self.height = height
-        self.width = width
+        self.controller = node.controller
+        self.height = node.height
+        self.width = node.width
 
-        self.mouselen = controller.mouselen
+        self.mouselen = self.controller.mouselen
         Loghandler.Log(f"pong init, {self.mouselen} mouses detected")
 
         self.ball_y = 7

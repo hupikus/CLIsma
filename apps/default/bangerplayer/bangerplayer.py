@@ -20,16 +20,16 @@ from integration.loghandler import Loghandler
 
 from .layout import *
 
-from apps.apphabit import apphabit
-class bangerplayer(apphabit):
+from NodeSquad.modules.window import Window
+class bangerplayer(Window):
 
-    def __init__(self, id, node, controller, height, width, params):
+    def __init__(self, node):
         # Base
-        self.id = id
         self.node = node
-        self.controller = controller
-        self.height = height
-        self.width = width
+        self.id = node.id
+        self.controller = node.controller
+        self.height = node.height
+        self.width = node.width
 
         # Important-To-Abort targets
         self.opened = []

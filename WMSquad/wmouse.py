@@ -142,7 +142,6 @@ class WmMouse:
         if not self.visible and self.hasDelta:
             self.visible = True
         
-        #Loghandler.Log(self.hasDelta)
 
         # Mouse buttons
         handler = [0, 0, 0]
@@ -252,21 +251,33 @@ class WmMouse:
 
                 border_hover = not win_hover
 
-                corner_hover = border_hover and (
-                    (
-                        my <= node.from_y - y_head + top_corner_size - 1 and
+                corner_hover = False
+
+
+                small_corners = (
+                        (node.height + 2 < bottom_corner_size + top_corner_size) or
+                        (node.width + 2 < max(top_corner_size, bottom_corner_size) * 2)
+                    )
+                if small_corners:
+                    # Resort to 1 cell wide corners
+                    corner_hover = (my < node.from_y or my > node.to_y) and (mx < node.from_x or mx > node.to_x)
+                else:
+                    corner_hover = border_hover and (
                         (
-                            mx <= node.from_x - x_edge + top_corner_size - 1 or
-                            mx >= node.to_x + x_edge - top_corner_size + 1
-                        )
-                    ) or (
-                        my >= node.to_y + y_edge - bottom_corner_size + 1 and
-                        (
-                            mx <= node.from_x - x_edge + bottom_corner_size - 1 or
-                            mx >= node.to_x + x_edge - bottom_corner_size + 1
+                            my <= node.from_y - y_head + top_corner_size - 1 and
+                            (
+                                mx <= node.from_x - x_edge + top_corner_size - 1 or
+                                mx >= node.to_x + x_edge - top_corner_size + 1
+                            )
+                        ) or (
+                            my >= node.to_y + y_edge - bottom_corner_size + 1 and
+                            (
+                                mx <= node.from_x - x_edge + bottom_corner_size - 1 or
+                                mx >= node.to_x + x_edge - bottom_corner_size + 1
+                            )
                         )
                     )
-                )
+
                 side_hover = border_hover and not corner_hover
 
 
@@ -284,7 +295,11 @@ class WmMouse:
                         # Resize | Move
                         if not node.is_fullscreen and node.windowed:
                             horizontal_hover = (mx < node.from_x or mx > node.to_x)
-                            bottom_hover = (my > node.from_y - y_head + top_corner_size)
+                            bottom_hover = False
+                            if small_corners:
+                                bottom_hover = (my > node.to_y)
+                            else:
+                                bottom_hover = (my > node.from_y - y_head + top_corner_size)
                             right_hover = False
 
                             # Focus and move

@@ -10,30 +10,29 @@ class AppPool:
 
     def __init__(self):
 
-        self.systemApps = os.listdir("apps/default/")
-        self.apps = self.systemApps[:]
-        external = userglobals.userpath + ".local/share/CLIsma/custom/apps/external/"
-        if not os.path.exists(external):
-            os.makedirs(external)
-        self.installedApps = os.listdir(external)
-        sys.path.append(userglobals.userpath + ".local/share/CLIsma/custom/")
+        self.default = os.listdir("apps/default/")
+        external_path = userglobals.userpath + ".local/share/CLIsma/custom/apps/external/"
+        self.apps = self.default.copy()
+        if not os.path.exists(external_path):
+            os.makedirs(external_path)
+        self.external = os.listdir(external_path)
 
-        i = len(self.installedApps) - 1
+        i = len(self.external) - 1
         if i >= 0:
             while i != 0:
                 app = self.installedApps[i]
-                if not os.path.isdir(external + app):
-                    self.installedApps.pop(i)
+                if not os.path.isdir(external_path + app):
+                    self.external.pop(i)
                 i -= 1
 
-        self.apps += self.installedApps
+        self.apps += self.external
         #Loghandler.Log('\n'.join(self.apps))
 
         self.appinst = {}
-        for name in self.systemApps:
+        for name in self.default:
             self.appinst[name] = App("default/" + name)
 
-        for name in self.installedApps:
+        for name in self.external:
             self.appinst[name] = App("external/" + name)
 
     def GetAppInstances(self):
@@ -47,8 +46,7 @@ class AppPool:
         if app:
             self.appinst[name] = app
             return True
-        else:
-            return False
+        return False
 
-    def AppRemoved(self, name):
+    def RemoveApp(self, name):
         del appinst[name]

@@ -1,14 +1,15 @@
 from apps.apphabit import apphabit
 from type.colors import Colors
 from .layouts import Layouts
-class settings(apphabit):
+
+from NodeSquad.modules.window import Window
+class settings(Window):
 
     def start(self):
         #self.node.ui.art("icon1", ["----", "---", "--", "-"], 1, 0)
         #self.ui.clickableArt("icon1", self.submenu, 1, 0, ["-----  ", " --- ", "  -- ", "  -  "])
         #self.ui.slider("FPS", self.FPSlider_update, 5, 2, 24, 11)
         #self.ui.slider("FPS", self.FPSlider_update, 5, 2, 24, 11, railChar = '-', buttonChar = '*', buttonWidth = 5, railAttr = Colors.FXNormal, buttonAttr = Colors.FXNormal)
-        #self.ui.textBox("tB", 'I want to introduce to you new UI element called "TextBox". It can make automatic line break for words longer than line', 6, 2, 8, 30, align = 1)
 
         #ui
         self.path = ["zero"]
@@ -20,19 +21,21 @@ class settings(apphabit):
 
         self.space = ' ' * self.width
 
-    def __init__(self, id, node, controller, height, width, params):
-        #base
-        self.id = id
+    def __init__(self, node):
+        # Base
         self.node = node
-        self.controller = controller
-        self.height = height
-        self.width = width
+        self.controller = node.controller
+        self.height = node.height
+        self.width = node.width
 
-		#input
-        self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
+	# Input
+        self.input_subscriptions = [
+            self.controller.MouseEvents,
+            self.controller.KeyboardEvents
+        ]
 
 
-        self.ui = self.node.ui
+        self.ui = node.ui
 
 
         self.start()
@@ -53,7 +56,7 @@ class settings(apphabit):
             if self.layout != "zero":
                 self.up('', 0, 0)
 
-    def onresize(self, height, width):
+    def resize(self, height, width):
         self.height = height
         self.width = width
         self.ui.resize("list", height, width, type = "lists")

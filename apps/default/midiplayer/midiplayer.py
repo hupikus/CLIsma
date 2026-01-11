@@ -6,21 +6,20 @@ from integration.appconfig import Appconfig
 
 from utils.music_theory import noteName, getOctave
 
-from apps.apphabit import apphabit
 
 note_type_shapes = [0, 2, 1, 2, 0, 0, 2, 1, 2, 1, 2, 0]
 
-class midiplayer(apphabit):
+from NodeSquad.modules.window import Window
+class midiplayer(Window):
 
-	def __init__(self, id, node, controller, height, width, params):
+	def __init__(self, node):
 		#base
-		self.id = id
 		self.node = node
 		self.ui = node.ui
-		self.controller = controller
+		self.controller = node.controller
 
 		#input
-		self.input_subscriptions = [controller.MouseEvents, controller.MidiKeyboardEvents]
+		self.input_subscriptions = [self.controller.MouseEvents, self.controller.MidiKeyboardEvents]
 
 
 		#self.descriptor = Appconfig.OpenConfig(node.app)
@@ -40,7 +39,7 @@ class midiplayer(apphabit):
 		self.max_keyboard_width = 14 * 9 # 9 octaves
 		self.keyboard_height = 7
 
-		self.onresize(height, width)
+		self.resize(height, width)
 
 		#cache
 		self.pressed_keys = {}
@@ -125,7 +124,7 @@ class midiplayer(apphabit):
 						dx = 1
 					self.node.appendStr(self.height - height + y, posx + dx, char, attr = self.cursorcolor)
 
-	def onresize(self, height, width):
+	def resize(self, height, width):
 		self.height = height
 		self.width = width
 

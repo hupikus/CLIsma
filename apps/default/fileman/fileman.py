@@ -2,25 +2,28 @@ import os
 from type.colors import Colors
 from apps.app import App
 
-from apps.apphabit import apphabit
-
 from userglobals import userglobals
 from integration.loghandler import Loghandler
 
 from integration.filehandler import Filehandler
-class fileman(apphabit):
 
-    def __init__(self, id, node, controller, height, width, params):
+from NodeSquad.modules.window import Window
+class fileman(Window):
+
+    def __init__(self, node):
 		#base
-        self.id = id
         self.node = node
-        self.controller = controller
-        self.height = height
-        self.width = width
+        self.controller = node.controller
+        self.height = node.height
+        self.width = node.width
 
 
 		#input
-        self.input_subscriptions = [controller.MouseEvents, controller.MouseWheelEvents, controller.KeyboardEvents]
+        self.input_subscriptions = [
+            self.controller.MouseEvents,
+            self.controller.MouseWheelEvents,
+            self.controller.KeyboardEvents
+        ]
 
         self.space = ' ' * self.width
 
@@ -48,7 +51,7 @@ class fileman(apphabit):
             self.colormode = [Colors.colorPair(0) for i in range(4)]
 
         #uis
-        self.ui = self.node.ui
+        self.ui = node.ui
         self.ui.clickableArt("upb", self.moveup, 1, 0, ["Up "], width = 3)
 
 

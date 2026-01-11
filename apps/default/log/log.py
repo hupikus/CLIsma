@@ -1,14 +1,14 @@
-from apps.apphabit import apphabit
 from integration.loghandler import Loghandler
-class log(apphabit):
 
-	def __init__(self, id, node, controller, height, width, params):
-		#base
-		self.id = id
+from NodeSquad.modules.window import Window
+class log(Window):
+
+	def __init__(self, node):
+		# Base
 		self.node = node
-		self.controller = controller
-		self.height = height
-		self.width = width
+		self.controller = node.controller
+		self.height = node.height
+		self.width = node.width
 
 
 		self.preferred_height = 4

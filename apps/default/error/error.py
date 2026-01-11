@@ -1,11 +1,12 @@
 from os import system
 from type.colors import Colors
-from apps.apphabit import apphabit
-class error(apphabit):
+
+from NodeSquad.modules.window import Window
+class error(Window):
 
 
-	def argparser(self, params):
-		args = params.split()
+	def argparser(self, args):
+		args = args.split()
 
 		mode = ''
 		for i in args:
@@ -30,30 +31,27 @@ class error(apphabit):
 
 
 
-	def __init__(self, id, node, controller, height, width, params):
-		self.id = id
+	def __init__(self, node, args = None):
 		self.node = node
-		self.width = width
-		self.height = height
+		self.width = node.width
+		self.height = node.height
 
 
 		self.text = "Unstable Error"
 
 		system('echo -e "\\a"')
-		self.argparser(params)
+		self.argparser(args)
 
 		self.space = ' ' * self.width
 
-		#self.text = params
-
-		self.node.ui.coloredTextBox("errormessage", self.displaytext, 1, 0, self.height - 1, self.width)
+		node.ui.coloredTextBox("errormessage", self.displaytext, 1, 0, self.height - 1, self.width)
 
 	def draw(self, delta):
 		self.node.clear()
 		self.node.appendStr(0, 0, '-' * self.width)
 		#self.node.writeStr(1, 0, self.text)
 
-	def onresize(self, height, width):
+	def resize(self, height, width):
 		self.height = height
 		self.width = width
 		self.displaytext = self.text.center(self.width, ' ')

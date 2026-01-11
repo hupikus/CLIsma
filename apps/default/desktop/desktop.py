@@ -4,13 +4,13 @@ from type.colors import Colors
 from type.keys import Keys
 
 from apps.app import App
-from apps.apphabit import apphabit
 from singletons import Singletons
 
 from userglobals import userglobals
 from integration.loghandler import Loghandler
 
-class desktop(apphabit):
+from NodeSquad.modules.window import Window
+class desktop(Window):
 
 	def gen_cache(self):
 		header = self.greetmsg + ' ' * (self.width - len(self.greetmsg) - 1) + 'x'
@@ -75,13 +75,14 @@ class desktop(apphabit):
 		self.space = round( ( self.rightfrom - (5 * self.applen)) / (self.applen + 0.5) ) - 5
 		#                     right panel       apps itself          number of apps
 
-	def __init__(self, id, node, controller, height, width, params):
-		self.id = id
+	def __init__(self, node):
 		self.node = node
-		self.controller = controller
-		self.wm = params
-		self.width = width
-		self.height = height
+		self.id = node.id
+		self.controller = node.controller
+		self.wm = self.node.wm
+		self.height = node.height
+		self.width = node.width
+
 
 		self.preferred_height = 80
 		self.preferred_width = 24
@@ -101,7 +102,7 @@ class desktop(apphabit):
 			self.state = "regular"
 
 		#subscribe to input
-		self.input_subscriptions = [controller.MouseEvents, controller.KeyboardEvents]
+		self.input_subscriptions = [self.controller.MouseEvents, self.controller.KeyboardEvents]
 
 		#configable
 		self.menuapp = App("default/menu")
@@ -186,7 +187,7 @@ class desktop(apphabit):
 				#line = line + (' ' * self.space) + str(self.apps[i].icon[y])
 			#self.node.appendStr(self.height - 3 - 5 + y, 0, line)
 
-	def onresize(self, height, width):
+	def resize(self, height, width):
 		self.height = height
 		self.width = width
 		self.gen_cache()

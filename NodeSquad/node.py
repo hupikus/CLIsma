@@ -4,19 +4,19 @@ import importlib
 import pydoc
 import traceback
 
-from apps.apphabit import apphabit
 from type.colors import Colors
 from type.permissions import Permisions
 
-from NodeSquad.ui import UI
-from NodeSquad.ui_new import UI as neoUI
+from NodeSquad.modules.window import Window
+from NodeSquad.modules.ui_old import UI
+from NodeSquad.modules.ui import UI as neoUI
 from apps.app import App
 from integration.loghandler import Loghandler
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules", "path", "interactable") # Fixed size fields are faster
-	def __init__(self, id, wm, display, from_y = 0, from_x = 0, height = 0, width = 0, app_path = "", params = None, app = None, parent = None):
+	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules", "path", "interactable", "args") # Fixed size fields are faster
+	def __init__(self, id, wm, display, from_y = 0, from_x = 0, height = 0, width = 0, app_path = "", args = None, app = None, parent = None):
 		self.id = id
 		self.wm = wm
 		self.node = self
@@ -27,6 +27,8 @@ class Node:
 		self.from_x = from_x
 		self.height = height
 		self.width = width
+
+		self.args = args
 
 		self.oldsize = (self.height, self.width, self.from_y, self.from_x)
 
@@ -110,16 +112,19 @@ class Node:
 		try:
 			cls = None
 			if app.empty:
-				cls = apphabit
+				cls = Window
 			else:
-				spec = importlib.util.spec_from_file_location(app.class_name, app.file_path)
-				module = importlib.util.module_from_spec(spec)
-				spec.loader.exec_module(module)
+				if app.pkg_path not in sys.modules:
+					pkg = importlib.util.module_from_spec(
+						importlib.machinery.ModuleSpec(app.pkg_path, None, is_package=True)
+					)
+					pkg.__path__ = [app.class_path]
+					sys.modules[app.pkg_path] = pkg
+
+				module = importlib.import_module(app.pkg_name)
 				cls = getattr(module, app.class_name)
 
-			self.win = cls(id, self, self.controller, self.height, self.width, params)
-			self.win.node = self
-			self.modules.append(self.win)
+			self.importModule(cls)
 		except Exception as ex:
 			self.errorMessage("init", ex)
 
@@ -133,6 +138,15 @@ class Node:
 				controller.listenEvent(self, type)
 
 
+	def importModule(self, cls):
+		instance = cls(self)
+		self.modules.append(instance)
+		if isinstance(instance, Window):
+			self.modules.insert(0, instance)
+			self.win = instance
+		else:
+			self.modiles.append(instance)
+
 	# Public
 
 	def errorMessage(self, eventname, ex):
@@ -145,7 +159,7 @@ class Node:
 				pass
 		cls = pydoc.locate("apps.default" + ".error" * 3)
 
-		self.win = cls(id, self, self.controller, self.height, self.width, f'-t "{self.app.name} closed at start with internal error: <c2> <tbold>' + str(traceback.format_exc()) + '.')
+		self.win = cls(self, f'-t "{self.app.name} closed at start with internal error: <c2> <tbold>' + str(traceback.format_exc()) + '.')
 		self.neoui = neoUI(self)
 
 
@@ -162,8 +176,7 @@ class Node:
 			y += 1
 
 
-	# assembly code will only make positive difference by referencing "var = self.var" 4 and more uses
-
+	# Assembly code will only make positive difference by referencing "var = self.var" 4 and more uses
 	def appendStr_old(self, y, x, text, attr = Colors.FXNormal):
 		fromy = self.from_y
 		fy = y + fromy
@@ -188,8 +201,8 @@ class Node:
 			else:
 				self.root.addnstr(fy, fx, text, oblen, attr)
 
-	# This refactor is generally 1.5-2 times faster but may contain bugs
 
+	# This refactor is generally 1.5-2 times faster but may contain bugs
 	def appendStr(self, y, x, text, attr = Colors.FXNormal):
 		if y < 0 or y >= self.height: return
 		fromy = y + self.from_y
@@ -238,7 +251,6 @@ class Node:
 
 
 	# Method looks finished but isnt tested
-
 	def setAttr(self, y, x, num, attr):
 		if y < 0 or y >= self.height: return
 		fromy = y + self.from_y
@@ -330,7 +342,7 @@ class Node:
 		return ret
 
 
-	#properties
+	# Properties
 
 	def move(self, y, x):
 		self.from_y = min(max(self.from_y + y, 2), self.display.height - 1)
@@ -365,17 +377,18 @@ class Node:
 			dd = max(min(self.width - delta, self.max_width), self.min_width)
 			self.from_x -= dd - self.width
 			self.width = dd
-		self.win.onresize(self.height, self.width)
+		self.win.resize(self.height, self.width)
 
 	def resize(self, height, width):
 		self.to_y = self.from_y + height - 1
 		self.to_x = self.from_x + width - 1
 		self.height = height
 		self.width = width
+		self.win.resize(self.height, self.width)
 
 
 	def process(self, delta):
-		if self.closing: return 0
+		if self.closing: return
 		if not self.process_running:
 			self.process_running = True
 			try:
@@ -385,7 +398,7 @@ class Node:
 			self.process_running = False
 
 	def draw(self, delta):
-		if self.closing or self.hidden: return 0
+		if self.closing or self.hidden: return
 		try:
 			self.win.draw(delta)
 			self.ui.draw()
@@ -402,7 +415,7 @@ class Node:
 
 		try:
 			self.neoui.input(delta, controller)
-			self.win.mouse(delta, controller)
+			self.win.input(delta, controller)
 		except Exception as ex:
 			self.errorMessage("input", ex)
 		return True
@@ -410,7 +423,7 @@ class Node:
 
 
 	def toggle_maximize(self):
-		if self.closing: return 0
+		if self.closing: return
 		if self.is_maximized:
 			self.height, self.width, self.from_y, self.from_x = self.oldsize
 		else:
@@ -428,7 +441,7 @@ class Node:
 
 
 	def hide(self, state):
-		if self.closing: return 0
+		if self.closing: return
 		self.hidden = state
 		try:
 			self.win.oncollapse(state)
@@ -436,37 +449,37 @@ class Node:
 			self.errorMessage("collapse", ex)
 
 #Window Manager
-	def newNode(self, parent_path, class_name, y, x, height, width, params):
-		if self.closing: return 0
+	def newNode(self, path, y = 0, x = 0, height = 0, width = 0, args = None):
+		if self.closing: return
 		if self.id > 0 and len(self.child_nodes) > 13: return False
 
 		if self.id != 0:
-			newin = self.wm.newNode(parent_path, class_name, y, x, height, width, params, parent = self)
+			newin = self.wm.newNode(path, y, x, height, width, args, parent = self)
 		else:
-			newin = self.wm.newNode(parent_path, class_name, y, x, height, width, params)
+			newin = self.wm.newNode(path, y, x, height, width, args)
 		self.child_nodes.append(newin.node)
 		return newin
 
-	def newNodeByApp(self, app, y, x, height, width, params):
-		if self.closing: return 0
+	def newNodeByApp(self, app, y = 0, x = 0, height = 0, width = 0, args = None):
+		if self.closing: return
 		if self.id > 0 and len(self.child_nodes) > 13: return False
 
 		if self.id != 0:
-			newin = self.wm.newNodeByApp(app, y + self.from_y, x + self.from_x, height, width, params, parent = self)
+			newin = self.wm.newNodeByApp(app, y + self.from_y, x + self.from_x, height, width, args, parent = self)
 		else:
-			newin = self.wm.newNodeByApp(app, y + self.from_y, x + self.from_x, height, width, params)
+			newin = self.wm.newNodeByApp(app, y + self.from_y, x + self.from_x, height, width, args)
 		self.child_nodes.append(newin.node)
 		return newin
 
 
 	def closeNode(self, node):
-		if self.closing: return 0
+		if self.closing: return
 		self.child_nodes.remove(node)
 		if node != self:
 			node.abort
 
 	def abort(self):
-		if self.closing: return 0
+		if self.closing: return
 		self.closing = True
 		if self.parent and self in self.parent.child_nodes:
 			self.parent.child_nodes.remove(self)
@@ -493,7 +506,7 @@ class Node:
 # Input listeners
 
 	def press(self, device_id, button, y, x):
-		if self.closing: return 0
+		if self.closing: return
 		try:
 			if self.controller.MouseEvents in self.sub:
 				self.win.press(device_id, button,  y - self.from_y, x - self.from_x)
@@ -501,7 +514,7 @@ class Node:
 			self.errorMessage("press", ex)
 
 	def click(self, device_id, button, y, x):
-		if self.closing: return 0
+		if self.closing: return
 		try:
 			if self.ui.click(device_id, button, y - self.from_y, x - self.from_x):
 				if self.controller.MouseEvents in self.sub:
@@ -510,7 +523,7 @@ class Node:
 			self.errorMessage("click", ex)
 
 	def drag(self, device_id, button, stage, y, x):
-		if self.closing: return 0
+		if self.closing: return
 		if stage == 0:
 			y -= self.from_y
 			x -= self.from_x
@@ -522,7 +535,7 @@ class Node:
 			self.errorMessage("drag", ex)
 
 	def scroll(self, device_id, delta):
-		if self.closing: return 0
+		if self.closing: return
 		#if self.ui.scroll(id, delta):
 		if self.controller.MouseWheelEvents in self.sub:
 			try:
@@ -531,7 +544,7 @@ class Node:
 				self.errorMessage("scroll", ex)
 
 	def keyPress(self, key):
-		if self.closing: return 0
+		if self.closing: return
 		try:
 			if self.neoui.keyPress(key):
 				if self.controller.KeyboardEvents in self.sub:
@@ -540,7 +553,7 @@ class Node:
 			self.errorMessage("keyPress", ex)
 
 	def keyRelease(self, key):
-		if self.closing: return 0
+		if self.closing: return
 		try:
 			if self.neoui.keyRelease(key):
 				if self.controller.KeyboardEvents in self.sub:
@@ -549,7 +562,7 @@ class Node:
 			self.errorMessage("keyRelease", ex)
 
 	def keyType(self, key):
-		if self.closing: return 0
+		if self.closing: return
 		try:
 			if self.neoui.keyType(key):
 				if self.controller.KeyboardEvents in self.sub:
@@ -558,14 +571,14 @@ class Node:
 			self.errorMessage("keyType", ex)
 
 	def midikeyPress(self, note, pressure):
-		if self.closing: return 0
+		if self.closing: return
 		try:
 			self.win.midikeyPress(note, pressure)
 		except Exception as ex:
 			self.errorMessage("midi", ex)
 
 	def midikeyRelease(self, note):
-		if self.closing: return 0
+		if self.closing: return
 		try:
 			self.win.midikeyRelease(note)
 		except Exception as ex:

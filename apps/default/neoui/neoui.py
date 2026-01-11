@@ -6,22 +6,21 @@ from integration.loghandler import Loghandler
 
 #from FileSquad.sprite import SpriteData
 
-from apps.apphabit import apphabit
-class neoui(apphabit):
+from NodeSquad.modules.window import Window
+class neoui(Window):
 
-	def __init__(self, id, node, controller, height, width, params):
-		#base
-		self.id = id
+	def __init__(self, node):
+		# Base
 		self.node = node
-		self.controller = controller
-		self.height = height
-		self.width = width
+		self.controller = node.controller
+		self.height = node.height
+		self.width = node.width
 
 		#input
 		self.input_subscriptions = [
-			controller.MouseEvents,
-			controller.KeyboardEvents,
-			controller.MouseWheelEvents
+			self.controller.MouseEvents,
+			self.controller.KeyboardEvents,
+			self.controller.MouseWheelEvents
 		]
 
 		self.neoui = node.neoui

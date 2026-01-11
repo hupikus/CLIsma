@@ -4,29 +4,26 @@ from type.colors import Colors
 
 from integration.loghandler import Loghandler
 
-from apps.apphabit import apphabit
-class menu(apphabit):
+from NodeSquad.modules.window import Window
+class menu(Window):
 
 	def newapp(self, id):
 		app = App(id)
 		self.node.abort()
 
-	def __init__(self, id, node, controller, height, width, params):
+	def __init__(self, node):
 		#base
-		self.id = id
 		self.node = node
-		self.controller = controller
-		self.height = height
-		self.width = width
-
-
+		self.controller = node.controller
+		self.height = node.height
+		self.width = node.width
 
 		self.node.setDecoration(False)
 
 		self.desktop = self.node.parent
 
 		#input
-		self.input_subscriptions = [controller.MouseEvents, controller.MouseWheelEvents]
+		self.input_subscriptions = [self.controller.MouseEvents, self.controller.MouseWheelEvents]
 
 		self.apps = Singletons.appp.GetAppInstances()
 		self.display = []

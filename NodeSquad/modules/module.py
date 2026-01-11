@@ -1,33 +1,28 @@
-class apphabit:
-
-    preferred_height = 9
-    preferred_width = 45
-
+class Module:
     # Basics
 
-    def __init__(self, id, node, controller, height, width, params = None):
-        self.height = height
-        self.width = width
+    def __init__(self, node):
         self.node = node
-        self.controller = controller
-        self.ui = self.node.ui
+        self.height = node.height
+        self.width = node.width
+        self.controller = node.controller
 
     def draw(self, delta):
-        self.node.clear()
+        pass
 
     def process(self, delta):
         pass
 
-    def mouse(self, delta, controller):
+    def input(self, delta, controller):
         pass
 
     # Node events
 
-    def onresize(self, height, width):
+    def resize(self, height, width):
         self.height = height
         self.width = width
 
-    def oncollapse(self, collapse):
+    def collapse(self, collapse):
         pass
 
     def abort(self):

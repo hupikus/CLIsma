@@ -2,19 +2,19 @@ from type.colors import Colors
 from type.permissions import Permisions
 
 from integration.loghandler import Loghandler
-from apps.apphabit import apphabit
 
-class mouselock(apphabit):
+from NodeSquad.modules.window import Window
+class mouselock(Window):
 
-	def __init__(self, id, node, controller, height, width, params):
+	def __init__(self, node):
 		self.node = node
-		self.controller = controller
-		self.ui = self.node.ui
+		self.controller = node.controller
+		self.ui = node.ui
 		self.active = False
 		self.button = False
 		self.height = height
 		self.width = width
-		self.input_subscriptions = [controller.MouseEvents]
+		self.input_subscriptions = [self.controller.MouseEvents]
 
 		self.inpd = self.node.requestPermission(Permisions.INPUT_DEVICES)
 

@@ -12,6 +12,7 @@ FILEPATH = 2
 DEFAULT_PREFIX = "default/"
 EXTERNAL_PREFIX = "external/"
 EMPTY_PREFIX = "empty/"
+PATH_PREFIX = "dir/"
 
 EXTERNAL_PATH = userglobals.userpath + ".local/share/CLIsma/custom/apps/external/"
 CONFIG_PATH = userglobals.userpath + ".local/share/CLIsma/config/apps/"
@@ -43,17 +44,26 @@ class App:
 		if path.startswith(DEFAULT_PREFIX):
 			self.type = DEFAULT
 			self.class_path = "apps/" + path + '/'
+			self.pkg_path = "app." + path.replace('/', '.')
 		elif path.startswith(EXTERNAL_PREFIX):
 			self.type = EXTERNAL
 			self.class_path = EXTERNAL_PATH + path + '/'
+			self.pkg_path = "app." + path.replace('/', '.')
 		elif path.startswith(EMPTY_PREFIX):
+			self.empty = True
 			self.type = EMPTY
 			self.class_path = ''
-			self.empty = True
+			self.pkg_path = "app." + self.class_name
+			self.class_name = f"{(hash(self.class_name) & 0xFFFFFF):06x}"
 		else:
+			if path.startswith(PATH_PREFIX):
+				path = path[len(PATH_PREFIX):]
 			self.type = FILEPATH
 			self.class_path = path + '/'
+			class_hash = f"{(hash(self.class_name) & 0xFFFFFF):06x}"
+			self.pkg_path = "app." + class_hash
 		
+		self.pkg_name = self.pkg_path + '.' + self.class_name
 
 		self.valid = True
 
