@@ -283,19 +283,20 @@ class WmMouse:
                     if border_hover and btn == 0:
                         # Resize | Move
                         if not node.is_fullscreen and node.windowed:
-                            right_hover = mx > node.from_x
-                            horizontal_hover = (right_hover or mx < node.to_x)
-                            bottom_hover = (my > node.from_y)
-                            top_hover = (my < node.to_y)
+                            horizontal_hover = (mx < node.from_x or mx > node.to_x)
+                            bottom_hover = (my > node.from_y - y_head + top_corner_size)
+                            right_hover = False
 
                             # Focus and move
                             self.moving_node = node
-                            if top_hover:
-                                self.move_type = 0
-                            elif bottom_hover:
+                            if bottom_hover:
                                 self.move_type = 2
+                                right_hover = (mx > node.from_x - x_edge + bottom_corner_size)
+                            else:
+                                self.move_type = 0
+                                right_hover = (mx > node.from_x - x_edge + top_corner_size)
 
-                            if horizontal_hover:
+                            if border_hover and (horizontal_hover or corner_hover):
                                 if side_hover:
                                     if right_hover:
                                         self.move_type = 1
@@ -348,7 +349,7 @@ class WmMouse:
                                     # Drag
                                     self.moving_node.move(ctr.mouse_rdy, ctr.mouse_rdx)
                                 elif self.move_type == 2:
-                                    self.moving_node.reborder(self.move_type, ctr.mouse_rdy)
+                                    self.moving_node.reborder(2, ctr.mouse_rdy)
                                 elif self.move_type <= 3:
                                     self.moving_node.reborder(self.move_type, ctr.mouse_rdx)
                                 else:

@@ -19,8 +19,8 @@ class DecorationPreset():
 
 	borderAttr = Colors.FXNormal
 
-	topCornerRadius = 1
-	bottomCornerRadius = 2
+	topCornerRadius = 2
+	bottomCornerRadius = 3
 
 	def SetStyle(self, style): # set standard style
 		if style in funcs:
