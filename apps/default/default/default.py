@@ -7,7 +7,7 @@ from integration.appconfig import Appconfig
 from NodeSquad.modules.window import Window
 class default(Winddow):
 
-	def __init__(self, node):
+	def __init__(self, node, args = ''):
 		# Base
 		self.node = node
 		self.controller = node.controller

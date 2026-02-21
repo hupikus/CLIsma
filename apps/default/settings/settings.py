@@ -1,4 +1,3 @@
-from apps.apphabit import apphabit
 from type.colors import Colors
 from .layouts import Layouts
 
@@ -21,7 +20,7 @@ class settings(Window):
 
         self.space = ' ' * self.width
 
-    def __init__(self, node):
+    def __init__(self, node, args = ''):
         # Base
         self.node = node
         self.controller = node.controller

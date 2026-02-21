@@ -16,7 +16,7 @@ from integration.loghandler import Loghandler
 class Node:
 
 	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules", "path", "interactable", "args") # Fixed size fields are faster
-	def __init__(self, id, wm, display, from_y = 0, from_x = 0, height = 0, width = 0, app_path = "", args = None, app = None, parent = None):
+	def __init__(self, id, wm, display, from_y = 0, from_x = 0, height = 0, width = 0, app_path = "", args = "", app = None, parent = None):
 		self.id = id
 		self.wm = wm
 		self.node = self
@@ -124,7 +124,7 @@ class Node:
 				module = importlib.import_module(app.pkg_name)
 				cls = getattr(module, app.class_name)
 
-			self.importModule(cls)
+			self.importModule(cls, args)
 		except Exception as ex:
 			self.errorMessage("init", ex)
 
@@ -138,8 +138,8 @@ class Node:
 				controller.listenEvent(self, type)
 
 
-	def importModule(self, cls):
-		instance = cls(self)
+	def importModule(self, cls, args = ''):
+		instance = cls(self, args)
 		self.modules.append(instance)
 		if isinstance(instance, Window):
 			self.modules.insert(0, instance)

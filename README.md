@@ -90,3 +90,21 @@ Use -# instead of - for opposite effect: supported commands marked with !
 !   -s, --shell                                      Shell mode (start CLIsma Shell)
     -l, --low-color                                  Force low color mode (compatibility)
 ```
+
+## What should be in CLIsma before 1.0.0 release:
+
+[ ] Brand new UI class
+[ ] Desktop and all applications rewritten under new UI
+[x] Keyboard support
+[ ] Touchpad support
+[ ] New config format; config class
+[ ] Probably a terminal emulator
+[ ] Configurable save folder (preferably by XDG env variables)
+[x] External apps support
+[ ] New file manager
+[ ] Paint application / ASCII image viewer
+[ ] New settings application
+[ ] Per-app config settings menu
+[ ] Dock separate from desktop
+
+

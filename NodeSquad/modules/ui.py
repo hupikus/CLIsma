@@ -347,7 +347,7 @@ class UI:
         border = StylePack(normal = FXNormal, hover = FXNormal, interact = FXNormal)
     )
 
-    def __init__(self, node):
+    def __init__(self, node, args = ''):
         self.node = node
         self.controller = self.node.controller
         self.draw_func = node.appendStr

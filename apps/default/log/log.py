@@ -3,7 +3,7 @@ from integration.loghandler import Loghandler
 from NodeSquad.modules.window import Window
 class log(Window):
 
-	def __init__(self, node):
+	def __init__(self, node, args = ''):
 		# Base
 		self.node = node
 		self.controller = node.controller

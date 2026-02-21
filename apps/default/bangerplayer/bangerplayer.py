@@ -23,7 +23,7 @@ from .layout import *
 from NodeSquad.modules.window import Window
 class bangerplayer(Window):
 
-    def __init__(self, node):
+    def __init__(self, node, args = ''):
         # Base
         self.node = node
         self.id = node.id

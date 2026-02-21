@@ -1,7 +1,7 @@
 from type.colors import Colors
-from apps.apphabit import apphabit
 
-class textplayer(apphabit):
+from NodeSquad.modules.window import Window
+class textplayer(Window):
 
     def readfile(self, filename):
         with open(filename, 'r') as file:
@@ -18,23 +18,24 @@ class textplayer(apphabit):
 
         #self.oblen = min(height - 1, self.ln - self.scrollpos)
 
-    def __init__(self, id, node, controller, height, width, params):
+    def __init__(self, node, args = ''):
         #base
-        self.id = id
         self.node = node
-        self.height = height
-        self.width = width
+        self.controller = node.controller
+        self.height = node.height
+        self.width = node.width
 
-	    #input
-        self.input_subscriptions = [controller.MouseEvents, controller.MouseWheelEvents]
+
+	# Input
+        self.input_subscriptions = [self.controller.MouseEvents, self.controller.MouseWheelEvents]
 
         self.ui = self.node.ui
 
         self.appname = ''
-        if params != '':
-            self.readfile(params)
+        if args != '':
+            self.readfile(args)
         else:
-            self.ui.art("open", ["--------", "| open |", "--------"], width / 2 - 5, 3, attr = Colors.FXNormal)
+            self.ui.art("open", ["--------", "| open |", "--------"], self.width / 2 - 5, 3, attr = Colors.FXNormal)
 
 
     def draw(self, delta):

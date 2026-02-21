@@ -75,7 +75,7 @@ class desktop(Window):
 		self.space = round( ( self.rightfrom - (5 * self.applen)) / (self.applen + 0.5) ) - 5
 		#                     right panel       apps itself          number of apps
 
-	def __init__(self, node):
+	def __init__(self, node, args = ''):
 		self.node = node
 		self.id = node.id
 		self.controller = node.controller

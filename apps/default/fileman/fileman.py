@@ -10,15 +10,15 @@ from integration.filehandler import Filehandler
 from NodeSquad.modules.window import Window
 class fileman(Window):
 
-    def __init__(self, node):
-		#base
+    def __init__(self, node, args = ''):
+	# Base
         self.node = node
         self.controller = node.controller
         self.height = node.height
         self.width = node.width
 
 
-		#input
+	# Input
         self.input_subscriptions = [
             self.controller.MouseEvents,
             self.controller.MouseWheelEvents,
@@ -27,8 +27,8 @@ class fileman(Window):
 
         self.space = ' ' * self.width
 
-        #file management
-        #as fileman grows it will be moved to separate classes
+        # File management
+        # As fileman grows it will be moved to separate classes
         self.dir = userglobals.userpath
         self.childfolder = userglobals.username
 
@@ -103,7 +103,7 @@ class fileman(Window):
                         #Loghandler.Log(str(self.filelist))
                         #self.node.abort()
 
-    def onresize(self, height, width):
+    def resize(self, height, width):
         self.height = height
         self.width = width
         self.space = ' ' * width

@@ -4,7 +4,7 @@ from integration.loghandler import Loghandler
 
 class UI:
 
-	def __init__(self, node):
+	def __init__(self, node, args = ''):
 		self.node = node
 		self.controller = self.node.controller
 

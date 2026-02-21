@@ -6,7 +6,7 @@ import random
 
 from NodeSquad.modules.window import Window
 class pong(apphabit):
-    def __init__(self, node):
+    def __init__(self, node, args = ''):
         self.node = node
         self.controller = node.controller
         self.height = node.height

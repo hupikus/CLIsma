@@ -11,7 +11,7 @@ class menu(Window):
 		app = App(id)
 		self.node.abort()
 
-	def __init__(self, node):
+	def __init__(self, node, args = ''):
 		#base
 		self.node = node
 		self.controller = node.controller

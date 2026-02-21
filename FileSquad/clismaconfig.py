@@ -158,6 +158,9 @@ def smartParseTable(context, path, parse_array = False, default_type = 'str'):
             if not expr:
                 pass
             elif is_expr_string:
+                if key is None:
+                    allow_key_not_first = True
+                    typeof = 'str'
                 is_expr_string = False
                 val = expr
             elif is_expr_table:
