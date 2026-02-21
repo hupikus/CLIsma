@@ -185,14 +185,15 @@ class bangerplayer(Window):
 
 
     def draw(self, delta):
-        self.node.clear()
+        node = self.node
+        node.clear()
         if not extra:
-            self.node.appendStr(0, 0, "Attention:".center(self.width, ' '), Colors.FXTextRed | Colors.FXBold)
-            self.node.appendStr(1, 0, "You probably do not have CLIsma extras installed.")
-            self.node.appendStr(2, 0, "BANGERPLAYER is the part of that.")
-            self.node.appendStr(3, 0, "Just execute")
-            self.node.appendStr(3, 14, "pip install -r requirements-extra.txt", Colors.FXTextBlue | Colors.FXReverse | Colors.FXBold)
-            self.node.appendStr(4, 0, "in your CLIsma directory.".center(self.width, ' '))
+            node.appendStr(0, 0, "Attention:".center(self.width, ' '), Colors.FXTextRed | Colors.FXBold)
+            node.appendStr(1, 0, "You probably do not have CLIsma extras installed.")
+            node.appendStr(2, 0, "BANGERPLAYER is the part of that.")
+            node.appendStr(3, 0, "Just execute")
+            node.appendStr(3, 14, "pip install -r requirements-extra.txt", Colors.FXTextBlue | Colors.FXReverse | Colors.FXBold)
+            node.appendStr(4, 0, "in your CLIsma directory.".center(self.width, ' '))
             return
         
         current = None

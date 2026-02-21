@@ -14,16 +14,26 @@ class default(Winddow):
 		self.height = node.height
 		self.width = node.width
 
-		# Input
+		# Input (Node class reads this field)
 		self.input_subscriptions = [self.controller.MouseEvents, self.controller.KeyboardEvents]
 
 		# Non api
 		self.counter = 1
 
 		if Colors.colorlen == 256:
-			self.colorPairs = [Colors.colorPair(13), Colors.colorPair(35), Colors.colorPair(55), Colors.colorPair(41)]
+			self.colorPairs = [
+				Colors.colorPair(13),
+				Colors.colorPair(35),
+				Colors.colorPair(55),
+				Colors.colorPair(41)
+			]
 		else:
-			self.colorPairs = [Colors.colorPair(1), Colors.colorPair(4), Colors.colorPair(7), Colors.colorPair(5)]
+			self.colorPairs = [
+				Colors.colorPair(1),
+				Colors.colorPair(4),
+				Colors.colorPair(7),
+				Colors.colorPair(5)
+			]
 
 		self.descriptor = Appconfig.OpenConfig(node.app)
 
@@ -35,14 +45,15 @@ class default(Winddow):
 
 		ui = self.node.ui
 
-		ui.textLine("description", "Default window contains minimal api usage", 2, 0)
+		ui.textLine("description", "Hello world!", 2, 0)
 
 
 	def draw(self, delta):
-		self.node.appendStr(0, 0, '-' * self.width)
-		self.node.appendStr(1, 0, str(self.counter).center(self.width, '-'))
-		self.node.appendStr(0, 0, "This is default window", self.colorPairs[self.counter % 4])
-		self.node.appendStr(3, 0, '-' * self.width)
+		node = self.node
+		node.appendStr(0, 0, '-' * self.width)
+		node.appendStr(1, 0, str(self.counter).center(self.width, '-'))
+		node.appendStr(0, 0, "Default window", self.colorPairs[self.counter % 4])
+		node.appendStr(3, 0, '-' * self.width)
 
 	def click(self, device_id, button, y, x):
 		self.counter += 1

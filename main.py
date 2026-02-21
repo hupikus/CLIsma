@@ -32,7 +32,7 @@ for i in range(len(sys.argv)):
 Usage: main.py --flag1 {required1} (optional2) --flag2 ...
 Run main.py without parameters to run desktop
 Сontrol order of execution by rearranging flags order
-Use -# instead of - for the opposite effect: supported commands marked with !
+Use -# (--#) instead of - (--) for the opposite effect: supported commands marked with !
 Example: main.py -f       -r testapp -#f              -i /path/to/archive testapp
                  ^force   ^remove    ^disable force   ^install                   : Re-install a package\n
 !   -b  --brief                                      Quick common info

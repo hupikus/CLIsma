@@ -26,16 +26,15 @@ class Appconfig:
 
 		with threading.Lock():
 
-			if len(Appconfig.appquery) == 0 or classname not in Appconfig.appquery:
+			if not Appconfig.appquery or classname not in Appconfig.appquery:
 				Appconfig.appquery[classname] = []
 
 			configpath = app.config_path + "config"
 			if not os.path.exists(configpath):
-				os.makedirs(app.config_path, mode=0o777, exist_ok = True)
+				os.makedirs(app.config_path, exist_ok = True)
 				#open(configpath, 'a').close()
 				if os.path.exists(app.filepath + "/config"):
 					copy(app.filepath + "config", configpath)
-					os.chmod(configpath, 0o777)
 				else:
 					return Descriptor.DENIED.value | Appconfig.connection
 

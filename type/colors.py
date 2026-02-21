@@ -16,13 +16,13 @@ class Colors:
     FXHighlight = FXNormal
     FXUnderline = FXNormal
     FXReverse = FXNormal
-    FXReversed = FXNormal
     FXAlt = FXNormal
     FXBlink = FXNormal
     FXInvisible = FXNormal
 
 
-    #Thank you, but actually turns out some of this effects may be missing in specific linux distributions
+    # Thank you, but it turns out that some of these effects may be missing in specific linux distributions.
+    # Saying this as a proud user of bodhi linux.
     try:
         FXBold = curses.A_BOLD
     except:
@@ -45,10 +45,8 @@ class Colors:
         pass
     try:
         FXReverse = curses.A_REVERSE
-        FXReversed = curses.A_REVERSE
     except:
-        FXReverse = FXNormal
-        FXReversed = FXNormal
+        pass
     try:
         FXAlt = curses.A_ALTCHARSET
     except:
@@ -72,7 +70,7 @@ class Colors:
     FXMagenta = curses.COLOR_MAGENTA
     FXCyan = curses.COLOR_CYAN
 
-    FXTextBlack = FXNormal
+    FXTextBlack = FXReverse
     FXTextRed = FXNormal
     FXTextGreen = FXNormal
     FXTextYellow = FXNormal
@@ -83,7 +81,10 @@ class Colors:
 
     FXHash = {
         "normal":curses.A_NORMAL,
-        "norma":curses.A_NORMAL, # Please don't kill me this is temporary here
+        "norma":curses.A_NORMAL,
+        # Please don't kill me this is temporary here
+        # Old UI class has a parsing bug that sometimes parses "normal" tag as "norma" and crashes.
+        # I am not going to fix this, completely new UI class is halfway there.
         "blink":curses.A_BLINK,
         "bold":curses.A_BOLD,
         "pale":curses.A_DIM,
@@ -211,8 +212,8 @@ class Colors:
 
     @staticmethod
     def getColorPair(foreground, background = -1):
-        if foreground == -1: foreground = 0
-        if background == -1: return curses.color_pair(7 + foreground)
+        if foreground < 0: foreground = 0
+        if background < 0: background = 0
         return curses.color_pair(background * 8 + foreground)
 
     @staticmethod

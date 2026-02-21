@@ -139,7 +139,7 @@ class Wm:
 
 				if ln < size:
 					for id in range(ln, size):
-						self.pointers.append(WmMouse(id, self.control, self.display, self, self.trailength))
+						self.pointers.append(WmMouse(id, self))
 						self.active.append(0)
 					if size - ln == 1:
 						Loghandler.Log(f"Cursor with id {size - 1} connected")

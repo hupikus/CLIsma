@@ -3,7 +3,7 @@ class Loghandler:
     loglen = 0
     history = []
 
-    #preferences
+    # Preferences
     MaxLen = 50
 
     @staticmethod
@@ -14,7 +14,7 @@ class Loghandler:
         else:
             Loghandler.history.pop(0)
 
-#incase if developer'll have a typo
+# In case developer makes a typo
 class Lolhandler:
 
     @staticmethod

@@ -6,15 +6,14 @@ import curses
 
 class WmMouse:
 
-    def __init__(self, id, controller, display, wm, trailength, isReversed = False):
+    def __init__(self, id, wm, isReversed = False):
         self.id = id
-        self.controller = controller
-        self.control = controller[id]
+        self.display = wm.display
+        self.controller = wm.control[id]
         self.wm = wm
 
-        self.display = display
-        self.screen_height = display.height
-        self.screen_width = display.width
+        self.screen_height = self.display.height
+        self.screen_width = self.display.width
 
         self.last_draw_y = 0
         self.last_draw_x = 0
@@ -23,7 +22,8 @@ class WmMouse:
         #customization
         self.speed = 1
         self.isReversed = isReversed
-        self.update_trail(trailength)
+        self.trailength = 0
+        self.update_trail(wm.trailength)
 
         self.color = 0
         self.visible = False
@@ -52,7 +52,7 @@ class WmMouse:
 
         for i in self.range[1]:
             self.trail[i] = self.trail[i - 1]
-        self.trail[0] = (self.control.mouse_y, self.control.mouse_x)
+        self.trail[0] = (self.controller.mouse_y, self.controller.mouse_x)
         r = self.trailength
         if self.trail[0] == self.trail[r]: r = 0
 
@@ -108,7 +108,7 @@ class WmMouse:
     def input(self, delta):
 
         #aliases
-        ctr = self.control
+        ctr = self.controller
         wm = self.wm
         dev_id = self.id
 
