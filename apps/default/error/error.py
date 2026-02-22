@@ -4,6 +4,8 @@ from type.colors import Colors
 from NodeSquad.modules.window import Window
 class error(Window):
 
+	def __str__(self):
+		return self.text
 
 	def argparser(self, args):
 		args = args.split()

@@ -86,7 +86,7 @@ class desktop(Window):
 
 		self.preferred_height = 80
 		self.preferred_width = 24
-		self.ismenu = False
+		self.menunode = None
 
 
 		self.neotick = 0
@@ -212,20 +212,31 @@ class desktop(Window):
 			self.to_shutdown("user")
 
 
+		if button == 0:
+			self.node.wm.closeNode(self.menunode)
+			self.menunode = None
+
+
 
 	def menu(self, name, button, device_id):
 		if button == 0:
-			if not self.ismenu:
+			if not self.menunode or self.menunode.closing:
 				try:
-					h = round((self.height - 7) * 0.4)
-					self.menunode = self.node.newNode("apps.default", "menu", self.height - 4 - h, 0, h, round(self.width / 4), '').node
+					h = round((self.height - 7) * 0.5)
+					self.menunode = self.node.wm.newNode(
+						"default/menu",
+						self.height - 4 - h,
+						0,
+						h,
+						round(self.width / 4),
+						self
+					)
 					self.menunode.windowed = False
 				except:
 					pass
 			else:
-				self.node.closeNode(self.menunode)
-			self.ismenu = not self.ismenu
-
+				self.node.wm.closeNode(self.menunode)
+				self.menunode = None
 
 	def dockapp_clicked(self, name, button, device_id):
 		if button == 0:
@@ -235,7 +246,7 @@ class desktop(Window):
 				self.wm.pointers[device_id].focus_id = node.id
 
 	def launchApp(self, app, returned = False):
-		app = self.node.newNodeByApp(app, self.spawny, self.spawnx, 0, 0, '')
+		app = self.node.wm.newNodeByApp(app, self.spawny, self.spawnx, 0, 0, '')
 		self.step()
 		if returned and app: return app.node
 		else: return False

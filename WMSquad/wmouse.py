@@ -11,6 +11,8 @@ class WmMouse:
         self.display = wm.display
         self.controller = wm.control[id]
         self.wm = wm
+        # with wm.lock:
+        wm.node_order_readers += 1
 
         self.screen_height = self.display.height
         self.screen_width = self.display.width
@@ -204,6 +206,13 @@ class WmMouse:
         order = wm.order
 
 
+        # Hard stop
+        if wm.lock_to_clear:
+            with wm.lock:
+                wm.node_order_readers_locked_to_clear += 1
+            return
+
+
         node = None
         node_id = -1
 
@@ -217,7 +226,7 @@ class WmMouse:
             ig = 0
             with wm.lock:
                 for node in reversed(order):
-                    if not node or not node.interactable: continue
+                    if not node or not node.interactable or node.closing: continue
                     break_cycle = False
 
                     node_hover = (
@@ -399,7 +408,7 @@ class WmMouse:
             if node_id != 0:
                 wm.order[-1], wm.order[node_id] = wm.order[node_id], wm.order[-1]
 
-        wm.active[dev_id] = self.focus
+            wm.active[dev_id] = self.focus.id
 
         if node:
             node.input(delta, ctr)
@@ -422,4 +431,5 @@ class WmMouse:
         self.range.append(range(length, 0, -1))
 
     def abort(self):
-        pass
+        with self.wm.lock:
+            self.wm.node_order_readers -= 1

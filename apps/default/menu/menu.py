@@ -1,5 +1,5 @@
 from singletons import Singletons
-from apps.apps import App
+from apps.app import App
 from type.colors import Colors
 
 from integration.loghandler import Loghandler
@@ -11,7 +11,7 @@ class menu(Window):
 		app = App(id)
 		self.node.abort()
 
-	def __init__(self, node, args = ''):
+	def __init__(self, node, args = None):
 		#base
 		self.node = node
 		self.controller = node.controller
@@ -20,7 +20,7 @@ class menu(Window):
 
 		self.node.setDecoration(False)
 
-		self.desktop = self.node.parent
+		self.desktop = args
 
 		#input
 		self.input_subscriptions = [self.controller.MouseEvents, self.controller.MouseWheelEvents]
@@ -80,7 +80,6 @@ class menu(Window):
 
 	def process(self, delta):
 		if not self.node.isActive():
-			self.desktop.ismenu = False
 			self.node.abort()
 
 	def resize(self, height, width):

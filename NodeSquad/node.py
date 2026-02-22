@@ -15,13 +15,13 @@ from integration.loghandler import Loghandler
 
 class Node:
 
-	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "ready_to_close", "closing", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules", "path", "interactable", "args") # Fixed size fields are faster
-	def __init__(self, id, wm, display, from_y = 0, from_x = 0, height = 0, width = 0, app_path = "", args = "", app = None, parent = None):
+	__slots__ = ("id", "name", "wm", "controller", "display", "hidden", "from_y", "from_x", "to_y", "to_x", "height", "width", "preferred_height", "preferred_width", "display_height", "display_width", "node", "child_nodes", "parent", "app", "process_running", "ui", "neoui", "is_fullscreen", "is_maximized", "win", "min_height", "max_height", "min_width", "max_width", "windowed", "sub", "closing", "close_queued", "tasks", "oldsize", "root", "addstr", "addnstr", "chgat", "accent", "modules", "path", "interactable", "args") # Fixed size fields are faster
+	def __init__(self, id, wm, from_y = 0, from_x = 0, height = 0, width = 0, app_path = "", args = "", app = None, parent = None):
 		self.id = id
 		self.wm = wm
 		self.node = self
 		self.controller = wm.control
-		self.display = display
+		self.display = wm.display
 		self.hidden = False
 		self.from_y = from_y
 		self.from_x = from_x
@@ -95,8 +95,8 @@ class Node:
 		self.chgat = self.root.chgat
 
 		# Finished
-		self.ready_to_close = False
 		self.closing = False
+		self.close_queued = False
 
 		# Modules. All custom modules should be avaliable before class is created
 		self.modules = []
@@ -114,14 +114,24 @@ class Node:
 			if app.empty:
 				cls = Window
 			else:
-				if app.pkg_path not in sys.modules:
+				pkg = None
+				if app.pkg_path in sys.modules:
+					pkg = sys.modules[app.pkg_path]
+				else:
 					pkg = importlib.util.module_from_spec(
 						importlib.machinery.ModuleSpec(app.pkg_path, None, is_package=True)
 					)
 					pkg.__path__ = [app.class_path]
 					sys.modules[app.pkg_path] = pkg
 
-				module = importlib.import_module(app.pkg_name)
+
+				module = None
+				if app.pkg_name in sys.modules:
+					module = sys.modules[app.pkg_name]
+				else:
+					module = importlib.import_module(app.pkg_name)
+					sys.modules[app.pkg_name] = module
+
 				cls = getattr(module, app.class_name)
 
 			self.importModule(cls, args)
@@ -437,7 +447,7 @@ class Node:
 		self.to_x = self.from_x + self.width - 1
 
 		self.is_maximized = not self.is_maximized
-		self.win.onresize(self.height, self.width)
+		self.win.resize(self.height, self.width)
 
 
 	def hide(self, state):
@@ -448,55 +458,19 @@ class Node:
 		except Exception as ex:
 			self.errorMessage("collapse", ex)
 
-#Window Manager
-	def newNode(self, path, y = 0, x = 0, height = 0, width = 0, args = None):
-		if self.closing: return
-		if self.id > 0 and len(self.child_nodes) > 13: return False
-
-		if self.id != 0:
-			newin = self.wm.newNode(path, y, x, height, width, args, parent = self)
-		else:
-			newin = self.wm.newNode(path, y, x, height, width, args)
-		self.child_nodes.append(newin.node)
-		return newin
-
-	def newNodeByApp(self, app, y = 0, x = 0, height = 0, width = 0, args = None):
-		if self.closing: return
-		if self.id > 0 and len(self.child_nodes) > 13: return False
-
-		if self.id != 0:
-			newin = self.wm.newNodeByApp(app, y + self.from_y, x + self.from_x, height, width, args, parent = self)
-		else:
-			newin = self.wm.newNodeByApp(app, y + self.from_y, x + self.from_x, height, width, args)
-		self.child_nodes.append(newin.node)
-		return newin
-
-
-	def closeNode(self, node):
-		if self.closing: return
-		self.child_nodes.remove(node)
-		if node != self:
-			node.abort
-
 	def abort(self):
 		if self.closing: return
 		self.closing = True
 		if self.parent and self in self.parent.child_nodes:
 			self.parent.child_nodes.remove(self)
-		try:
-			self.win.abort()
-		except Exception as ex:
-			self.errorMessage("abort", ex)
-		try:
-			if hasattr(self, "win"):
-				del self.win
-		finally:
-			if hasattr(self, "ui"):
-				del self.ui
-			if hasattr(self, "neoui"):
-				self.neoui.abort()
-				del self.neoui
-		self.ready_to_close = True
+		for mod in self.modules:
+			try:
+				mod.abort()
+			except Exception as ex:
+				Loghandler.Log(f"Unexpected error during the abort of {self.name}: {ex}")
+		self.modules.clear()
+		del self.win
+		self.win = None
 
 # Decoration
 

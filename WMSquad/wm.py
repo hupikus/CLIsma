@@ -14,6 +14,8 @@ from integration.loghandler import Loghandler
 
 from worldglobals import worldglobals as wg
 
+import tracemalloc
+
 class Wm:
 
 	def newNode(self, path, y, x, height, width, args = '', parent = None):
@@ -22,7 +24,7 @@ class Wm:
 			self.active[self.last_clicked] = self.id
 			self.pointers[self.last_clicked].focus_id = self.id
 
-		node = Node(self.id, self, self.display, y, x, height, width, path, args, parent)
+		node = Node(self.id, self, y, x, height, width, path, args, parent)
 		with self.lock:
 			self.order.append(node)
 			self.id += 1
@@ -34,7 +36,7 @@ class Wm:
 			self.active[self.last_clicked] = self.id
 			self.pointers[self.last_clicked].focus_id = self.id
 
-		node = Node(self.id, self, self.display, y, x, height, width, app.path, args, app, parent)
+		node = Node(self.id, self, y, x, height, width, app.path, args, app, parent)
 		with self.lock:
 			self.order.append(node)
 			self.id += 1
@@ -42,9 +44,8 @@ class Wm:
 
 	def closeNode(self, node):
 		if not node: return
-		if not node.ready_to_close:
-			node.win.abort()
-		if node not in self.order: return
+		if not node.closing:
+			node.abort()
 
 	def shutdown(self):
 		for node in self.order:
@@ -72,6 +73,13 @@ class Wm:
 		# Thread safety
 		self.lock = threading.Lock()
 		self.close_queue = []
+		self.close_queue_size = 0
+		self.max_close_queue_size = 7
+
+		self.lock_to_clear = False
+		self.node_order_readers = 0
+		self.node_order_readers += 1 # 1 for Draw (Process is control host, input self assigns)
+		self.node_order_readers_locked_to_clear = 0
 
 		self.draw_as_maximized = False
 
@@ -112,16 +120,14 @@ class Wm:
 		self.desktop.node.is_fullscreen = True
 
 
-
-
 		Loghandler.Log("WM initialized")
+
+		tracemalloc.start()
 
 		self.newNode("default/log", 18, 12, 8, 45, '')
 		self.newNode("default/neoui", 4, 65, 25, 125)
 		#self.newNode("default/default", 7, 7, 2, 65, '')
 		#self.newNode("default/error", 18, 12, 5, 45, '-t "Stable Error"')
-
-		# Init finished
 
 
 
@@ -200,18 +206,25 @@ class Wm:
 		elif self.hide_mouse_frames > 0:
 			self.hide_mouse_frames -= 1
 
-		self.draw_as_maximized = self.order[-1].is_maximized
-		if self.draw_as_maximized:
-			self.desktop.draw(delta)
-			self.order[-1].draw(delta)
-		else:
-			for node in self.order:
-				if node.from_x > self.screen_width - 1: continue
-				if node and not node.hidden:
+		if not self.lock_to_clear:
+			self.draw_as_maximized = self.order[-1].is_maximized
+			if self.draw_as_maximized:
+				self.desktop.draw(delta)
+				self.order[-1].draw(delta)
+			else:
+				for node in self.order:
+					if not node or node.hidden: continue
+					if node.closing: continue
+
 					node.draw(delta)
-					#if node.is_maximized or node.is_fullscreen:
-					#	continue
+					if node.id > 0:
+						# if node.is_maximized: continue # Skip decoration
+						if node.is_fullscreen: break # Skip other nodes.
 					self.decoration(node)
+		else:
+			with self.lock:
+				self.node_order_readers_locked_to_clear += 1
+
 
 		# Compat
 		if self.fbmode:
@@ -234,10 +247,40 @@ class Wm:
 	def process(self, delta):
 		for node in self.order:
 			if node:
-				if node.ready_to_close:
-					pass
+				if node.closing:
+					if not node.close_queued:
+						self.close_queue.append(node)
+						node.close_queued = True
+						self.close_queue_size += 1
 				else:
 					node.process(delta)
+
+		if self.close_queue_size >= self.max_close_queue_size:
+			if not self.lock_to_clear:
+				Loghandler.Log("Lock set")
+				self.lock_to_clear = True
+			if self.node_order_readers_locked_to_clear >= self.node_order_readers:
+				Loghandler.Log(f"Freeing the close queue of size {self.max_close_queue_size}.")
+
+				with self.lock:
+					for closing_node in self.close_queue[self.close_queue_size - 1::-1]:
+						self.order.remove(closing_node)
+						del closing_node
+						self.close_queue_size -= 1
+
+					self.close_queue.clear()
+					self.close_queue_size = 0
+					self.node_order_readers_locked_to_clear = 0
+					
+					gc.collect()
+					snapshot = tracemalloc.take_snapshot()
+					top_stats = snapshot.statistics('lineno')
+
+					for stat in top_stats[10::-1]:
+						Loghandler.Log(stat)
+					Loghandler.Log("[ Top 10 ]")
+
+				self.lock_to_clear = False
 
 	def input(self, delta):
 		for pointer in self.pointers:

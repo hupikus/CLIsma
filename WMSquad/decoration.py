@@ -53,6 +53,8 @@ class Decoration():
 			scrwidth = wm.screen_width
 			scrheight = wm.screen_height
 
+			addch = wm.display.root.addch
+
 
 			top = (fy - 1 >= 0)
 
@@ -105,32 +107,50 @@ class Decoration():
 
 					if left:
 						if top:
-							wm.display.root.addch(fy - 1, fx - 1, '┌')
+							addch(fy - 1, fx - 1, '┌')
 						if bottom:
-							wm.display.root.addch(ty + 1, fx - 1, '└')
+							addch(ty + 1, fx - 1, '└')
 					if right:
 						if top:
-							wm.display.root.addch(fy - 1, tx + 1, '┐')
+							addch(fy - 1, tx + 1, '┐')
 						if bottom:
-							wm.display.root.addch(ty + 1, tx + 1, '┘')
+							addch(ty + 1, tx + 1, '┘')
 
 					y = fy if fy >= 0 else 0
 					maxy = scrheight if ty + 1 > scrheight else ty + 1
 
 					while y < maxy:
 						if left:
-							wm.display.root.addch(y, fx - 1, '│')
+							addch(y, fx - 1, '│')
 						if right:
-							wm.display.root.addch(y, tx + 1, '│')
+							addch(y, tx + 1, '│')
 						y += 1
 
 	@staticmethod
 	def thick(preset, node, wm):
-		for y in range(node.from_y, node.to_y):
-			wm.display.root.addch(y, node.from_x - 1, ' ', Colors.FXReverse)
-			wm.display.root.addch(y, node.to_x, ' ', Colors.FXReverse)
-		wm.display.root.addstr(node.from_y - 1, node.from_x - 1, ' ' * (node.width + 2), Colors.FXReverse)
-		wm.display.root.addstr(node.to_y, node.from_x - 1, ' ' * (node.width + 2), Colors.FXReverse)
+		display = wm.display
+		addch = display.root.addch
+		addstr = display.root.addstr
+		left = node.from_x - 2
+		right = display.width - 1 - (node.to_x + 2)
+		for y in range(max(0, node.from_y - 1), min(display.height, node.to_y + 2)):
+			if left >= -1:
+				addch(y, node.from_x - 1, ' ', Colors.FXReverse)
+			if right >= -1:
+				addch(y, node.to_x + 1, ' ', Colors.FXReverse)
+			if left >= 0:
+				addch(y, node.from_x - 2, ' ', Colors.FXReverse)
+			if right >= 0:
+				addch(y, node.to_x + 2, ' ', Colors.FXReverse)
+
+		startx = max(0, node.from_x - 1)
+		endx = min(display.width, node.from_x - 1 + node.width + 2)
+		if node.from_y - 1 >= 0:
+			addstr(node.from_y - 1, startx, ' ' * (endx - startx), Colors.FXReverse)
+		if node.to_y + 1 < display.height:
+			addstr(node.to_y + 1, startx, node.name.center(endx - startx, ' '), Colors.FXReverse)
+			if (endx - startx) > 5:
+				addstr(node.to_y + 1, node.to_x - 7, '- m x')
 
 
 

@@ -47,4 +47,4 @@ class Compatconfig:
             desktop.width = wm.screen_width
             desktop.from_x = 0
             desktop.to_x = wm.screen_width
-        desktop.win.onresize(wm.screen_height, desktop.width)
+        desktop.win.resize(wm.screen_height, desktop.width)

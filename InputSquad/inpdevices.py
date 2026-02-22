@@ -65,48 +65,47 @@ class DeviceHandler:
 	def evdev_scan(self):
 
 		i = 0
-		with threading.Lock():
-			while True:
-				loc = "/dev/input/event" + str(i)
-				if os.path.exists(loc):
-					if not os.access(loc, os.R_OK): continue
-					is_mouse = False
-					is_keyboard = False
-					type = ""
-					ev = open(f"/sys/class/input/event{i}/device/capabilities/ev", 'r')
-					capb = hex_to_bin(ev.read())
-					ev.close()
+		while True:
+			loc = "/dev/input/event" + str(i)
+			if os.path.exists(loc):
+				if not os.access(loc, os.R_OK): continue
+				is_mouse = False
+				is_keyboard = False
+				type = ""
+				ev = open(f"/sys/class/input/event{i}/device/capabilities/ev", 'r')
+				capb = hex_to_bin(ev.read())
+				ev.close()
 
-					ln = len(capb)
-					if type == '' and ln >= EV_REL:
-						rel = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
-						relcapb = hex_to_bin(rel.read())
-						rel.close()
-						if len (relcapb) >= REL_Y and relcapb[REL_Y] == '1' and relcapb[REL_X] == '1':
-							type = "Mouse"
-					if type == '' and ln >= EV_KEY:
-						key = open(f"/sys/class/input/event{i}/device/capabilities/key", 'r')
-						keycapb = hex_to_bin(key.read())
-						key.close()
-						if len(keycapb) >= KEY_SPACE and keycapb[KEY_SPACE] == '1':
-							#if keycapb[KEY_SPACE] == '1':
-							type = "Keyboard"
+				ln = len(capb)
+				if type == '' and ln >= EV_REL:
+					rel = open(f"/sys/class/input/event{i}/device/capabilities/rel", 'r')
+					relcapb = hex_to_bin(rel.read())
+					rel.close()
+					if len (relcapb) >= REL_Y and relcapb[REL_Y] == '1' and relcapb[REL_X] == '1':
+						type = "Mouse"
+				if type == '' and ln >= EV_KEY:
+					key = open(f"/sys/class/input/event{i}/device/capabilities/key", 'r')
+					keycapb = hex_to_bin(key.read())
+					key.close()
+					if len(keycapb) >= KEY_SPACE and keycapb[KEY_SPACE] == '1':
+						#if keycapb[KEY_SPACE] == '1':
+						type = "Keyboard"
 
 
-					if type == "Mouse":
-						self.mouses.append(loc)
-					elif type == "Keyboard":
-						self.keyboards.append(loc)
-				else: break
-				i += 1
+				if type == "Mouse":
+					self.mouses.append(loc)
+				elif type == "Keyboard":
+					self.keyboards.append(loc)
+			else: break
+			i += 1
 
-			midi = "/dev/snd/"
-			if os.path.exists(midi):
-				for dev in os.listdir(midi):
-					if dev[:4] == "midi":
-						devpath = midi + dev
-						if os.access(devpath, os.R_OK):
-							self.midi.append(devpath)
+		midi = "/dev/snd/"
+		if os.path.exists(midi):
+			for dev in os.listdir(midi):
+				if dev[:4] == "midi":
+					devpath = midi + dev
+					if os.access(devpath, os.R_OK):
+						self.midi.append(devpath)
 	
 
 	# For any terminal emulator that supports touch to click (if you don't have the permissions)
@@ -148,58 +147,57 @@ class DeviceHandler:
 	def scan(self):
 		Loghandler.Log(f"Rescan set to every {RESCAN_INTERVAL_SEC} seconds")
 		while self.not_abort:
-			with threading.Lock():
-				self.device_scan()
+			self.device_scan()
 
-				self.mouselen = len(self.mouses)
-				isMouse = self.mouselen > 0
-				isKeyboard = len(self.keyboards) > 0
-				isMidi = len(self.midi) > 0
-				working = isMouse or isKeyboard or isMidi
+			self.mouselen = len(self.mouses)
+			isMouse = self.mouselen > 0
+			isKeyboard = len(self.keyboards) > 0
+			isMidi = len(self.midi) > 0
+			working = isMouse or isKeyboard or isMidi
 
-				self.modules = [self._mouse, self._midi, self._keyboard]
+			self.modules = [self._mouse, self._midi, self._keyboard]
 
-				if not self.isMouse and isMouse:
-					self.isMouse = True
-					if self.mouses[0] == "term-click":
-						self.mouse_class = TermClick(self.mouses, self.controller)
-					else:
-						self.mouse_class = Mice(self.mouses, self.controller)
-					self.mouse_range = range(0)
-					Loghandler.Log("Initialized input modult: mouse")
+			if not self.isMouse and isMouse:
+				self.isMouse = True
+				if self.mouses[0] == "term-click":
+					self.mouse_class = TermClick(self.mouses, self.controller)
+				else:
+					self.mouse_class = Mice(self.mouses, self.controller)
+				self.mouse_range = range(0)
+				Loghandler.Log("Initialized input modult: mouse")
 
-				if not self.isKeyboard and isKeyboard:
-					self.isKeyboard = True
-					self.keyboard_class = Keyboard(self.keyboards, self.controller)
-					Loghandler.Log("Initialized input module: keyboard")
-					Loghandler.Log("Keyboard connected")
+			if not self.isKeyboard and isKeyboard:
+				self.isKeyboard = True
+				self.keyboard_class = Keyboard(self.keyboards, self.controller)
+				Loghandler.Log("Initialized input module: keyboard")
+				Loghandler.Log("Keyboard connected")
 
-				if not self.isMidi and isMidi:
-					self.isMidi = True
-					self.midi_class = Midi(self.midi, self.controller)
-					Loghandler.Log("Initialized input module: midi")
-					Loghandler.Log("Midi keyboard connected")
-
-
-
-				if self.mouse_class:
-					self.mouse_class.edit(self.mouses)
-					if self._update_incall:
-						self._update_incall(self.mouselen)
-					#cache
-					self.mouse_range = range(self.mouselen)
-
-				if self.midi_class:
-					self.midi_class.edit(self.midi)
-				if self.keyboard_class:
-					self.keyboard_class.edit(self.keyboards)
+			if not self.isMidi and isMidi:
+				self.isMidi = True
+				self.midi_class = Midi(self.midi, self.controller)
+				Loghandler.Log("Initialized input module: midi")
+				Loghandler.Log("Midi keyboard connected")
 
 
 
-				if not self.working and working:
-					self.working = True
-					self.input_thread = threading.Thread(target = self._input_loop)
-					self.input_thread.start()
+			if self.mouse_class:
+				self.mouse_class.edit(self.mouses)
+				if self._update_incall:
+					self._update_incall(self.mouselen)
+				#cache
+				self.mouse_range = range(self.mouselen)
+
+			if self.midi_class:
+				self.midi_class.edit(self.midi)
+			if self.keyboard_class:
+				self.keyboard_class.edit(self.keyboards)
+
+
+
+			if not self.working and working:
+				self.working = True
+				self.input_thread = threading.Thread(target = self._input_loop)
+				self.input_thread.start()
 
 			self.scan_exit.wait(RESCAN_INTERVAL_SEC)
 

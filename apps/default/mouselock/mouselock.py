@@ -12,8 +12,8 @@ class mouselock(Window):
 		self.ui = node.ui
 		self.active = False
 		self.button = False
-		self.height = height
-		self.width = width
+		self.height = node.height
+		self.width = node.width
 		self.input_subscriptions = [self.controller.MouseEvents]
 
 		self.inpd = self.node.requestPermission(Permisions.INPUT_DEVICES)

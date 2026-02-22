@@ -22,6 +22,10 @@ class UI:
 
 
 		self.active_field_name = ''
+	
+	def abort(self):
+		self.dragged_sliders.clear()
+		self.active = False
 
 
 	def draw(self):
