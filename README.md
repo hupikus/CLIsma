@@ -1,6 +1,6 @@
 # CLISMA
 
-**CLISMA** is an console-based desktop enviroment. Made mostly for fun using python.
+**CLISMA** is an cowsowe-bawed desktwop enwirownmeownt. Made mostwy fow fun uwusing pwython :3.
 
 > Stands for 'Command-Line-Interface System Manager Accompanier'
 
