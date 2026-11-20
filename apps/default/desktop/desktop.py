@@ -134,7 +134,7 @@ class desktop(Window):
 
 		if self.state == "regular":
 			if isMax:
-				self.node.appendStr(0, 0, self.dekstop_str[3] + self.wm.nodes[self.wm.order[-1]].name)
+				self.node.appendStr(0, 0, self.dekstop_str[3] + self.wm.order[-1].name)
 			else:
 				self.node.appendStr(0, 0, self.dekstop_str[0], Colors.colorPair(2))
 		elif self.state == "shutdown":
