@@ -105,9 +105,10 @@ class midiplayer(Window):
 
 
 			# draw pressed notes over
-			for tone in self.pressed_keys:
+			pressed_copy = self.pressed_keys.copy()
+			for tone in pressed_copy:
 				if tone < self.start_note or tone < 0: continue
-				note = self.pressed_keys[tone]
+				note = pressed_copy[tone]
 
 				posx = tone - self.start_note + xstart
 				tone_offset = max(0, tone - self.start_note)
