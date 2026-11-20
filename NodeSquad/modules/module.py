@@ -1,6 +1,9 @@
 class Module:
-    # Basics
+    node = None
+    height = 0
+    width = 0
 
+    # Basics
     def __init__(self, node):
         self.node = node
         self.height = node.height

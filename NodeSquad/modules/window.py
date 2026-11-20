@@ -12,7 +12,8 @@ class Window(Module):
         self.ui = self.node.ui
 
     def draw(self, delta):
-        self.node.clear()
+        if self.node:
+            self.node.clear()
 
     def resize(self, height, width):
         self.height = height
