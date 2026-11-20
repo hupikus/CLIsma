@@ -6,7 +6,7 @@ import time
 
 from type.colors import Colors
 from NodeSquad.modules.window import Window
-class terminal(Window):
+class sysmonitor(Window):
 
 	def __init__(self, node, args = ''):
 		#base
@@ -47,8 +47,8 @@ class terminal(Window):
 
 	def statUpdate(self):
 		while self.shutdown:
-			self.mem = str(asizeof.asizeof(self.node.wm)) + " B"
-			self.cpu = str(psutil.cpu_percent()) + "% CPU used"
+			self.mem = str(asizeof.asizeof(self.node.wm)) + " B Allocated"
+			self.cpu = str(psutil.cpu_percent()) + "% of CPU Used"
 			time.sleep(self.interval)
 
 	def abort(self):

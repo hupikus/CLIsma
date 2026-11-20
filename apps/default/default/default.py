@@ -10,7 +10,7 @@ from integration.appconfig import Appconfig
 
 # Parent class
 from NodeSquad.modules.window import Window
-class default(Winddow):
+class default(Window):
 
 	# Required to have init
 	def __init__(self, node, args = ''):
