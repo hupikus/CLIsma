@@ -33,8 +33,8 @@ class Appconfig:
 			if not os.path.exists(configpath):
 				os.makedirs(app.config_path, exist_ok = True)
 				#open(configpath, 'a').close()
-				if os.path.exists(app.filepath + "/config"):
-					copy(app.filepath + "config", configpath)
+				if os.path.exists(app.file_path + "/config"):
+					copy(app.file_path + "config", configpath)
 				else:
 					return Descriptor.DENIED.value | Appconfig.connection
 
