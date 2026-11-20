@@ -17,7 +17,8 @@ class Wmconfig:
 
     @staticmethod
     def setDesktopRefresh(val):
-        Wmconfig.wm.desktop.refresh = val
+        pass
+        #Wmconfig.wm.desktop.refresh = val
 
 
 class DesktopConfig:

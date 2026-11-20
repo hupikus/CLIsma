@@ -13,8 +13,10 @@ from NodeSquad.modules.window import Window
 class midiplayer(Window):
 
 	def __init__(self, node, args = ''):
-		#base
+		# Base
 		self.node = node
+		self.height = self.node.height
+		self.width = self.node.width
 		self.ui = node.ui
 		self.controller = node.controller
 
@@ -39,7 +41,7 @@ class midiplayer(Window):
 		self.max_keyboard_width = 14 * 9 # 9 octaves
 		self.keyboard_height = 7
 
-		self.resize(height, width)
+		self.resize(self.height, self.width)
 
 		#cache
 		self.pressed_keys = {}

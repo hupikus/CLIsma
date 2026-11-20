@@ -3,11 +3,16 @@ from type.descriptor import Descriptor
 from type.keys import Keys
 
 from integration.loghandler import Loghandler
+from integration.screencast import Screencast
 
 #from FileSquad.sprite import SpriteData
 
 from NodeSquad.modules.window import Window
 class neoui(Window):
+
+	def write_screencast(self, data):
+		with open("cast.asc", 'w') as f:
+			f.write(data)
 
 	def __init__(self, node, args = ''):
 		# Base
@@ -58,10 +63,14 @@ class neoui(Window):
 		self.canvas.Add(btn)
 
 
+
 		#field = ui.InputField() #style = self.button_style)
 		#self.canvas.Add(field)
 
 		#spr = SpriteData()
+
+	def click(self, dev_id, button, y, x):
+		Screencast.CaptureScreen(self.write_screencast, self.node.wm.display, 0, 0, 0, 0, color = False)
 
 	def drag(self, device_id, button, stage, y, x):
 		self.txt.Move(y, x)

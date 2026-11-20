@@ -179,14 +179,12 @@ class Wm:
 			pointer.screen_width = width
 
 
-
-		des = Node(0, self, self.display, 0, 0, height, width, "default/desktop", self)
-		with self.lock:
-			self.order[0] = des
-		#self.delNode(self.desktop)
-		self.desktop = des.win
+		self.closeNode(self.desktop)
+		self.desktop = self.newNode(self.desktop_name, 0, 0, self.screen_height, self.screen_width, args = self)
 		self.desktop.wm = self
 		self.desktop.node.is_fullscreen = True
+		with self.lock:
+			self.order[0] = self.desktop
 
 
 	def decoration(self, node):

@@ -247,7 +247,7 @@ class Node:
 
 		if x + new_ln >= self.width:
 			r_offcut -= (x + new_ln) - self.width
-			# new_ln -= (x + new_ln) - self.width ; but this is unneccesary
+			#new_ln -= (x + new_ln) - self.width ; but this is unneccesary
 
 
 		if l_offcut == 0 and r_offcut == ln:
@@ -258,9 +258,34 @@ class Node:
 			self.addstr(fromy, fromx, text[l_offcut:r_offcut], attr)
 
 
+		# Experimental (screen capture)
+
+		if self.display.record:
+			display = self.display
+			d_ry = display.record_y
+			if fromy < d_ry: return
+			if fromy >= d_ry + display.record_h: return
+	
+			rec_data = display.record_data
+
+			ypos = (fromy - d_ry) * display.record_w
+			xpos = fromx
+			d = display.record_x - xpos
+			if d < 0:
+				xpos -= d
+				l_offcut -= d
+
+			d = display.record_w - (r_offcut - l_offcut)
+			if d < 0:
+				r_offcut += d
+
+			for ch in text[l_offcut:r_offcut]:
+				rec_data[ypos + xpos] = ch
+				xpos += 1
 
 
-	# Method looks finished but isnt tested
+
+	# Method looks finished but isn't tested
 	def setAttr(self, y, x, num, attr):
 		if y < 0 or y >= self.height: return
 		fromy = y + self.from_y

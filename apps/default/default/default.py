@@ -1,12 +1,18 @@
+# Curses wrapper for colored terminals
 from type.colors import Colors
-from type.descriptor import Descriptor
-
+# Send logs.
 from integration.loghandler import Loghandler
+
+# When trying to open a config file, descriptor is returned.
+from type.descriptor import Descriptor
+# To open and edit config values
 from integration.appconfig import Appconfig
 
+# Parent class
 from NodeSquad.modules.window import Window
 class default(Winddow):
 
+	# Required to have init
 	def __init__(self, node, args = ''):
 		# Base
 		self.node = node
