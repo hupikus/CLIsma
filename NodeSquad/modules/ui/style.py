@@ -1,28 +1,20 @@
 from type.colors import Colors
+_FXNormal = Colors.FXNormal
 
 class StylePack():
-    normal = None
-    hover = None
-    interact = None
-    def __init__(self, normal, hover, interact):
+    def __init__(self, normal = _FXNormal, hover = _FXNormal, interact = _FXNormal):
         self.normal = normal
         self.hover = hover
         self.interact = interact
 
 class UIStyle():
-    normal = None
-    background = None
-    border = None
-    def __init__(self, normal, background, border):
+    def __init__(self, normal = _FXNormal, background = _FXNormal, border = _FXNormal):
         self.normal = normal
         self.background = background
         self.border = border
 
-_FXNormal = Colors.FXNormal
 DefaultStyle = UIStyle(
-    normal = StylePack(normal = _FXNormal, hover = _FXNormal, interact = _FXNormal),
-
-    background = StylePack(normal = _FXNormal, hover = _FXNormal, interact = _FXNormal),
-
-    border = StylePack(normal = _FXNormal, hover = _FXNormal, interact = _FXNormal)
-    )
+    normal = StylePack(),
+    background = StylePack(),
+    border = StylePack()
+)
