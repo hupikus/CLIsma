@@ -25,21 +25,22 @@ class menu(Window):
 		#input
 		self.input_subscriptions = [self.controller.MouseEvents, self.controller.MouseWheelEvents]
 
-		self.apps = Singletons.appp.GetAppInstances()
+		self.apps = sorted(Singletons.appp.GetAppInstances().values(), key = lambda app: app.name)
 		self.display = []
 		self.clickapp = {}
 		self.scrollpos = 0
 		letter = ''
 		self.line = 2
-		for name in sorted(self.apps.keys()):
+		for app in self.apps:
+			name = app.name
 			#Loghandler.Log((self.apps[name].name))
 			if name == "desktop": continue
 			if name[0].capitalize() != letter:
 				letter = name[0].capitalize()
 				self.display.append(letter)
 				self.line += 1
-			self.display.append((self.apps[name].name))
-			self.clickapp[self.line] = name
+			self.display.append((name))
+			self.clickapp[self.line] = app
 			self.line += 1
 		self.viewlen = min(self.height, self.line - 2)
 
@@ -72,7 +73,7 @@ class menu(Window):
 		yr = y + self.scrollpos
 		if button == 0:
 			if yr in self.clickapp:
-				self.desktop.launchApp(self.apps[self.clickapp[yr]])
+				self.desktop.launchApp(self.clickapp[yr])
 
 	def scroll(self, id, delta):
 		self.viewlen = min(self.height, self.line - 2)
