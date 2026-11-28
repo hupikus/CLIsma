@@ -1,12 +1,18 @@
 from type.colors import Colors
 
 class StylePack():
+    normal = None
+    hover = None
+    interact = None
     def __init__(self, normal, hover, interact):
         self.normal = normal
         self.hover = hover
         self.interact = interact
 
 class UIStyle():
+    normal = None
+    background = None
+    border = None
     def __init__(self, normal, background, border):
         self.normal = normal
         self.background = background

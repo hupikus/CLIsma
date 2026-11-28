@@ -52,15 +52,15 @@ class UI:
     # Input listeners
 
     def keyPress(self, key):
-        if not self.keyboardFocus: return True
+        if not self.keyboardFocus: return
         self.keyboardFocus.keyPress(key)
 
     def keyRelease(self, key):
-        if not self.keyboardFocus: return True
+        if not self.keyboardFocus: return
         self.keyboardFocus.keyRelease(key)
 
     def keyType(self, key):
-        if not self.keyboardFocus: return True
+        if not self.keyboardFocus: return
         self.keyboardFocus.keyType(key)
 
     # UI elements
