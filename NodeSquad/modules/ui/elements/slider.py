@@ -1,4 +1,6 @@
-from . import UIElement
+from .ui_element import UIElement
+from ..action import Action
+
 from type.colors import Colors
 from integration.loghandler import Loghandler
 
@@ -146,14 +148,13 @@ class Slider(UIElement):
 
         event = False
 
-        Actions = UI.Action
-        action = Actions.Empty
+        action = Action.Empty
 
         hover = self.hover
 
         for state in buttons:
             # Just clicked (state 3)
-            if state == UI.Action.Click and hover:
+            if state == Action.Click and hover:
                 self.clicked = True
                 if self.vertical:
                     self.pos = mouse_y - starty
@@ -162,7 +163,7 @@ class Slider(UIElement):
                 event = True
                 action = state
 
-            elif (state == Actions.StartDrag and hover) or (state == Actions.Drag and self.dragged):
+            elif (state == Action.StartDrag and hover) or (state == Action.Drag and self.dragged):
                 self.dragged = True
                 if self.vertical:
                     self.pos = mouse_y - starty
@@ -175,7 +176,7 @@ class Slider(UIElement):
                 event = True
                 action = state
 
-            elif state == Actions.EndDrag:
+            elif state == Action.EndDrag:
                 self.dragged = False
 
             button += 1

@@ -1,4 +1,5 @@
-from . import UIElement
+from .ui_element import UIElement
+
 from type.colors import Colors
 from integration.loghandler import Loghandler
 

@@ -1,47 +1,11 @@
-from enum import Enum
-
+from copy import copy
 from type.colors import Colors
-from type.keys import Keys
 from integration.loghandler import Loghandler
-
-from . import elements
+from .elements import *
 
 class UI:
-
     # 2 attribute holders
-
-    class StylePack():
-        def __init__(self, normal, hover, interact):
-            self.normal = normal
-            self.hover = hover
-            self.interact = interact
-
-    class UIStyle():
-        def __init__(self, normal, background, border):
-            self.normal = normal
-            self.background = background
-            self.border = border
-
-    # Event actions enum
-
-    class Action():
-        Empty = 0
-        Press = 1
-        Click = 3
-        StartDrag = 4
-        Drag = 5
-        EndDrag = 6
-        Scroll = 7
-
-
-    FXNormal = Colors.FXNormal
-    DefaultStyle = UIStyle(
-        normal = StylePack(normal = FXNormal, hover = FXNormal, interact = FXNormal),
-
-        background = StylePack(normal = FXNormal, hover = FXNormal, interact = FXNormal),
-
-        border = StylePack(normal = FXNormal, hover = FXNormal, interact = FXNormal)
-    )
+    from .style import UIStyle, StylePack, DefaultStyle
 
     def __init__(self, node, args = ''):
         self.node = node
@@ -54,13 +18,8 @@ class UI:
         self.accent = node.accent
         self.normal = Colors.FXNormal
 
-        self.DefaultStyle = UI.UIStyle(
-            normal = UI.StylePack(normal = Colors.FXNormal, hover = Colors.FXNormal, interact = Colors.FXNormal),
-
-            background = UI.StylePack(normal = Colors.FXNormal, hover = Colors.FXNormal, interact = Colors.FXNormal),
-
-            border = UI.StylePack(normal = self.accent, hover = Colors.FXNormal, interact = Colors.FXNormal)
-        )
+        self.DefaultStyle = copy(UI.DefaultStyle)
+        self.DefaultStyle.border.normal = self.accent
 
         self.keyboardFocus = None
 
@@ -110,3 +69,11 @@ class UI:
 
     # Yet to be implemented:
     # Sprite; WrappedText; InputBox; ListView; GridView; ScrollView; SequenceView.
+
+    Canvas = elements.Canvas
+    ClickArea = elements.ClickArea
+    Text = elements.Text
+    Button = elements.Button
+    Slider = elements.Slider
+    RadioButton = elements.RadioButton
+    InputField = elements.InputField
